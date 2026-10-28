@@ -1,0 +1,21 @@
+# Environment files -- never commit secrets
+.env
+.env.local
+.env.*.local
+
+.venv/
+__pycache__/
+
+.next/
+out/
+.tmp-dbtest/
+.kilo/
+*.log
+*.txt
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+# Next.js generated CSS module artifacts (e.g. s23.css)
+s*.css
+
+node_modules/
+.next/

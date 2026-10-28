@@ -1,0 +1,33 @@
+name: SurpriseQR Cron
+
+on:
+  schedule:
+    # วิ่งทุกวัน 02:00 UTC (09:00 ICT) — ป้องกัน Supabase Free project หยุดทำงานหลังไม่มี activity 7 วัน
+    - cron: "0 2 * * *"
+    # อนุญาตให้รันด้วยตนเองจากแท็บ Actions ได้
+  workflow_dispatch:
+
+env:
+  # CRON_SECRET ต้องตั้งไว้ใน GitHub Settings → Secrets and variables → Actions
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call cleanup endpoint
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.VERCEL_PRODUCTION_URL }}/api/cron/cleanup" \
+            -H "Authorization: Bearer ${{ env.CRON_SECRET }}")
+          echo "cleanup status: $RESPONSE"
+          if [ "$RESPONSE" != "200" ]; then exit 1; fi
+
+      - name: Call cleanup-drafts endpoint
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "${{ secrets.VERCEL_PRODUCTION_URL }}/api/cron/cleanup-drafts" \
+            -H "Authorization: Bearer ${{ env.CRON_SECRET }}")
+          echo "cleanup-drafts status: $RESPONSE"
+          if [ "$RESPONSE" != "200" ]; then exit 1; fi

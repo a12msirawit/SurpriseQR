@@ -1,0 +1,57 @@
+warning: in the working copy of 'src/app/cards/[id]/edit/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/templates/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/cards/card-viewer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/dashboard/motion-wrapper.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/qr-code/CustomQRCode.tsx', LF will be replaced by CRLF the next time Git touches it
+ .gitignore                                         |    4 [32m+[m
+ DESIGN_SYSTEM.md                                   |   72 [31m-[m
+ PROGRESS.md                                        |  287 [31m-[m
+ next.config.ts                                     |   17 [32m+[m[31m-[m
+ node_modules/.package-lock.json                    |   12 [32m+[m
+ planQR.md.txt                                      |   99 [31m-[m
+ public/templates/galaxy.png                        |  Bin [31m112865[m -> [32m0[m bytes
+ public/templates/rose.png                          |  Bin [31m112865[m -> [32m0[m bytes
+ public/templates/simple.png                        |  Bin [31m112865[m -> [32m0[m bytes
+ s23.css                                            | 5625 [31m--------------------[m
+ src/app/admin/actions.ts                           |   41 [32m+[m[31m-[m
+ src/app/api/admin/templates/[id]/route.ts          |   26 [32m+[m
+ src/app/api/cards/[id]/route.ts                    |  110 [32m+[m[31m-[m
+ src/app/api/cards/create/route.ts                  |   75 [32m+[m[31m-[m
+ src/app/api/payments/package/route.ts              |   65 [32m+[m[31m-[m
+ src/app/api/payments/submit/route.ts               |    2 [32m+[m[31m-[m
+ src/app/cards/[id]/edit/page.tsx                   |   27 [32m+[m[31m-[m
+ src/app/cards/actions.ts                           |  428 [32m+[m[31m-[m
+ src/app/dashboard/create/page.tsx                  | 1531 [32m++++[m[31m--[m
+ src/app/dashboard/drafts/page.tsx                  |    7 [32m+[m[31m-[m
+ src/app/dashboard/page.tsx                         |    4 [32m+[m[31m-[m
+ src/app/templates/page.tsx                         |   18 [32m+[m[31m-[m
+ src/components/admin/admin-template-table.tsx      |   48 [32m+[m[31m-[m
+ src/components/admin/template-manager.tsx          |   13 [32m+[m
+ src/components/cards/card-editor.tsx               |  601 [32m++[m[31m-[m
+ src/components/cards/card-viewer.tsx               |  305 [32m+[m[31m-[m
+ src/components/dashboard/card-list.tsx             |  277 [32m+[m[31m-[m
+ src/components/dashboard/motion-wrapper.tsx        |    4 [32m+[m[31m-[m
+ src/components/dashboard/template-showcase.tsx     |   96 [32m+[m[31m-[m
+ src/components/dashboard/tier-status-card.tsx      |   50 [32m+[m[31m-[m
+ src/components/payment/PaymentModal.tsx            |  101 [32m+[m[31m-[m
+ src/components/qr-code/CustomQRCode.tsx            |   18 [32m+[m[31m-[m
+ src/components/templates/RomanticRose.tsx          |   70 [31m-[m
+ src/components/templates/template-browser.tsx      |   57 [31m-[m
+ src/components/topup/topup-form.tsx                |   30 [32m+[m[31m-[m
+ src/data/templates.ts                              |  169 [32m+[m[31m-[m
+ src/hooks/useCardMediaState.ts                     |    2 [32m+[m[31m-[m
+ src/lib/cards/create-card-core.ts                  |  213 [32m+[m[31m-[m
+ src/lib/image-compression.ts                       |   59 [32m+[m[31m-[m
+ src/lib/storage-client.ts                          |   36 [32m+[m
+ src/lib/template-components.ts                     |   36 [32m+[m[31m-[m
+ src/lib/template-resolution.ts                     |   89 [32m+[m[31m-[m
+ src/lib/templates.ts                               |    4 [32m+[m[31m-[m
+ src/lib/tierRules.ts                               |  110 [32m+[m[31m-[m
+ src/types/database.ts                              |   30 [32m+[m[31m-[m
+ src/types/templates.ts                             |  135 [32m+[m[31m-[m
+ templat.txt                                        |  983 [31m----[m
+ tsconfig.tsbuildinfo                               |    2 [32m+[m[31m-[m
+ ...\211\340\270\262\340\270\207 code surprise.txt" |   12 [31m-[m
+ ...71\200\340\270\236\340\270\245\340\270\225.txt" | 1023 [31m----[m
+ ...70\242\340\271\204\340\270\224\340\271\211.txt" |   73 [31m-[m
+ 51 files changed, 3611 insertions(+), 9485 deletions(-)

@@ -1,0 +1,139 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Gift, UserPlus, AlertCircle, Check } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import GoogleLoginButton from "@/components/auth/google-login-button";
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    setLoading(true);
+
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (signUpError) {
+        console.error('Auth Exception (signUp):', signUpError);
+        setError(signUpError.message);
+        return;
+      }
+
+      if (data.session) {
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      setMessage("ตรวจสอบอีเมลของคุณเพื่อยืนยันบัญชี");
+    } catch (error) {
+      console.error('Auth Exception (signUp):', error);
+      setError('เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#06030c] p-4">
+      <div className="w-full max-w-md space-y-6 rounded-3xl border border-space-border glass-panel bg-white/5 p-8 backdrop-blur-xl">
+        <div className="flex justify-center">
+          <Gift className="w-12 h-12 text-space-accent" />
+        </div>
+        
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-white">สร้างบัญชี</h1>
+          <p className="text-slate-400">เข้าร่วม SurpriseQR วันนี้</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+              อีเมล
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-space-border text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-space-accent/30 transition-all"
+              placeholder="your@email.com"
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              รหัสผ่าน
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={6}
+              required
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-space-border text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-space-accent/30 transition-all"
+              placeholder="••••••••"
+            />
+          </div>
+          {error && (
+            <div className="flex items-center gap-2 text-red-400 bg-red-500/10 p-3 rounded-xl border border-red-500/30">
+              <AlertCircle className="w-5 h-5" />
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+          {message && (
+            <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-xl">
+              <Check className="w-5 h-5" />
+              <p className="text-sm">{message}</p>
+            </div>
+          )}
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full px-6 py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <UserPlus className="w-5 h-5" />
+            {loading ? "กำลังสร้างบัญชี..." : "สร้างบัญชี"}
+          </button>
+        </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-space-border" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-[#06030c] text-slate-400">หรือ</span>
+          </div>
+        </div>
+
+        <GoogleLoginButton />
+
+        <p className="text-center text-slate-600">
+          มีบัญชีอยู่แล้ว?{" "}
+          <Link href="/login" className="text-rose-600 hover:text-rose-700 font-semibold">
+            เข้าสู่ระบบ
+          </Link>
+        </p>
+      </div>
+    </main>
+  );
+}

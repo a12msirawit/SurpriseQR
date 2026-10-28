@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a0d20"/>
+      <stop offset="0.5" stop-color="#4a1127"/>
+      <stop offset="1" stop-color="#2c0a18"/>
+    </linearGradient>
+    <radialGradient id="env" cx="0.4" cy="0.3" r="1.2">
+      <stop offset="0" stop-color="#c03a72"/>
+      <stop offset="0.55" stop-color="#8c244c"/>
+      <stop offset="1" stop-color="#6e1b3d"/>
+    </radialGradient>
+    <linearGradient id="seal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ec4899"/>
+      <stop offset="1" stop-color="#be185d"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" fill="url(#bg)"/>
+  <circle cx="120" cy="80" r="2.5" fill="#fbcfe8" opacity="0.8"/>
+  <circle cx="520" cy="60" r="2" fill="#f9a8d4" opacity="0.7"/>
+  <circle cx="420" cy="400" r="3" fill="#fbcfe8" opacity="0.6"/>
+  <circle cx="60" cy="380" r="2" fill="#f9a8d4" opacity="0.7"/>
+  <circle cx="320" cy="40" r="2" fill="#fbcfe8" opacity="0.5"/>
+  <text x="520" y="160" font-size="54" text-anchor="middle" opacity="0.85">💗</text>
+  <text x="130" y="330" font-size="48" text-anchor="middle" opacity="0.85">💖</text>
+
+  <!-- Envelope -->
+  <g transform="translate(180 120)">
+    <rect x="0" y="40" width="280" height="200" rx="16" fill="#6e1b3d" stroke="#fbcfe8" stroke-opacity="0.35" stroke-width="1.5"/>
+    <rect x="14" y="56" width="252" height="168" rx="10" fill="url(#env)"/>
+    <rect x="28" y="180" width="112" height="34" rx="8" fill="#fffdf7" opacity="0.92"/>
+    <rect x="148" y="180" width="94" height="34" rx="8" fill="#fffdf7" opacity="0.92"/>
+    <path d="M0 40 L140 190 L280 40 Z" fill="#a1285a"/>
+    <path d="M0 40 L140 190 L0 240 Z" fill="#b02f63"/>
+    <path d="M280 40 L140 190 L280 240 Z" fill="#a1285a"/>
+    <!-- Flap -->
+    <path d="M0 40 L140 190 L280 40 Q140 -18 0 40 Z" fill="#bd3569"/>
+    <!-- Seal -->
+    <circle cx="140" cy="196" r="30" fill="url(#seal)" stroke="#fbcfe8" stroke-opacity="0.6" stroke-width="2"/>
+    <text x="140" y="205" font-size="26" text-anchor="middle" fill="#fff">♥</text>
+  </g>
+
+  <text x="320" y="390" font-size="44" text-anchor="middle" fill="#fbcfe8" font-family="Georgia, serif">Anniversary Surprise</text>
+  <text x="320" y="428" font-size="20" text-anchor="middle" fill="#f9a8d4" font-family="Segoe UI, sans-serif">ซองจดหมายลอยน้ำ · PIN · 7 หน้าจอของขวัญ</text>
+</svg>
