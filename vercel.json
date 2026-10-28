@@ -1,25 +1,4 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next-build"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/_next/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/(.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico))$",
-      "headers": {
-        "Cache-Control": "public, max-age=86400"
-      }
-    }
-  ],
   "crons": [
     {
       "path": "/api/cron/keep-alive",
@@ -28,13 +7,5 @@
   ],
   "regions": [
     "sin1"
-  ],
-  "functions": {
-    "pages/**/*.{js,ts,jsx,tsx}": {
-      "maxDuration": 10
-    },
-    "api/**/*.{js,ts,jsx,tsx}": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }
