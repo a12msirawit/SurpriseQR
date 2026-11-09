@@ -1,7 +1,7 @@
 import type { SurpriseQRData } from "@/types/templates";
 
-/** Canonical creation-flow template slugs. */
-export type TemplateSlug = "anniversary-surprise";
+/** Canonical template slugs. Must match the `slug` column in public.templates. */
+export type TemplateSlug = "anniversary-surprise" | "candles" | "storyline";
 
 export interface TemplateDefinition {
   id: string;
@@ -99,6 +99,95 @@ export const defaultSurpriseQRData: SurpriseQRData = {
   },
 };
 
+/** Default content for the Blow Candles (birthday) template. */
+export const defaultBlowCandlesData: SurpriseQRData = {
+  settings: {
+    enablePin: true,
+    pinCode: "1234",
+    isPaid: false,
+    envelopeStyle: 1,
+    warpDurationEnvelopeMs: 2500,
+    warpDurationOptionMs: 2000,
+  },
+  content: {
+    title: "สุขสันต์วันเกิด 🎂",
+    menu: {
+      subTitle: "คำอวยพรจากหัวใจ",
+      title: "เป่าเทียนขอพร",
+      card1Icon: "🎂",
+      card1Title: "คำอวยพร",
+      card1Desc: "ขอให้มีความสุขมากๆ นะครับ",
+      card2Icon: "🎁",
+      card2Title: "ของขวัญ",
+      card2Desc: "ของขวัญจากใจให้คุณ",
+      card3Icon: "🕯️",
+      card3Title: "เป่าเทียน",
+      card3Desc: "เป่าเทียนเพื่อขอพร",
+    },
+    bgMusic: { type: "url", src: "" },
+    letter: {
+      title: "สุขสันต์วันเกิด",
+      paragraphs: [
+        "ขอให้วันเกิดปีนี้เต็มไปด้วยความสุข",
+        "และความรักจากคนรอบข้างนะครับ",
+        "เป่าเทียนแล้วขอพรอะไรก็ขอให้สมปรารถนา",
+      ],
+      headerImages: [{ type: "url", src: "/templates/surprise-qr.svg" }],
+    },
+    memories: {
+      sectionTitle: "ความทรงจำดีๆ",
+      filmstripImages: [{ type: "url", src: "/templates/surprise-qr.svg" }],
+      polaroidImages: [{ type: "url", src: "/templates/surprise-qr.svg" }],
+      description: "ภาพความทรงจำประทับใจ",
+    },
+    flowers: {
+      subTitle: "ดอกไม้จากใจ",
+      title: "ช่อดอกไม้",
+      message: "มอบดอกไม้ให้ในวันพิเศษ",
+      highlightText: "ความสุขและการเติบโต",
+    },
+    songMedia: {
+      mediaType: "auto",
+      src: "",
+      audioSrc: "",
+      songTitle: "เพลงวันเกิด",
+      songArtist: "",
+      sectionTitle: "สำหรับคุณ",
+      accentImages: [{ type: "url", src: "/templates/surprise-qr.svg" }],
+    },
+    finale: {
+      heroImage: { type: "url", src: "/templates/surprise-qr.svg" },
+      mainText: "สุขสันต์วันเกิด",
+      subText: "Happy Birthday 🎂",
+    },
+  },
+};
+
+/** Default content for the Storyline anniversary template. */
+export const defaultStorylineData: SurpriseQRData = {
+  ...defaultSurpriseQRData,
+  settings: { ...defaultSurpriseQRData.settings, enablePin: false, pinCode: "" },
+  content: {
+    ...defaultSurpriseQRData.content,
+    title: "เรื่องราวของเรา",
+    letter: {
+      title: "ถึงคนพิเศษ",
+      paragraphs: ["ทุกช่วงเวลาที่มีเธอ คือความทรงจำที่ฉันอยากเก็บไว้ตลอดไป"],
+      headerImages: [],
+    },
+    memories: {
+      ...defaultSurpriseQRData.content.memories,
+      filmstripImages: [],
+      polaroidImages: [],
+    },
+    finale: {
+      ...defaultSurpriseQRData.content.finale,
+      mainText: "เรื่องราวของเรา",
+      subText: "ขอบคุณที่อยู่ด้วยกันเสมอ ❤️",
+    },
+  },
+};
+
 export const templateCatalog: TemplateDefinition[] = [
   {
     id: "anniversary-surprise",
@@ -124,6 +213,43 @@ export const templateCatalog: TemplateDefinition[] = [
       "10000000-0000-4000-8000-000000000006",
     ],
     defaults: defaultSurpriseQRData,
+  },
+  {
+    id: "candles",
+    slug: "candles",
+    title: "Blow Candles",
+    category: "birthday",
+    priceCredits: 0,
+    image: "/templates/surprise-qr.svg",
+    previewVideo: undefined,
+    gallery: ["/templates/surprise-qr.svg"],
+    longDescription:
+      "การ์ดจุดเทียนวันเกิด — ซองจดหมายลอยน้ำ พิน 4 หลัก และระบบเป่าเทียน",
+    features: [
+      "จุด/เป่าเทียนอัตโนมัติด้วยไมโครโฟน",
+      "โหมดแตะสำรอง",
+      "บันทึกภาพการจุดเทียนลง Canvas",
+    ],
+    aliases: [
+      "candles",
+      "วันเกิด",
+      // Production Blow Candles row UUID (seed migration 20261103000001).
+      "10000000-0000-4000-8000-000000000007",
+    ],
+    defaults: defaultBlowCandlesData,
+  },
+  {
+    id: "storyline",
+    slug: "storyline",
+    title: "Storyline",
+    category: "love",
+    priceCredits: 0,
+    image: "/templates/storyline.svg",
+    gallery: ["/templates/storyline.svg"],
+    longDescription: "การ์ดเล่าเรื่องราวความทรงจำ ผ่านหน้าปก ภาพถ่าย และจดหมายส่วนตัว",
+    features: ["เรื่องราว 3 ฉาก", "เพิ่มภาพความทรงจำได้ 3 ภาพ", "ข้อความจากผู้สร้างถึงผู้รับ"],
+    aliases: ["storyline", "story-line", "เรื่องราว", "10000000-0000-4000-8000-000000000008"],
+    defaults: defaultStorylineData,
   },
 ];
 
@@ -151,16 +277,22 @@ export function getTemplateSlugById(id?: string): TemplateSlug | null {
  */
 export function matchTemplateSlugByTitle(title?: string): TemplateSlug | null {
   const lower = (title ?? "").toLowerCase();
+  if (lower.includes("storyline") || lower.includes("story-line") || lower.includes("เรื่องราว")) {
+    return "storyline";
+  }
+  if (lower.includes("blow candles") || lower.includes("candles") || lower.includes("วันเกิด")) {
+    return "candles";
+  }
   if (lower.includes("anniversary") || lower.includes("วันครบรอบ") || lower.includes("ซองจดหมาย")) {
     return "anniversary-surprise";
   }
   return null;
 }
 
-export const getTemplateSlugByTitle = (title?: string): TemplateSlug =>
-  matchTemplateSlugByTitle(title) ?? "anniversary-surprise";
+export const getTemplateSlugByTitle = (title?: string): TemplateSlug | null =>
+  matchTemplateSlugByTitle(title);
 
-export const getTemplateById = (id?: string, title?: string): TemplateDefinition => {
+export const getTemplateById = (id?: string, title?: string): TemplateDefinition | undefined => {
   const byIdSlug = getTemplateSlugById(id);
   if (byIdSlug) {
     const match = templateCatalog.find((item) => item.slug === byIdSlug);
@@ -169,6 +301,9 @@ export const getTemplateById = (id?: string, title?: string): TemplateDefinition
   const byTitle = templateCatalog.find((item) => item.title.toLowerCase() === (title ?? "").toLowerCase());
   if (byTitle) return { ...byTitle, image: getTemplateThumbnail(byTitle.image) };
   const byKeywords = matchTemplateSlugByTitle(title);
-  const match = (byKeywords ? templateCatalog.find((item) => item.slug === byKeywords) : undefined) ?? templateCatalog[0];
-  return { ...match, image: getTemplateThumbnail(match.image) };
+  if (byKeywords) {
+    const match = templateCatalog.find((item) => item.slug === byKeywords);
+    if (match) return { ...match, image: getTemplateThumbnail(match.image) };
+  }
+  return undefined;
 };

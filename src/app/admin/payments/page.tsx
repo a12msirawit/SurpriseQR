@@ -31,7 +31,7 @@ export default async function AdminPaymentsPage() {
               <h1 className="bg-gradient-to-r from-fuchsia-400 to-purple-400 bg-clip-text text-transparent text-2xl font-bold md:text-3xl">
                 ตรวจสอบสลิปชำระเงิน
               </h1>
-              <p className="mt-1 text-sm text-slate-400">ตรวจสอบเวลาโอนและเลขท้ายบัญชีเทียบกับสลิปก่อนอนุมัติ</p>
+              <p className="mt-1 text-sm text-slate-400">ตรวจสอบเวลาที่แจ้งโอนและสลิปก่อนอนุมัติ</p>
             </div>
           </div>
         </header>

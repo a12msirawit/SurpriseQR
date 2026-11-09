@@ -28,7 +28,7 @@ export const SURPRISE_QR_ENGINE_HTML = `<!DOCTYPE html>
 <title>Surprise QR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Mitr:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600;700&family=Dancing+Script:wght@400;600;700&family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Kanit:wght@300;400;500;600;700;800&family=Mitr:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600;700&family=Charm:wght@400;700&family=Charmonman:wght@400;700&family=Itim&family=Pridi:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -54,7 +54,7 @@ tailwind.config = {
 }
 html,body{ margin:0; padding:0; height:100%; }
 body{
-  font-family:'Prompt','Sarabun',sans-serif;
+  font-family:'Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,sans-serif;
   color:#fdf2f8;
   background:
     radial-gradient(1200px 700px at 70% -10%, rgba(236,72,153,.28), transparent 60%),
@@ -63,8 +63,8 @@ body{
   background-attachment: fixed;
   overflow:hidden;
 }
-.font-script{ font-family:'Great Vibes','Dancing Script',cursive; }
-.font-serif{ font-family:'Playfair Display',serif; }
+.font-script{ font-family:'Great Vibes','Dancing Script','Charm','Charmonman','Itim','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,cursive,sans-serif; }
+.font-serif{ font-family:'Playfair Display','Pridi','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,serif; }
 .sq-screen{
   position:fixed; inset:0; display:none; overflow:auto;
   -webkit-overflow-scrolling:touch; background:transparent;
@@ -106,7 +106,7 @@ body{
   justify-content:center; gap:26px; padding:0 20px; text-align:center;
 }
 .sq-greeting{
-  font-family:'Great Vibes','Dancing Script',cursive;
+  font-family:'Great Vibes','Dancing Script','Charm','Charmonman','Itim','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,cursive,sans-serif;
   font-size:clamp(30px,6vw,52px); color:#fbcfe8; margin:0;
   text-shadow:0 2px 20px rgba(236,72,153,.5); line-height:1.2;
 }
@@ -267,11 +267,11 @@ body{
   content:''; position:absolute; inset:10px; border:1px dashed rgba(219,39,119,.35); border-radius:14px;
 }
 .sq-letter-title{
-  font-family:'Great Vibes','Dancing Script',cursive;
+  font-family:'Great Vibes','Dancing Script','Charm','Charmonman','Itim','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,cursive,sans-serif;
   font-size:clamp(26px,5vw,38px); color:#be185d; margin:0 0 12px; text-align:center;
 }
 .sq-letter-body p{
-  font-family:'Sarabun','Prompt',sans-serif; font-size:17px; line-height:2.05;
+  font-family:'Sarabun','Prompt','Kanit','Leelawadee UI',Tahoma,sans-serif; font-size:17px; line-height:2.05;
   margin:0 0 14px; white-space:pre-line;
 }
 /* ============ Memories ============ */
@@ -366,14 +366,14 @@ body{
 .sq-scroll.sq-finale{ position:relative; z-index:2; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:14px; }
 .sq-hero-kicker{ font-size:40px; margin:0; }
 .sq-finale-main{
-  font-family:'Playfair Display',serif;
+  font-family:'Playfair Display','Pridi','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,serif;
   font-size:clamp(38px,9vw,88px); font-weight:900; letter-spacing:.06em; line-height:1.05;
   margin:0; color:#fff;
   background:linear-gradient(120deg, #fdf2f8 20%, #f9a8d4 45%, #fecdd3 70%, #fdf2f8 90%);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   filter:drop-shadow(0 6px 22px rgba(236,72,153,.45));
 }
-.sq-finale-sub{ font-family:'Great Vibes','Dancing Script',cursive; font-size:clamp(24px,5vw,40px); color:#fbcfe8; margin:0; }
+.sq-finale-sub{ font-family:'Great Vibes','Dancing Script','Charm','Charmonman','Itim','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,cursive,sans-serif; font-size:clamp(24px,5vw,40px); color:#fbcfe8; margin:0; }
 .sq-finale-actions{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:22px; }
 .sq-btn{
   background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.35); color:#fff;
@@ -1775,6 +1775,9 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     SQ.paid = !!SQ.config.settings.isPaid;
     if (EngineEditMode && EngineShowAdmin){ buildAdmin(); }
     sync();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function(){ sync(); });
+    }
     showScreen(1);
     tryAutoMusic();
     window.addEventListener('pointerdown', onFirstGesture);

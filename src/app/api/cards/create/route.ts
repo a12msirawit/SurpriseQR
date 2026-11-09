@@ -77,6 +77,8 @@ type Metadata = {
 };
 
 const MAX_MEDIA_FILE_BYTES = 1024 * 1024;
+const MAX_STORYLINE_VIDEO_BYTES = 20 * 1024 * 1024;
+const STORYLINE_VIDEO_MIME_TYPES = new Set(["video/mp4", "video/webm"]);
 
 function parseJson<T>(value: FormDataEntryValue | null, fallback: T): T {
   if (typeof value !== "string") return fallback;
@@ -126,6 +128,7 @@ export async function POST(request: Request) {
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    await supabase.rpc("expire_my_package_entitlements");
     if (await isUserBanned(user.id)) {
       return NextResponse.json({ error: "บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ" }, { status: 403 });
     }
@@ -207,6 +210,15 @@ export async function POST(request: Request) {
     }
 
     for (const [key, value] of formData.entries()) {
+      if (key === "storyline_video_file" && isFile(value)) {
+        if (value.size > MAX_STORYLINE_VIDEO_BYTES) {
+          return NextResponse.json({ error: "ไฟล์วิดีโอต้องมีขนาดไม่เกิน 20 MB" }, { status: 400 });
+        }
+        if (!STORYLINE_VIDEO_MIME_TYPES.has(value.type)) {
+          return NextResponse.json({ error: "รองรับไฟล์วิดีโอ MP4 หรือ WebM เท่านั้น" }, { status: 400 });
+        }
+        continue;
+      }
       if (isFile(value) && value.size > MAX_MEDIA_FILE_BYTES) {
         return NextResponse.json(
           { error: `${key} must be 1 MB or smaller` },
@@ -324,8 +336,8 @@ export async function POST(request: Request) {
       amountToDeduct += storageCost;
     }
 
-    const uploadFile = async (file: File, folder: "images" | "audio") => {
-      const path = `${folder}/${user.id}/${Date.now()}_${safeFileName(file)}`;
+    const uploadFile = async (file: File, folder: "images" | "audio" | "videos") => {
+      const path = `${user.id}/${folder}/${Date.now()}_${safeFileName(file)}`;
       const { error } = await supabase.storage.from("card-media").upload(path, file, {
         contentType: file.type || "application/octet-stream",
         upsert: false,
@@ -349,6 +361,27 @@ export async function POST(request: Request) {
     const cardAudio = formData.get("card_audio") ?? formData.get("audio");
     const imageUrl = isFile(cardImage) ? await uploadFile(cardImage, "images") : null;
     const audioUrl = isFile(cardAudio) ? await uploadFile(cardAudio, "audio") : null;
+    const storylineVideoFile = formData.get("storyline_video_file");
+    if (isFile(storylineVideoFile)) {
+      const storylineVideoUrl = await uploadFile(storylineVideoFile, "videos");
+      if (content && typeof content === "object") {
+        const contentRecord = content as Record<string, unknown>;
+        const modelValue = contentRecord.storylineModel;
+        if (modelValue && typeof modelValue === "object") {
+          const model = modelValue as Record<string, unknown>;
+          const storyScenes = Array.isArray(model.storyScenes) ? [...model.storyScenes] : null;
+          const videoScene = storyScenes?.[1];
+          if (videoScene && typeof videoScene === "object") {
+            storyScenes![1] = {
+              ...(videoScene as Record<string, unknown>),
+              videoSource: "mp4",
+              videoUrl: storylineVideoUrl,
+            };
+            contentRecord.storylineModel = { ...model, storyScenes };
+          }
+        }
+      }
+    }
     const expiresAt = storageType === "14_days"
       ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
       : null;

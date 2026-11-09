@@ -20,6 +20,9 @@ export async function getProfile(): Promise<Profile | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  // Apply the 7-day post-expiry cleanup before server actions use this profile.
+  await supabase.rpc("expire_my_package_entitlements");
+
   const { data } = await supabase
     .from("profiles")
     .select("*")

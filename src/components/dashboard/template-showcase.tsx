@@ -104,7 +104,7 @@ export default function TemplateShowcase({ templates }: TemplateShowcaseProps) {
               <TemplateCard
                 key={template.id}
                 template={template}
-                fallbackImage={getTemplateById(template.id).image || "/templates/surprise-qr.svg"}
+                fallbackImage={(getTemplateById(template.id)?.image) || "/templates/surprise-qr.svg"}
               />
             ))}
           </div>

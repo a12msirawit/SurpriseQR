@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Sparkles, Gift, AlertCircle, Music, Image as ImageIcon, Clock, Heart, ThumbsUp, Smile, ArrowLeft, ArrowRight } from "lucide-react";
+import { Lock, Sparkles, Gift, AlertCircle, Music, Clock, Heart, ThumbsUp, Smile, ArrowLeft, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
-import type { Card, UserTier, CardScene, ReactionType, DatabaseSceneType } from "@/types/database";
+import type { Card, UserTier, ReactionType, DatabaseSceneType } from "@/types/database";
 import { verifyCardPin, incrementCardViewCount, submitCardReaction } from "@/app/c/[hash_id]/actions";
 
-import SurpriseQR from "@/components/cards/SurpriseQR";
+import { getTemplateComponent, TemplateNotFoundFallback } from "@/lib/template-components";
+import { getTemplateSlugById } from "@/data/templates";
 import { defaultSurpriseQRData } from "@/data/templates";
 import type { SurpriseQRData } from "@/types/templates";
 import {
@@ -296,17 +297,6 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
   const embeddedContent = parseJsonObject(card.message);
   const renderStrategy = resolveTemplateRenderStrategy(card, embeddedContent);
   const embeddedScenes = Array.isArray(embeddedContent.scenes) ? embeddedContent.scenes : [];
-  const resolvedScenes = scenes.length > 0 ? scenes : embeddedScenes.map((scene, index) => {
-    const item = scene as Record<string, unknown>;
-    return {
-      id: getStringValue(item.id),
-      card_id: card.id,
-      scene_order: Number(item.scene_order) || index,
-      scene_type: (getStringValue(item.scene_type) || "text") as DatabaseSceneType,
-      content: getStringValue(item.content ?? item.body ?? item.title),
-      created_at: getStringValue(item.created_at) || new Date().toISOString(),
-    };
-  });
 
   // Check unlock_at countdown
   useEffect(() => {
@@ -326,7 +316,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
 
   // Increment view count when the card is opened. The two full-bleed template
   // strategies render without the generic gates, so they count on mount.
-  const isImmersiveStrategy = renderStrategy === "anniversary-surprise";
+  const isImmersiveStrategy = renderStrategy === "anniversary-surprise" || renderStrategy === "storyline";
   useEffect(() => {
     if ((isOpened || isImmersiveStrategy) && !error) {
       incrementCardViewCount(hashId);
@@ -459,17 +449,98 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
     );
   }
 
-  // Full-bleed template strategies render ONLY the template itself: each one
-  // owns its landing screen and PIN keypad, so the generic PIN / tap-to-open
-  // gates and the badge/QR chrome are intentionally skipped here.
-  if (renderStrategy === "anniversary-surprise") {
+  // Resolve the template component for this card. Each template renders itself;
+  // Anniversary Surprise keeps its iframe engine, candles and future templates
+  // get their own dedicated components. No silent fallback to Anniversary Surprise.
+  const templateSlug = getTemplateSlugById(card.template_id);
+  const TemplateComponent = templateSlug ? getTemplateComponent(templateSlug) : null;
+
+  function buildTemplateConfig(card: Card, embeddedContent: Record<string, unknown>): unknown {
+    const slug = templateSlug;
+    if (slug === "anniversary-surprise") {
+      return buildSurpriseQRData(card, embeddedContent);
+    }
+    if (slug === "candles") {
+      return {
+        recipientName: card.recipient_name,
+        senderName: card.sender_name,
+        message:
+          typeof embeddedContent.message === "string"
+            ? embeddedContent.message
+            : typeof embeddedContent.wishMessage === "string"
+              ? embeddedContent.wishMessage
+              : card.message,
+        wishMessage:
+          (typeof embeddedContent.wishMessage === "string"
+            ? embeddedContent.wishMessage
+            : typeof embeddedContent.message === "string"
+              ? embeddedContent.message
+              : "") || card.message,
+        audio_url: card.audio_url,
+        image_url: card.image_url,
+        photos: Array.isArray(embeddedContent.photos) ? embeddedContent.photos : [],
+      };
+    }
+    if (slug === "storyline") {
+      return { storylineModel: embeddedContent.storylineModel };
+    }
+    return {
+      recipientName: card.recipient_name,
+      senderName: card.sender_name,
+      message: card.message,
+      audio_url: card.audio_url,
+      image_url: card.image_url,
+    };
+  }
+
+  // Anniversary Surprise owns its PIN flow. Blow Candles is a public birthday
+  // experience and must not show the generic PIN screen from this viewer.
+  if (renderStrategy === "anniversary-surprise" && TemplateComponent) {
     return (
       <div className="h-[100dvh] w-screen overflow-hidden">
-        <SurpriseQR
-          config={buildSurpriseQRData(card, embeddedContent)}
+        <TemplateComponent
+          config={buildTemplateConfig(card, embeddedContent)}
           expectedPin={card.pin_code ?? ""}
+          hashId={hashId}
         />
       </div>
+    );
+  }
+
+  if (renderStrategy === "storyline" && TemplateComponent) {
+    return (
+      <div className="h-[100dvh] w-screen overflow-hidden">
+        <TemplateComponent config={buildTemplateConfig(card, embeddedContent)} hashId={hashId} />
+      </div>
+    );
+  }
+
+  if (renderStrategy === "candles" && TemplateComponent) {
+    return (
+      <div className="h-[100dvh] w-screen overflow-hidden">
+        <TemplateComponent
+          config={buildTemplateConfig(card, embeddedContent)}
+          hashId={hashId}
+          expectedPin={card.pin_code ?? ""}
+          pinRequired={Boolean(card.pin_code)}
+        />
+      </div>
+    );
+  }
+
+  if (TemplateComponent && pinVerified && isOpened) {
+    return (
+      <div className="h-[100dvh] w-screen overflow-hidden">
+        <TemplateComponent config={buildTemplateConfig(card, embeddedContent)} hashId={hashId} />
+      </div>
+    );
+  }
+
+  if (!TemplateComponent) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-4 bg-[#06030c]">
+        <TemplateNotFoundFallback message={`ไม่พบคอมโพเนนต์สำหรับเทมเพลต "${card.template_id}"`} />
+      </main>
     );
   }
 

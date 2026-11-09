@@ -3,36 +3,38 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Gift, Heart, QrCode, Sparkles, Star } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { startGoogleOAuth } from "@/lib/auth/google-oauth";
 
 export default function HomePage() {
   const [googleLoading, setGoogleLoading] = useState(false);
-  const supabase = createClient();
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   async function handleGoogleLogin() {
+    setGoogleError(null);
     setGoogleLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      await startGoogleOAuth();
+    } catch (cause) {
+      console.error("Google OAuth start failed:", cause);
+      setGoogleError("เริ่มเข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองอีกครั้ง");
+      setGoogleLoading(false);
+    }
   }
 
   return (
-    <main className="relative isolate min-h-screen overflow-hidden bg-transparent px-[1cm] py-6 text-slate-100">
+    <main className="relative isolate min-h-screen min-h-[100dvh] overflow-hidden bg-transparent px-4 py-5 text-slate-100 sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-space-accent/10" />
       <div className="pointer-events-none absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-space-glow/10" />
       <div className="pointer-events-none absolute right-[18%] top-[18%] h-24 w-24 rounded-full border-2 border-space-border bg-space-accent/10" />
 
-      <nav className="relative mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <nav className="relative mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-space-accent to-space-purple text-white shadow-lg shadow-space-accent/20 ring-1 ring-space-border">
             <QrCode className="h-6 w-6" />
           </div>
-          <span className="text-xl font-black tracking-tight text-white">SurpriseQR</span>
+          <span className="text-lg font-black tracking-tight text-white sm:text-xl">SurpriseQR</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={handleGoogleLogin}
@@ -47,21 +49,22 @@ export default function HomePage() {
             </svg>
             {googleLoading ? "กำลังเปลี่ยนทาง..." : "เข้าสู่ระบบด้วย Google"}
           </button>
-          <Link href="/login" className="btn-gradient rounded-xl px-8 py-4 text-xl font-black text-white transition hover:-translate-y-0.5">
+          <Link href="/login" className="btn-gradient rounded-xl px-4 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-xl">
             เข้าสู่ระบบ
           </Link>
-          <Link href="/register" className="hidden rounded-xl border border-space-border bg-white/5 px-8 py-4 text-xl font-black text-slate-200 transition hover:bg-white/20 hover:border-space-accent/50 hover:text-space-accent sm:inline-flex">
+          <Link href="/register" className="hidden rounded-xl border border-space-border bg-white/5 px-5 py-3.5 text-base font-black text-slate-200 transition hover:bg-white/20 hover:border-space-accent/50 hover:text-space-accent sm:inline-flex lg:px-8 lg:py-4 lg:text-xl">
             สมัครสมาชิก
           </Link>
         </div>
       </nav>
+      {googleError && <p role="alert" className="relative mx-auto mt-3 w-full max-w-7xl text-right text-sm text-rose-300">{googleError}</p>}
 
-      <div className="relative mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-7xl grid-cols-1 items-center justify-center gap-8 py-14 lg:grid-cols-2 lg:gap-12 lg:py-20 px-[1cm]">
+      <div className="relative mx-auto grid min-h-[calc(100vh-5rem)] min-h-[calc(100dvh-5rem)] w-full max-w-7xl grid-cols-1 items-center justify-center gap-10 py-12 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:py-20">
         <section className="flex flex-col justify-center">
           <div className="mb-7 inline-flex w-fit items-center gap-2 rounded-full border border-space-border glass-panel bg-white/5 px-4 py-2 text-sm font-semibold text-space-accent shadow-sm">
             <Sparkles className="h-4 w-4" /> ของขวัญที่ส่งต่อความรู้สึก
           </div>
-          <h1 className="max-w-xl text-5xl font-black leading-[1.05] tracking-tight sm:text-7xl">
+          <h1 className="max-w-xl text-[clamp(2.25rem,8vw,4.5rem)] font-black leading-[1.05] tracking-tight">
             ความทรงจำดี ๆ
             <span className="mt-2 block text-space-accent text-glow">เริ่มต้นที่นี่</span>
           </h1>
@@ -69,7 +72,7 @@ export default function HomePage() {
             สร้างและแชร์การ์ดของขวัญผ่าน QR Code อย่างมีความหมาย
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link href="/dashboard" className="btn-gradient inline-flex w-fit items-center justify-center gap-2 rounded-xl px-8 py-5 text-xl font-black text-white transition hover:-translate-y-1">
+            <Link href="/dashboard" className="btn-gradient inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-lg font-black text-white transition hover:-translate-y-1 sm:w-fit sm:px-8 sm:py-5 sm:text-xl">
               เริ่มเลย <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -83,7 +86,7 @@ export default function HomePage() {
             <div className="rounded-[1.5rem] bg-gradient-to-br from-[#1a0f2e] via-[#0f0820] to-[#06030c] border border-space-border p-7 sm:p-9">
               <div className="flex items-center justify-between text-space-accent"><Gift className="h-7 w-7" /><Heart className="h-5 w-5 fill-current" /></div>
               <p className="mt-14 text-sm font-semibold uppercase tracking-[0.25em] text-white/60">ของขวัญสำหรับ</p>
-              <h2 className="mt-2 text-4xl font-black text-white">คนพิเศษของคุณ</h2>
+              <h2 className="mt-2 text-3xl font-black text-white sm:text-4xl">คนพิเศษของคุณ</h2>
               <div className="mt-10 flex items-end justify-between gap-4">
                 <p className="max-w-[12rem] text-sm leading-6 text-white/70">ทุกความรู้สึกมีเรื่องราวให้เปิดอ่าน</p>
                 <div className="rounded-xl bg-white p-2 shadow-lg"><QrCode className="h-20 w-20 text-space-purple" /></div>

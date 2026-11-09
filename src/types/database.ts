@@ -76,6 +76,10 @@ export interface Profile {
   package_tier?: string | null;
   /** When the active package's media entitlement lapses (NULL/<=NOW -> free). */
   package_expires_at?: string | null;
+  /** A prepaid renewal for the next cycle; activated when its effective date arrives. */
+  scheduled_package_tier?: string | null;
+  scheduled_package_effective_at?: string | null;
+  scheduled_package_paid_amount?: number | null;
   created_at: string;
   is_banned?: boolean;
 }
@@ -149,6 +153,7 @@ export interface Payment {
   add_on_applied_at: string | null;
   status: PaymentStatus;
   reject_reason: string | null;
+  package_credit_applied?: number;
   approved_at: string | null;
   claimed_transfer_time?: string | null;
   claimed_bank_account_last4?: string | null;
@@ -183,6 +188,9 @@ export interface Database {
           quota_reset_at?: string;
           package_tier?: string | null;
           package_expires_at?: string | null;
+          scheduled_package_tier?: string | null;
+          scheduled_package_effective_at?: string | null;
+          scheduled_package_paid_amount?: number | null;
           created_at?: string;
         };
         Update: {
@@ -195,6 +203,9 @@ export interface Database {
           quota_reset_at?: string;
           package_tier?: string | null;
           package_expires_at?: string | null;
+          scheduled_package_tier?: string | null;
+          scheduled_package_effective_at?: string | null;
+          scheduled_package_paid_amount?: number | null;
         };
       };
       templates: {
@@ -336,6 +347,7 @@ export interface Database {
           credits_granted?: number;
           status?: PaymentStatus;
           reject_reason?: string | null;
+          package_credit_applied?: number;
           approved_at?: string | null;
           payment_type?: PaymentType;
           package_type?: PackageType | null;
@@ -351,6 +363,7 @@ export interface Database {
           credits_granted?: number;
           status?: PaymentStatus;
           reject_reason?: string | null;
+          package_credit_applied?: number;
           approved_at?: string | null;
           payment_type?: PaymentType;
           card_id?: string | null;
@@ -428,6 +441,19 @@ export interface Database {
           custom_url_quota?: number;
           quota_expires_at?: string | null;
         };
+      };
+      submit_package_payment: {
+        Args: {
+          p_package_type: string;
+          p_amount: number;
+          p_slip_url: string;
+          p_claimed_transfer_time: string;
+        };
+        Returns: { id: string; status: string; amount: number };
+      };
+      expire_my_package_entitlements: {
+        Args: Record<PropertyKey, never>;
+        Returns: void;
       };
     };
   };

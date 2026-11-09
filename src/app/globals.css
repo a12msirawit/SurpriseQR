@@ -7,8 +7,8 @@
 	--color-space-accent: #ff69b4;
 	--color-space-purple: #8a2be2;
 	--color-space-glow: #b15eff;
-	--font-prompt: "Prompt", sans-serif;
-	--font-jakarta: "Plus Jakarta Sans", sans-serif;
+	--font-prompt: "Prompt", "Kanit", "Sarabun", "Leelawadee UI", Tahoma, sans-serif;
+	--font-jakarta: "Plus Jakarta Sans", "Prompt", "Kanit", "Sarabun", "Leelawadee UI", Tahoma, sans-serif;
 	--animate-float: float 6s ease-in-out infinite;
 	--animate-glow: glow 3s ease-in-out infinite alternate;
 	--animate-sparkle: sparkle 2s ease-in-out infinite;
@@ -114,15 +114,37 @@ html {
 	background: #06030c;
 	overflow-x: hidden;
 	scroll-behavior: smooth;
+	-webkit-text-size-adjust: 100%;
 }
 
 body {
 	min-height: 100vh;
+	min-height: 100dvh;
+	min-width: 320px;
 	background: #06030c;
 	color: #f1f5f9;
-	font-family: "Prompt", sans-serif;
+	font-family: "Prompt", "Kanit", "Sarabun", "Leelawadee UI", Tahoma, sans-serif;
 	overflow-x: hidden;
 	line-height: 1.55;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+img, video, canvas, svg { max-width: 100%; }
+
+/* Prevent iOS Safari from zooming the page when a form field receives focus. */
+@media (max-width: 767px) {
+	input, textarea, select { font-size: max(16px, 1em); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html { scroll-behavior: auto; }
+	*, *::before, *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }
 
 ::selection { background: rgb(255 105 180 / 30%); color: #fbcfe8; }

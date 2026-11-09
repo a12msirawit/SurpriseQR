@@ -12,6 +12,8 @@ export async function GET() {
       return NextResponse.json({ credits: 0, tier: "free", permanent_card_quota: 0, premium_template_quota: 0, isGuest: true }, { status: 200 });
     }
 
+    await supabase.rpc("expire_my_package_entitlements");
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("credits, tier, permanent_quota, premium_quota")

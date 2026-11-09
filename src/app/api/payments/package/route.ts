@@ -63,8 +63,20 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Package payment RPC error:", error);
+      if (error.message.includes("already scheduled")) {
+        return NextResponse.json({ error: "คุณมีแพ็กเกจรอบถัดไปรอเริ่มอยู่แล้ว" }, { status: 409 });
+      }
+      if (error.message.includes("already pending review")) {
+        return NextResponse.json({ error: "มีรายการซื้อแพ็กเกจรอผู้ดูแลตรวจสอบอยู่แล้ว" }, { status: 409 });
+      }
+      if (error.message.includes("Cannot downgrade")) {
+        return NextResponse.json({ error: "แพ็กปัจจุบันสูงกว่าแพ็กที่เลือก ต้องรอให้หมดอายุก่อนจึงจะลดแพ็กได้" }, { status: 409 });
+      }
+      if (error.message.includes("Renewal is available")) {
+        return NextResponse.json({ error: "ต่อแพ็กเดิมได้เมื่อเหลือไม่เกิน 7 วันก่อนหมดอายุ" }, { status: 409 });
+      }
       if (error.message.includes("Insufficient credits")) {
-        return NextResponse.json({ error: "You do not have enough credits for this package." }, { status: 402 });
+        return NextResponse.json({ error: "ยอดเครดิตไม่พอสำหรับแพ็กนี้ กรุณาเลือกชำระผ่าน QR" }, { status: 402 });
       }
       if (error.message.includes("Profile not found")) {
         return NextResponse.json({ error: "User profile could not be found." }, { status: 404 });

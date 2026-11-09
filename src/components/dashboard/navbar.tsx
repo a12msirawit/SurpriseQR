@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, CreditCard, Gift, Menu, ShieldCheck, UserCircle2, X } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { startGoogleOAuth } from "@/lib/auth/google-oauth";
 import IncomeGuideModal from "@/components/dashboard/income-guide-modal";
 import LogoutButton from "@/components/auth/logout-button";
 
@@ -23,20 +23,22 @@ const navLinks = [
 export default function Navbar({ user, isAdmin, displayName }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const supabase = createClient();
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   function closeMenu() {
     setMenuOpen(false);
   }
 
   async function handleGoogleLogin() {
+    setGoogleError(null);
     setGoogleLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      await startGoogleOAuth();
+    } catch (cause) {
+      console.error("Google OAuth start failed:", cause);
+      setGoogleError("เริ่มเข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองอีกครั้ง");
+      setGoogleLoading(false);
+    }
   }
 
   return (
@@ -86,6 +88,7 @@ export default function Navbar({ user, isAdmin, displayName }: NavbarProps) {
               </svg>
               {googleLoading ? "กำลังเปลี่ยนทาง..." : "เข้าสู่ระบบด้วย Google"}
             </button>
+            {googleError && <span role="alert" className="max-w-48 text-xs leading-5 text-rose-300">{googleError}</span>}
             <Link href="/login" className="rounded-xl px-3 py-1.5 text-base font-bold text-slate-100 transition-all duration-200 hover:bg-white/10 hover:text-space-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-space-accent">เข้าสู่ระบบ</Link>
             <Link href="/register" className="btn-gradient rounded-xl px-3 py-1.5 text-base font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-space-accent">สมัครสมาชิก</Link>
           </div>}
@@ -124,6 +127,7 @@ export default function Navbar({ user, isAdmin, displayName }: NavbarProps) {
                   </svg>
                   {googleLoading ? "กำลังเปลี่ยนทาง..." : "เข้าสู่ระบบด้วย Google"}
                 </button>
+                {googleError && <p role="alert" className="px-3 text-sm text-rose-300">{googleError}</p>}
                 <Link href="/login" onClick={closeMenu} className="flex min-h-[44px] items-center rounded-xl px-3 text-base font-bold text-slate-100 hover:bg-white/10 hover:text-space-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-space-accent">เข้าสู่ระบบ</Link>
                 <Link href="/register" onClick={closeMenu} className="btn-gradient flex min-h-[44px] items-center justify-center rounded-xl px-3 text-base font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-space-accent">สมัครสมาชิก</Link>
               </>}

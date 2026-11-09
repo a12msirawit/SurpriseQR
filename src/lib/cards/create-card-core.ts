@@ -418,7 +418,8 @@ export async function createCardCore(
   const tier = profile.tier_raw;
   // Media entitlements are time-boxed by the ACTIVE package window: when the
   // package has lapsed (package_expires_at <= NOW() / NULL) the limits fall
-  // back to free-tier defaults, while accumulated quotas are untouched.
+  // back to free-tier defaults; unused quota balances are retained for 7 days,
+  // then cleared by the profile expiry cleanup.
   const mediaTier = resolveMediaTier({
     tier,
     packageTier: profile.package_tier,

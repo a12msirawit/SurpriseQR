@@ -155,6 +155,10 @@ export default async function TopupPage() {
     amount: `฿${Number(payment.amount).toFixed(2)}`,
     status: payment.status,
   }));
+  const pendingPackagePurchase = (payments ?? []).find(
+    (payment) => payment.status === "pending" && Boolean(payment.package_type),
+  );
+  const pendingPackageCreditApplied = Number(pendingPackagePurchase?.package_credit_applied ?? 0);
 
   return (
     <main className="min-h-screen bg-[#06030c] p-4 md:p-8">
@@ -191,7 +195,18 @@ export default async function TopupPage() {
           </div>
         </div>
 
-        <PaymentModal open embedded currentTier={profile.tier} />
+        <PaymentModal
+          open
+          embedded
+          currentTier={profile.tier}
+          currentPackageTier={profile.package_tier ?? null}
+          packageExpiresAt={profile.package_expires_at ?? null}
+          scheduledPackageTier={profile.scheduled_package_tier ?? null}
+          scheduledPackageEffectiveAt={profile.scheduled_package_effective_at ?? null}
+          scheduledPackagePaidAmount={Number(profile.scheduled_package_paid_amount ?? 0)}
+          pendingPackageType={pendingPackagePurchase?.package_type ?? null}
+          pendingPackageCreditApplied={pendingPackageCreditApplied}
+        />
         <TopupHistoryTable items={topupHistory} />
       </div>
     </main>

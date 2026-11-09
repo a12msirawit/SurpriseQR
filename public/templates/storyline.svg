@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 720" fill="none">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600&amp;family=Kanit:wght@400;600&amp;display=swap');
+    </style>
+    <radialGradient id="player" cx="0" cy="0" r="1" gradientTransform="matrix(0 700 -440 0 240 40)" gradientUnits="userSpaceOnUse"><stop stop-color="#F5CAC5"/><stop offset=".52" stop-color="#B67180"/><stop offset="1" stop-color="#593951"/></radialGradient>
+    <linearGradient id="envelope" x1="122" y1="298" x2="358" y2="450" gradientUnits="userSpaceOnUse"><stop stop-color="#F7E4D7"/><stop offset="1" stop-color="#E7C8B9"/></linearGradient>
+    <filter id="shadow" x="88" y="270" width="304" height="226" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="16"/></filter>
+  </defs>
+  <rect width="480" height="720" rx="32" fill="#F8F1EC"/>
+  <rect x="24" y="20" width="432" height="680" rx="30" fill="url(#player)"/>
+  <path d="M24 510c103-63 216 5 432-48v208H24V510Z" fill="#241D33" opacity=".3"/>
+  <circle cx="98" cy="151" r="88" fill="#FFF" opacity=".05"/><circle cx="392" cy="390" r="124" fill="#FFE9E3" opacity=".06"/>
+  <rect x="49" y="45" width="74" height="30" rx="15" fill="#FFFFFF" opacity=".18"/><text x="86" y="65" text-anchor="middle" fill="#FFF9F2" font-family="'Prompt', 'Kanit', Arial, sans-serif" font-size="12">00 / 04</text>
+  <rect x="324" y="45" width="106" height="30" rx="15" fill="#FFFFFF" opacity=".18"/><text x="377" y="65" text-anchor="middle" fill="#FFF9F2" font-family="'Prompt', 'Kanit', Arial, sans-serif" font-size="11">♫ เปิดเสียง</text>
+  <text x="240" y="206" text-anchor="middle" fill="#FFF9F2" font-family="'Prompt', 'Kanit', Georgia, serif" font-size="27">Our Little Forever</text>
+  <text x="240" y="239" text-anchor="middle" fill="#FFFAF4" font-family="'Prompt', 'Kanit', Arial, sans-serif" font-size="12" letter-spacing="2">แตะตราครั่งเพื่อเริ่มเรื่องราว</text>
+  <rect x="104" y="276" width="272" height="204" rx="10" fill="#372337" opacity=".35" filter="url(#shadow)"/>
+  <rect x="122" y="290" width="236" height="154" rx="8" fill="url(#envelope)"/>
+  <path d="m124 301 116 91 116-91v134H124V301Z" fill="#F9EBE2"/>
+  <path d="m124 438 85-72m147 72-85-72" stroke="#D6B4A9" stroke-width="3"/>
+  <path d="m124 302 116 92 116-92" stroke="#C99FA0" stroke-width="3"/>
+  <circle cx="240" cy="387" r="23" fill="#B55F7A"/><path d="M240 398s-13-8-13-17c0-8 10-11 13-3 4-8 13-5 13 3 0 9-13 17-13 17Z" fill="#FFF4E7"/>
+  <text x="240" y="533" text-anchor="middle" fill="#FFF9F2" font-family="'Prompt', 'Kanit', 'Sarabun', Georgia, serif" font-size="18">ถึง คนพิเศษของฉัน</text>
+  <text x="240" y="560" text-anchor="middle" fill="#FFF9F2" opacity=".9" font-family="'Prompt', 'Kanit', 'Sarabun', Arial, sans-serif" font-size="12">แตะที่ตราประทับเพื่อเปิดของขวัญชิ้นพิเศษนี้...</text>
+  <rect x="130" y="606" width="220" height="42" rx="21" fill="#FFFFFF" opacity=".16"/><text x="240" y="632" text-anchor="middle" fill="#FFF9F2" font-family="'Prompt', 'Kanit', 'Sarabun', Arial, sans-serif" font-size="13">แตะเพื่อเปิดจดหมาย  ♡</text>
+</svg>

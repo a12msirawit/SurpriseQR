@@ -112,13 +112,13 @@ const CustomQRCode = forwardRef<SVGSVGElement, CustomQRCodeProps>(function Custo
                     : <rect x="8" y="8" width={canvasWidth - 16} height={totalHeight - 16} rx="26" fill="none" stroke={accentColor} strokeWidth="6" />;
 
   return <svg ref={innerRef} width={canvasWidth} height={totalHeight} viewBox={`0 0 ${canvasWidth} ${totalHeight}`} role="img" aria-label={text || "QR Code สำหรับเปิดการ์ด"} className={className} xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="qr-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={accentColor} /><stop offset="1" stopColor={foregroundColor} /></linearGradient></defs>
+    <defs><style>{`@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@600;700&family=Prompt:wght@600;700&display=swap');`}</style><linearGradient id="qr-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={accentColor} /><stop offset="1" stopColor={foregroundColor} /></linearGradient></defs>
     <rect width={canvasWidth} height={totalHeight} rx="18" fill={backgroundColor} />
     {frame}
     <g transform={`translate(${padding} ${padding})`}>
     {modules}{finderPatterns}
     {logoUrl && <image href={logoUrl} x={size * 0.4} y={size * 0.4} width={size * 0.2} height={size * 0.2} preserveAspectRatio="xMidYMid slice" />}
-    {text && <><rect x="20" y={size + 10} width={size - 40} height="38" rx="19" fill={accentColor} /><text x={size / 2} y={size + 35} fill={backgroundColor} textAnchor="middle" fontFamily="Kanit, sans-serif" fontSize="16" fontWeight="700">{text}</text></>}
+    {text && <><rect x="20" y={size + 10} width={size - 40} height="38" rx="19" fill={accentColor} /><text x={size / 2} y={size + 35} fill={backgroundColor} textAnchor="middle" fontFamily="'Kanit', 'Prompt', 'Sarabun', 'Leelawadee UI', Tahoma, sans-serif" fontSize="16" fontWeight="700">{text}</text></>}
     </g>
   </svg>;
 });

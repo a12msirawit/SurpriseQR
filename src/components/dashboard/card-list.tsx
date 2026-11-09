@@ -74,6 +74,7 @@ export function getCardTemplateInfo(templateId: string, dbTemplates?: UnifiedTem
   }
   if (TEMPLATE_ID_ALIASES.has(templateId)) {
     const def = getTemplateById(templateId);
+    if (!def) return { ...FALLBACK_TEMPLATE };
     return { title: def.title, image: def.image, previewVideo: def.previewVideo };
   }
   return { ...FALLBACK_TEMPLATE };
@@ -108,7 +109,10 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
     : null;
   const cardUrl = card.custom_slug ? `${baseUrl}/c/${card.custom_slug}` : shareUrl;
   const daysRemaining = card.expires_at ? Math.max(0, Math.ceil((new Date(card.expires_at).getTime() - Date.now()) / 86400000)) : null;
-  function downloadQrCode() {
+  async function downloadQrCode() {
+    if (typeof document !== "undefined" && document.fonts) {
+      await document.fonts.ready;
+    }
     const svg = svgRef.current;
     if (!svg) return;
     const serialized = new XMLSerializer().serializeToString(svg);

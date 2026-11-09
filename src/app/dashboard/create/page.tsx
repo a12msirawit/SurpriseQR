@@ -28,12 +28,13 @@ import type {
   SurpriseQRData,
   SurpriseQRMedia,
 } from "@/types/templates";
+import { defaultStorylineModel, type StorylineModel } from "@/types/storyline";
 import { compressImage, compressDataUrl } from "@/lib/image-compression";
 import {
   defaultSurpriseQRData,
   getTemplateById,
   getTemplateSlugById,
-  matchTemplateSlugByTitle,
+  templateCatalog,
   type TemplateDefinition,
   type TemplateSlug,
 } from "@/data/templates";
@@ -215,7 +216,9 @@ const ANNIVERSARY_TEMPLATE_SLUG: TemplateSlug = "anniversary-surprise";
 
 /** Creation is locked to the Anniversary Surprise template as the primary option. Other resolved templates are also supported. */
 function resolveOptionStrategy(option: DashboardTemplateOption | null): TemplateSlug {
-  return getTemplateSlugById(option?.id) ?? ANNIVERSARY_TEMPLATE_SLUG;
+  return getTemplateSlugById(option?.id) ?? getTemplateSlugById(option?.systemDef?.id) ??
+    (option?.name?.toLowerCase().includes("blow candles") ? "candles" :
+      option?.name?.toLowerCase().includes("storyline") ? "storyline" : ANNIVERSARY_TEMPLATE_SLUG);
 }
 
 function mapUnifiedToOption(t: UnifiedTemplate): DashboardTemplateOption {
@@ -243,7 +246,9 @@ function mapUnifiedToOption(t: UnifiedTemplate): DashboardTemplateOption {
  *   primary fallback so creation always has an option regardless of DB state.
  */
 function buildCreationOptions(remoteOptions: DashboardTemplateOption[]): DashboardTemplateOption[] {
-  const fallback = getTemplateById(ANNIVERSARY_TEMPLATE_SLUG);
+  const fallback =
+    getTemplateById(ANNIVERSARY_TEMPLATE_SLUG) ??
+    templateCatalog.find((t) => t.slug === ANNIVERSARY_TEMPLATE_SLUG)!;
   // The Anniversary Surprise fallback option is always offered first. When the
   // live DB row for it exists in the remote results, its authoritative
   // `price` / `is_premium` values are merged in so the default selection shows
@@ -268,26 +273,36 @@ function buildCreationOptions(remoteOptions: DashboardTemplateOption[]): Dashboa
 
   if (remoteOptions.length === 0) return [fallbackOption];
 
-  // Keep only remote templates that resolve to a known slug (or have a valid
-  // systemDefinition). Remote rows resolving to the same slug as the fallback
-  // (e.g. the DB row for the Anniversary template) are skipped — they are
-  // already represented by the merged fallbackOption above, so including them
-  // again would create duplicate options for the same template.
+  // Include all remote templates — even those without a known TemplateSlug in
+  // the static catalog — so newly created admin templates appear in the
+  // creation page. Templates resolving to the Anniversary Surprise slug are
+  // merged into the fallbackOption to avoid duplicates.
   const seen = new Set<string>([fallback.id, ANNIVERSARY_TEMPLATE_SLUG]);
   const validOptions: DashboardTemplateOption[] = [];
   for (const opt of remoteOptions) {
     const slug = getTemplateSlugById(opt.id);
     const resolved = slug || (opt.systemDef ? getTemplateSlugById(opt.systemDef.id) : null);
-    if (resolved && !seen.has(opt.id) && !seen.has(resolved)) {
+
+    // Skip duplicates of the Anniversary fallback (already merged above).
+    if (resolved && (seen.has(opt.id) || seen.has(resolved))) {
+      continue;
+    }
+
+    if (resolved) {
       seen.add(opt.id);
       seen.add(resolved);
-      validOptions.push({
-        ...opt,
-        // Attach the static-catalog systemDef when the remote option did not
-        // carry one (e.g. it came from the DB without a matching catalog entry).
-        systemDef: opt.systemDef ?? getTemplateById(opt.id, opt.name),
-      });
+    } else {
+      // Unknown template (not in static catalog) — mark by id only so duplicate
+      // DB rows with the same id don't appear twice.
+      seen.add(opt.id);
     }
+
+    validOptions.push({
+      ...opt,
+      // Attach the static-catalog systemDef when available; otherwise fall back
+      // to Anniversary Surprise so the template can still be selected and rendered.
+      systemDef: opt.systemDef ?? getTemplateById(opt.id, opt.name),
+    });
   }
 
   return [fallbackOption, ...validOptions];
@@ -320,13 +335,39 @@ function CreateStoryCardPageInner() {
   const [surpriseQRData, setSurpriseQRData] = useState<SurpriseQRData>(
     defaultSurpriseQRData,
   );
+  const [candlePhotos, setCandlePhotos] = useState<string[]>(["", "", ""]);
+  const [storylineModel, setStorylineModel] = useState<StorylineModel>(() => structuredClone(defaultStorylineModel));
   const [activeStep, setActiveStep] = useState(1);
   const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
   const selectedStrategy: TemplateSlug = resolveOptionStrategy(selectedTemplate);
   // Preview jumps to the screen whose step is currently active.
   const activeStepScreen = EDITOR_STEPS.find((s) => s.id === activeStep)?.screen ?? 1;
-  const activeConfig = surpriseQRData;
+  const activeConfig = selectedStrategy === "storyline"
+    ? {
+        storylineModel: {
+          ...storylineModel,
+          meta: { ...storylineModel.meta, title: cardTitle || storylineModel.meta.title },
+          recipient: {
+            ...storylineModel.recipient,
+            name: recipientName || storylineModel.recipient.name,
+            passcode: storylineModel.recipient.passcode,
+          },
+        },
+      }
+    : selectedStrategy === "candles"
+    ? {
+        recipientName,
+        senderName: FALLBACK_SENDER_NAME,
+        wishMessage: surpriseQRData.content.finale.subText,
+        message: surpriseQRData.content.letter.paragraphs.join("\n\n"),
+        photos: candlePhotos.filter(Boolean).map((src) => ({ src })),
+      }
+    : surpriseQRData;
   const PreviewComponent = getTemplateComponent(selectedStrategy);
+
+  if (selectedTemplate && !PreviewComponent) {
+    setError(`ไม่พบคอมโพเนนต์สำหรับเทมเพลต "${selectedTemplate.name}" (${selectedTemplate.id})`);
+  }
 
   useEffect(() => {
     setPreviewRefreshToken((token) => token + 1);
@@ -495,7 +536,6 @@ function CreateStoryCardPageInner() {
       const sysId = String(t.systemDef?.id || "").toLowerCase();
       // DashboardTemplateOption carries the human label in `name` (it has no
       // `title` field); static-catalog defs expose their own `title`.
-      const label = String(t.name || "").toLowerCase();
 
       // 1. Direct match with raw templateParam UUID or ID
       if (tId === param || sysId === param) return true;
@@ -629,9 +669,46 @@ function CreateStoryCardPageInner() {
       expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
     };
 
-    // Anniversary Surprise is the only creation template. The full spec
-    // schema is persisted verbatim so the viewer can rebuild the identical
-    // 7-screen experience (including uploaded data-URLs).
+    if (selectedStrategy === "candles") {
+      return {
+        ...base,
+        content: {
+          templateId,
+          recipientName,
+          senderName: FALLBACK_SENDER_NAME,
+          message: surpriseQRData.content.letter.paragraphs.join("\n\n"),
+          wishMessage: surpriseQRData.content.finale.subText,
+          photos: candlePhotos.filter(Boolean).map((src) => ({ src })),
+        },
+        config: {
+          recipientName,
+          senderName: FALLBACK_SENDER_NAME,
+          message: surpriseQRData.content.letter.paragraphs.join("\n\n"),
+          wishMessage: surpriseQRData.content.finale.subText,
+          photos: candlePhotos.filter(Boolean).map((src) => ({ src })),
+        },
+      };
+    }
+
+    if (selectedStrategy === "storyline") {
+      const storyConfig: StorylineModel = {
+        ...storylineModel,
+        meta: { ...storylineModel.meta, title: cardTitle || storylineModel.meta.title },
+        recipient: {
+          ...storylineModel.recipient,
+          name: recipientName || storylineModel.recipient.name,
+          passcode: storylineModel.recipient.passcode,
+        },
+      };
+      return {
+        ...base,
+        title: cardTitle || storylineModel.meta.title || base.title,
+        content: { templateId, storylineModel: storyConfig },
+        config: { storylineModel: storyConfig },
+      };
+    }
+
+    // Anniversary Surprise persists the full spec schema verbatim.
     return {
       ...base,
       title: cardTitle || surpriseQRData.content.title || recipientName || base.title,
@@ -653,9 +730,19 @@ function CreateStoryCardPageInner() {
       return;
     }
     // Anniversary Surprise stores the PIN inside the template settings.
-    const effectivePin = surpriseQRData.settings.enablePin
-      ? surpriseQRData.settings.pinCode
-      : "";
+    const effectivePin = selectedStrategy === "storyline"
+      ? storylineModel.recipient.passcode
+      : surpriseQRData.settings.enablePin
+        ? surpriseQRData.settings.pinCode
+        : "";
+    if (selectedStrategy === "storyline" && !/^\d{4}$/.test(effectivePin)) {
+      setError("กรุณากำหนดรหัสผ่าน Storyline เป็นตัวเลข 4 หลัก");
+      return;
+    }
+    if (selectedStrategy === "storyline" && !/^\d{4}-\d{2}-\d{2}$/.test(storylineModel.finale.anniversaryDate)) {
+      setError("กรุณาเลือกวันครบรอบสำหรับฉากสุดท้ายของ Storyline");
+      return;
+    }
     const trimmedPin = effectivePin.trim();
     if (trimmedPin && (trimmedPin.length < 4 || trimmedPin.length > 8)) {
       setError("กรุณากรอกรหัส PIN ให้มีความยาวระหว่าง 4 ถึง 8 หลัก");
@@ -839,7 +926,7 @@ function CreateStoryCardPageInner() {
 
         <div className="lg:col-span-6 space-y-4 pr-2 custom-scrollbar lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
           {/* Step navigation — drives both the preview screen and the visible form fields. */}
-          <nav
+          {selectedStrategy !== "storyline" && <nav
             aria-label="ขั้นตอนการสร้างการ์ด"
             className="sticky top-2 z-10 flex flex-wrap items-center gap-1.5 rounded-2xl border border-white/10 bg-[#0d071b]/90 p-2 shadow-lg shadow-black/20 backdrop-blur-md"
           >
@@ -877,7 +964,7 @@ function CreateStoryCardPageInner() {
                 <span className="hidden lg:inline">อัพเดตพรีวิว</span>
               </button>
             </span>
-          </nav>
+          </nav>}
 
           <form
             onSubmit={(event) => {
@@ -887,7 +974,7 @@ function CreateStoryCardPageInner() {
             className="space-y-5"
           >
 
-<section id="editor-step-panel-1" aria-labelledby="card-info-heading" hidden={activeStep !== 1} className="rounded-2xl border border-white/10 bg-[#120a21]/80 p-5">
+<section id="editor-step-panel-1" aria-labelledby="card-info-heading" hidden={selectedStrategy === "storyline" || activeStep !== 1} className="rounded-2xl border border-white/10 bg-[#120a21]/80 p-5">
                <div className="mb-5 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-fuchsia-400" />
                 <h2 id="card-info-heading" className="text-xl font-bold text-slate-100">ข้อมูลการ์ด</h2>
@@ -947,7 +1034,7 @@ function CreateStoryCardPageInner() {
             <section className="rounded-2xl border border-white/10 bg-[#120a21]/80 p-5">
               <div className="mb-5 flex items-center gap-2">
                 <ImageIcon className="h-5 w-5 text-fuchsia-400" />
-                <h2 className="text-xl font-bold text-slate-100">ฉากและเนื้อหา</h2>
+                <h2 className="text-xl font-bold text-slate-100">{selectedStrategy === "storyline" ? "Storyline" : "ฉากและเนื้อหา"}</h2>
               </div>
               <div id="theme-style" className="mt-6 border-t border-slate-700/60 pt-6">
                 {selectedStrategy === "anniversary-surprise" && (
@@ -1628,6 +1715,57 @@ function CreateStoryCardPageInner() {
                     <p className="text-sm font-medium text-yellow-400">
                       รูป วิดีโอ เพลง ช่อดอกไม้ และ Finale แก้ไขได้ครบ — กดหมายเลขสเต็ปด้านบนเพื่อสลับหน้าจอพรีวิวกับฟิลด์ให้ตรงกัน (การเปลี่ยนแปลงอัปเดตสดทันที)
                     </p>
+                  </div>
+                )}
+
+                {selectedStrategy === "candles" && (
+                  <div className="space-y-5 rounded-2xl border border-rose-300/20 bg-rose-950/20 p-5" onFocusCapture={handleEditingStart} onBlurCapture={handleEditingEnd}>
+                    <div>
+                      <p className="text-base font-bold text-rose-100">🎂 รูปความทรงจำสำหรับ Blow Candles</p>
+                      <p className="mt-1 text-sm text-slate-400">เพิ่มรูปได้ 3 รูปเพื่อแสดงในเรื่องราว</p>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      {candlePhotos.map((src, index) => (
+                        <SurpriseQRMediaInput
+                          key={index}
+                          label={`รูปความทรงจำ ${index + 1}`}
+                          value={src}
+                          onChange={(next) => setCandlePhotos((current) => current.map((item, itemIndex) => itemIndex === index ? next : item))}
+                          placeholder="วาง URL หรือเลือกไฟล์รูป"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedStrategy === "storyline" && (
+                  <div className="space-y-5 rounded-2xl border border-white/10 bg-[#120a21]/80 p-5" onFocusCapture={handleEditingStart} onBlurCapture={handleEditingEnd}>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-base font-bold text-rose-100">Storyline · แก้ไขเรื่องราว</p>
+                      <button type="button" onClick={() => setPreviewRefreshToken((token) => token + 1)} className="rounded-lg border border-space-border px-3 py-2 text-sm font-bold text-slate-200 hover:bg-white/10">อัปเดตตัวอย่าง</button>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="block text-sm font-semibold text-slate-200">ชื่อเรื่อง<input value={cardTitle} onChange={(event) => setCardTitle(event.target.value)} placeholder={storylineModel.meta.title} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100 placeholder:text-slate-500" /></label>
+                      <label className="block text-sm font-semibold text-slate-200">ชื่อผู้รับ<input value={recipientName} onChange={(event) => setRecipientName(event.target.value)} placeholder="ชื่อที่จะแสดงบนการ์ด" className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100 placeholder:text-slate-500" /></label>
+                      <label className="block text-sm font-semibold text-slate-200 md:col-span-2">ข้อความหน้าซอง<input value={storylineModel.recipient.coverMessage} onChange={(event) => setStorylineModel((current) => ({ ...current, recipient: { ...current.recipient, coverMessage: event.target.value } }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="block text-sm font-semibold text-slate-200">สีธีม<input type="color" value={storylineModel.meta.themeColor} onChange={(event) => setStorylineModel((current) => ({ ...current, meta: { ...current.meta, themeColor: event.target.value } }))} className="mt-2 h-12 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 p-1" /></label>
+                      <label className="block text-sm font-semibold text-slate-200">รูปแบบเพลงประกอบ<select value={storylineModel.meta.bgMusicType} onChange={(event) => setStorylineModel((current) => ({ ...current, meta: { ...current.meta, bgMusicType: event.target.value as StorylineModel["meta"]["bgMusicType"] } }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100"><option value="synth">Synth · กล่องดนตรี</option><option value="mp3">MP3 · ลิงก์เสียง</option></select></label>
+                      {storylineModel.meta.bgMusicType === "mp3" && <label className="block text-sm font-semibold text-slate-200 md:col-span-2">ลิงก์เพลง MP3<input type="url" value={storylineModel.meta.bgMusicUrl} onChange={(event) => setStorylineModel((current) => ({ ...current, meta: { ...current.meta, bgMusicUrl: event.target.value } }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>}
+                      <label className="block text-sm font-semibold text-slate-200">รหัสผ่าน 4 หลัก<input inputMode="numeric" maxLength={4} value={storylineModel.recipient.passcode} onChange={(event) => setStorylineModel((current) => ({ ...current, recipient: { ...current.recipient, passcode: event.target.value.replace(/\D/g, "").slice(0, 4) } }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <SurpriseQRMediaInput label="ภาพความทรงจำ" value={storylineModel.storyScenes[0].mediaUrl} onChange={(mediaUrl) => setStorylineModel((current) => ({ ...current, storyScenes: [{ ...current.storyScenes[0], mediaUrl }, current.storyScenes[1], current.storyScenes[2]] }))} placeholder="วาง URL หรือเลือกไฟล์รูป" />
+                      <label className="block text-sm font-semibold text-slate-200">คำบรรยายภาพ<input value={storylineModel.storyScenes[0].caption} onChange={(event) => setStorylineModel((current) => ({ ...current, storyScenes: [{ ...current.storyScenes[0], caption: event.target.value }, current.storyScenes[1], current.storyScenes[2]] }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="block text-sm font-semibold text-slate-200 md:col-span-2">ข้อความใต้ภาพ<input value={storylineModel.storyScenes[0].subCaption} onChange={(event) => setStorylineModel((current) => ({ ...current, storyScenes: [{ ...current.storyScenes[0], subCaption: event.target.value }, current.storyScenes[1], current.storyScenes[2]] }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="block text-sm font-semibold text-slate-200">แหล่งวิดีโอ<select value={storylineModel.storyScenes[1].videoSource} onChange={(event) => setStorylineModel((current) => ({ ...current, storyScenes: [current.storyScenes[0], { ...current.storyScenes[1], videoSource: event.target.value as StorylineModel["storyScenes"][1]["videoSource"] }, current.storyScenes[2]] }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100"><option value="mp4">MP4</option><option value="youtube">YouTube</option></select></label>
+                      <label className="block text-sm font-semibold text-slate-200">ลิงก์ MP4 หรือ YouTube<input type="url" value={storylineModel.storyScenes[1].videoUrl} onChange={(event) => setStorylineModel((current) => ({ ...current, storyScenes: [current.storyScenes[0], { ...current.storyScenes[1], videoUrl: event.target.value }, current.storyScenes[2]] }))} placeholder="https://..." className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100 placeholder:text-slate-500" /></label>
+                      <label className="block text-sm font-semibold text-slate-200">คำบรรยายวิดีโอ<input value={storylineModel.storyScenes[1].caption} onChange={(event) => setStorylineModel((current) => ({ ...current, storyScenes: [current.storyScenes[0], { ...current.storyScenes[1], caption: event.target.value }, current.storyScenes[2]] }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="block text-sm font-semibold text-slate-200 md:col-span-2">หัวข้อจดหมาย<input value={storylineModel.storyScenes[2].highlightHeading} onChange={(event) => setStorylineModel((current) => ({ ...current, storyScenes: [current.storyScenes[0], current.storyScenes[1], { ...current.storyScenes[2], highlightHeading: event.target.value }] }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="block text-sm font-semibold text-slate-200 md:col-span-2">เนื้อหาในจดหมาย<textarea rows={5} value={storylineModel.storyScenes[2].bodyParagraphs.join("\n\n")} onChange={(event) => setStorylineModel((current) => ({ ...current, storyScenes: [current.storyScenes[0], current.storyScenes[1], { ...current.storyScenes[2], bodyParagraphs: event.target.value.split(/\n{2,}/) }] }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="block text-sm font-semibold text-slate-200">คำลงท้าย<input value={storylineModel.storyScenes[2].signOff} onChange={(event) => setStorylineModel((current) => ({ ...current, storyScenes: [current.storyScenes[0], current.storyScenes[1], { ...current.storyScenes[2], signOff: event.target.value }] }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="block text-sm font-semibold text-slate-200">วันครบรอบ<input type="date" value={storylineModel.finale.anniversaryDate} onChange={(event) => setStorylineModel((current) => ({ ...current, finale: { ...current.finale, anniversaryDate: event.target.value } }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="flex items-center gap-3 text-sm font-semibold text-slate-200"><input type="checkbox" checked={storylineModel.finale.counterEnabled} onChange={(event) => setStorylineModel((current) => ({ ...current, finale: { ...current.finale, counterEnabled: event.target.checked } }))} className="h-4 w-4 accent-rose-500" />แสดงตัวนับจำนวนวัน</label>
+                      <label className="block text-sm font-semibold text-slate-200 md:col-span-2">ข้อความลับฉากสุดท้าย<textarea rows={2} value={storylineModel.finale.secretMessage} onChange={(event) => setStorylineModel((current) => ({ ...current, finale: { ...current.finale, secretMessage: event.target.value } }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100" /></label>
+                      <label className="block text-sm font-semibold text-slate-200">เอฟเฟกต์ฉากสุดท้าย<select value={storylineModel.finale.confettiStyle} onChange={(event) => setStorylineModel((current) => ({ ...current, finale: { ...current.finale, confettiStyle: event.target.value as StorylineModel["finale"]["confettiStyle"] } }))} className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-slate-100"><option value="heart-petals">กลีบหัวใจ</option><option value="confetti">คอนเฟตตี</option></select></label>
+                    </div>
                   </div>
                 )}
 

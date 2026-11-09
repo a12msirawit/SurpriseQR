@@ -28,6 +28,13 @@ export const PACKAGE_PRICES: Record<PackageType, number> = {
   god_269: 269,
 };
 
+export const PACKAGE_TIER_RANK: Record<PricingPackage["tierKey"], number> = {
+  starter: 1,
+  value: 2,
+  pro: 3,
+  god: 4,
+};
+
 export const PRICING_PACKAGES: readonly PricingPackage[] = [
   {
     id: "starter_69",
@@ -83,32 +90,25 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
 ];
 
 /**
- * Renewal line shown on every package card: each purchase stacks +30 days,
- * hard-capped server-side so the total window never exceeds 120 days.
+ * Every package starts a fresh 30-day subscription period.
  */
-export const RENEWAL_FEATURE = "⚡ ต่ออายุ +30 วัน (สะสมสูงสุด 120 วัน)";
+export const RENEWAL_FEATURE = "⚡ ใช้งาน 30 วัน (ไม่ทบวัน)";
 
 /**
- * Starter-card line shown only to ACTIVE God users: buying Starter while on
- * the God tier keeps the God window unchanged (+0 days) and only grants the
- * additional permanent/custom/premium quota adds.
+ * Kept as a named export for older callers; every package now has the same term.
  */
-export const GOD_STARTER_FEATURE = "📦 เพิ่มสิทธิ์ถาวร & เทมเพลต (+0 วันสำหรับ God Tier)";
+export const GOD_STARTER_FEATURE = RENEWAL_FEATURE;
 
 /** Footnote rendered beneath the package grid. */
 export const STACKING_FOOTNOTE =
-  "📌 ทุกแพ็กเกจสะสมวันใช้งานได้สูงสุด 120วัน | สิทธิ์ God Pack สามารถทบวันได้เมื่อซื้อแพ็กเกจ 119฿ ขึ้นไป";
+  "📌 อัปเกรดเป็นแพ็กที่สูงกว่าได้ทันทีและเริ่มรอบ 30 วันใหม่ ต่อแพ็กเดิมได้เมื่อเหลือไม่เกิน 7 วัน ส่วนการลดแพ็กทำได้หลังแพ็กปัจจุบันหมดอายุ โดยสิทธิ์คงเหลืออยู่ต่อได้อีก 7 วัน";
 
 /**
  * Tier-aware feature lines for a package card.
  *
- * Every package prepends the +30-day renewal line, EXCEPT Starter when the
- * viewer is an active God user — God buying Starter does not extend the
- * window (mirrors `approve_payment_transaction` / `process_package_payment`
- * stacking rules from migration 20260828000002).
+ * Every package has the same fresh 30-day term, regardless of the current plan.
  */
 export function getPackageFeatures(pkg: PricingPackage, currentTier?: UserTier | null): string[] {
-  const renewalLine =
-    currentTier === "god" && pkg.id === "starter_69" ? GOD_STARTER_FEATURE : RENEWAL_FEATURE;
-  return [renewalLine, ...pkg.features];
+  void currentTier;
+  return [RENEWAL_FEATURE, ...pkg.features];
 }

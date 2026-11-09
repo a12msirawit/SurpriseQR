@@ -1,4 +1,4 @@
-import { templateCatalog, type TemplateDefinition } from "@/data/templates";
+import { getTemplateById as getStaticTemplateById, templateCatalog, type TemplateDefinition } from "@/data/templates";
 import type { Template } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,7 +11,7 @@ function toUnifiedDatabaseTemplate(template: Template): UnifiedTemplate {
   // hardcoded fallback (e.g. 19) here — whatever the admin set in Supabase is
   // what gets surfaced to the Dashboard, gallery and listing.
   const price = Number(template.price ?? 0);
-  const systemDefinition = templateCatalog.find((item) => item.id === template.id);
+  const systemDefinition = getStaticTemplateById(template.id, template.title);
   return {
     ...template,
     title: template.title || "Template",

@@ -1,8 +1,8 @@
 ﻿import type { Card } from "@/types/database";
 
 /**
- * Production Anniversary Surprise identifiers (canonical slug, legacy slug and
- * the seeded DB row UUID).
+ * Production template identifiers (canonical slug, legacy slug and the seeded
+ * DB row UUID).
  */
 const ANNIVERSARY_SURPRISE_TEMPLATE_IDS = new Set([
   "anniversary-surprise",
@@ -11,7 +11,15 @@ const ANNIVERSARY_SURPRISE_TEMPLATE_IDS = new Set([
   "10000000-0000-4000-8000-000000000006",
 ]);
 
-export type TemplateRenderStrategy = "anniversary-surprise" | "generic";
+const CANDLES_TEMPLATE_IDS = new Set([
+  "candles",
+  // Production Blow Candles row UUID (seed migration 20261103000001):
+  "10000000-0000-4000-8000-000000000007",
+]);
+
+const STORYLINE_TEMPLATE_IDS = new Set(["storyline", "story-line", "10000000-0000-4000-8000-000000000008"]);
+
+export type TemplateRenderStrategy = "anniversary-surprise" | "candles" | "storyline" | "generic";
 
 function hasAnyKey(value: unknown, keys: string[]): boolean {
   if (typeof value !== "object" || value === null) return false;
@@ -41,7 +49,7 @@ export function looksLikeSurpriseQRData(value: unknown): boolean {
  * Resolution order:
  * 1. Embedded payload id (content.templateId / content.template_id), else
  *    cards.template_id - explicit identity always wins.
- * 2. Known Anniversary Surprise id -> the anniversary strategy.
+ * 2. Known template id -> its dedicated rendering strategy.
  * 3. Anniversary-shaped payload -> the anniversary strategy.
  * 4. Everything else -> the generic viewer.
  */
@@ -59,6 +67,10 @@ export function resolveTemplateRenderStrategy(
   if (ANNIVERSARY_SURPRISE_TEMPLATE_IDS.has(requestedTemplateId)) {
     return "anniversary-surprise";
   }
+  if (CANDLES_TEMPLATE_IDS.has(requestedTemplateId)) {
+    return "candles";
+  }
+  if (STORYLINE_TEMPLATE_IDS.has(requestedTemplateId)) return "storyline";
   if (looksLikeSurpriseQRData(embeddedContent)) return "anniversary-surprise";
   return "generic";
 }

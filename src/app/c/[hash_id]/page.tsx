@@ -10,7 +10,7 @@ export default async function CardViewPage({ params }: { params: Promise<{ hash_
 
   const { data: card } = await supabase
     .from("cards")
-    .select("*, profiles!inner(tier)")
+    .select("*")
     .or(`hash_id.eq.${hash_id},custom_slug.eq.${hash_id}`)
     .or(`draft_expires_at.is.null,draft_expires_at.gte.${now}`)
     .or(`expires_at.is.null,expires_at.gte.${now}`)
@@ -77,14 +77,17 @@ export default async function CardViewPage({ params }: { params: Promise<{ hash_
 
   const typedCard = { ...card, scenes } as Card & { profiles: Profile };
   const profile = typedCard.profiles;
+  const ownerTier = profile?.tier ?? "free";
 
   return (
     <main>
       <CardViewer
         card={typedCard}
-        ownerTier={profile.tier}
+        ownerTier={ownerTier}
         hashId={hash_id}
       />
     </main>
   );
 }
+
+

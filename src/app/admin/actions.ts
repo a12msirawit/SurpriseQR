@@ -24,7 +24,7 @@ export async function approvePayment(paymentId: string) {
   // Delegates the ENTIRE approve flow to the single atomic DB transaction
   // (approve_payment_transaction, migration 20260827000004) executed with the
   // service-role client: status flip + wallet top-up OR package grant
-  // (rank-safe tier, permanent/custom/premium template quotas + the 30-day
+  // (selected package tier, accumulated quota balances + the 30-day
   // package duration via profiles.quota_expires_at) + add-on entitlements +
   // audit log. The previous bespoke logic here never granted package
   // entitlements - approving a Pro Pack slip silently skipped the template

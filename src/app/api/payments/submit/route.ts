@@ -27,19 +27,13 @@ export async function POST(request: Request) {
   // Payer claim evidence (REQUIRED): the DB-level approval guard refuses to
   // approve any payment whose claim columns are NULL, so collect them here.
   const claimedTimeRaw = formData.get("claimed_transfer_time");
-  const claimedLast4Raw = formData.get("claimed_bank_account_last4");
   const claimedTime = typeof claimedTimeRaw === "string" && claimedTimeRaw !== "" ? new Date(claimedTimeRaw) : null;
-  const claimedLast4 = typeof claimedLast4Raw === "string" ? claimedLast4Raw.trim() : "";
   if (!claimedTime || Number.isNaN(claimedTime.getTime())) {
     return NextResponse.json({ error: "กรุณาระบุเวลาที่โอนเงิน" }, { status: 400 });
   }
   if (claimedTime.getTime() > Date.now() + 5 * 60 * 1000) {
     return NextResponse.json({ error: "เวลาที่โอนเงินต้องไม่อยู่ในอนาคต" }, { status: 400 });
   }
-  if (!/^[0-9]{4}$/.test(claimedLast4)) {
-    return NextResponse.json({ error: "กรุณาระบุเลขท้ายบัญชีธนาคาร 4 หลัก" }, { status: 400 });
-  }
-
   if (!(file instanceof File) || file.size === 0) {
     return NextResponse.json({ error: "กรุณาแนบสลิป" }, { status: 400 });
   }
@@ -49,8 +43,11 @@ export async function POST(request: Request) {
   if (!Number.isFinite(amount) || amount <= 0 || (paymentType === "topup" && !packageType && creditsGranted !== amount)) {
     return NextResponse.json({ error: "ข้อมูลจำนวนเงินไม่ถูกต้อง" }, { status: 400 });
   }
-  if (packageType && (!(packageType in PACKAGE_PRICES) || amount !== PACKAGE_PRICES[packageType as keyof typeof PACKAGE_PRICES] || creditsGranted !== 0)) {
+  if (packageType && (!(packageType in PACKAGE_PRICES) || amount <= 0 || amount > PACKAGE_PRICES[packageType as keyof typeof PACKAGE_PRICES] || creditsGranted !== 0)) {
     return NextResponse.json({ error: "ข้อมูลแพ็กเกจไม่ถูกต้อง" }, { status: 400 });
+  }
+  if (packageType && paymentType !== "topup") {
+    return NextResponse.json({ error: "ข้อมูลประเภทการชำระเงินไม่ถูกต้อง" }, { status: 400 });
   }
   if (!["topup", "add_on_custom_url", "add_on_permanent"].includes(paymentType)) {
     return NextResponse.json({ error: "ประเภทการชำระเงินไม่ถูกต้อง" }, { status: 400 });
@@ -77,6 +74,34 @@ export async function POST(request: Request) {
   }
 
   const slipUrl = supabase.storage.from("slips").getPublicUrl(path).data.publicUrl;
+  if (packageType) {
+    const { data: payment, error } = await supabase.rpc("submit_package_payment", {
+      p_package_type: packageType,
+      p_amount: amount,
+      p_slip_url: slipUrl,
+      p_claimed_transfer_time: claimedTime.toISOString(),
+    });
+    if (error || !payment) {
+      if (error) console.error("Package payment submission RPC error:", error);
+      await supabase.storage.from("slips").remove([path]);
+      const reason = error?.message ?? "";
+      const status = reason.includes("Cannot downgrade") || reason.includes("Renewal is available") || reason.includes("already") ? 409 : 400;
+      const message = reason.includes("Cannot downgrade")
+        ? "แพ็กปัจจุบันสูงกว่าแพ็กที่เลือก ต้องรอให้หมดอายุก่อนจึงจะลดแพ็กได้"
+        : reason.includes("Renewal is available")
+          ? "ต่อแพ็กเดิมได้เมื่อเหลือไม่เกิน 7 วันก่อนหมดอายุ"
+          : reason.includes("already")
+            ? "มีรายการต่ออายุแพ็กเดิมรออยู่แล้ว"
+            : reason.includes("amount changed")
+              ? "ยอดเครดิตเปลี่ยนแล้ว กรุณากลับไปเลือกวิธีชำระเงินอีกครั้ง"
+              : reason.includes("Wallet credits cover")
+                ? "เครดิตของคุณเพียงพอแล้ว กรุณาชำระแพ็กด้วยยอดเงินคงเหลือ"
+                : "ไม่สามารถส่งข้อมูลชำระแพ็กได้ กรุณาตรวจสอบยอดและลองใหม่";
+      return NextResponse.json({ error: message }, { status });
+    }
+    return NextResponse.json({ success: true, payment }, { status: 201 });
+  }
+
   const { data: payment, error } = await supabase.from("payments").insert({
     user_id: user.id,
     amount,
@@ -87,7 +112,6 @@ export async function POST(request: Request) {
     package_type: packageType || null,
     card_id: typeof cardId === "string" ? cardId : null,
     claimed_transfer_time: claimedTime.toISOString(),
-    claimed_bank_account_last4: claimedLast4,
   }).select("id, status").single();
 
   if (error || !payment) {

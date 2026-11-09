@@ -41,24 +41,25 @@ export default function IncomeGuideModal() {
             <div className="pr-10">
               <p className="text-sm font-bold uppercase tracking-[0.16em] text-amber-300">SurpriseQR Guide</p>
               <h2 id="income-guide-title" className="mt-2 text-2xl font-black text-white lg:text-3xl">
-                คู่มือสร้างรายได้จากการสร้างการ์ด
+                คู่มือเริ่มรับทำการ์ด
               </h2>
             </div>
 
             <div className="mt-6">
-              <h3 className="text-lg font-bold text-white">วิธีสร้างรายได้</h3>
+              <h3 className="text-lg font-bold text-white">เริ่มต้นสร้างรายได้</h3>
               <ul className="mt-3 list-disc space-y-3 pl-5 text-base font-medium leading-6 text-slate-300">
-                <li>หาฐานลูกค้ากลุ่มเป้าหมาย ในโซเชียลมิเดียต่างๆ เช่น tiktok ,facebook อื่นๆ</li>
-                <li>นำเสนอและเสนอขาย: แสดงผลงานและนำเสนอบริการรับสร้างการ์ดแก่ลูกค้า</li>
-                <li>วางแผนการใช้งานเพื่อทำกำไรสูงสุด</li>
+                <li>หาลูกค้าผ่าน TikTok, Facebook, IG และช่องทางอื่น ๆ</li>
+                <li>ใช้ผลงานตัวอย่างนำเสนอบริการรับทำการ์ด</li>
+                <li>ตั้งราคาให้เหมาะกับงานและต้นทุนของคุณ</li>
               </ul>
 
               <section className="mt-6 rounded-2xl border border-rose-300/20 bg-rose-400/10 p-4">
-                <p className="text-base font-bold text-white">ตัวอย่างการคำนวณกำไร (แพ็คเกจ คุ้มค่า 119 บาท):</p>
+                <p className="text-base font-bold text-white">ตัวอย่างคำนวณ (Value Pack ฿119)</p>
                 <div className="mt-2 space-y-1 text-base font-medium leading-6 text-slate-300">
-                  <p>ได้ 8 เทมเพลต (ต้นทุน ~15 บาท/งาน)</p>
-                  <p>รับงานลูกค้า 29 บาท x 8 ใบ = 232 บาท (กำไร 113 บาท)</p>
-                  <p>รับงาน 49 บาท x 8 ใบ = 392 บาท (กำไร 273 บาท)</p>
+                  <p>มีสิทธิ์สร้างการ์ดด้วยเทมเพลตพรีเมียม 3 ครั้ง</p>
+                  <p>คิดค่าบริการใบละ ฿49 × 3 ใบ = ฿147</p>
+                  <p>เหลือ ฿28 หลังหักราคาแพ็ก*</p>
+                  <p className="pt-1 text-sm text-slate-400">*ยังไม่รวมต้นทุนอื่น และราคาค่าบริการเป็นราคาที่คุณกำหนดเอง</p>
                 </div>
               </section>
             </div>

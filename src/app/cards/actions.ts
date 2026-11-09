@@ -128,7 +128,7 @@ export async function updateCard(cardId: string, formData: FormData) {
   const tier = profile.tier;
   // Media limits are time-boxed by the active package window (see
   // resolveMediaTier): expired/NULL package -> free-tier defaults, while the
-  // user keeps every accumulated quota balance.
+  // unused package quota balances remain available through the 7-day grace.
   const mediaTier = resolveMediaTier({
     tier,
     packageTier: profile.package_tier,

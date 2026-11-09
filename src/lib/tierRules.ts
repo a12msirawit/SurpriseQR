@@ -84,12 +84,13 @@ function normalizeTier(tier: string | null | undefined): UserTier {
  * Resolve the tier that governs TIME-BOXED media entitlements (image/audio/video
  * upload sizes + priority processing).
  *
- * Cumulative quota balances (permanent_quota / premium_quota / custom_url_quota)
- * are permanent and are NOT touched here. Media limits are tied to the ACTIVE
+ * Package quota balances (permanent_quota / premium_quota / custom_url_quota)
+ * are retained through a 7-day grace period, then cleared by expiry cleanup.
+ * Media limits are tied to the ACTIVE
  * `package_tier`:
  *   - if `package_expires_at` is set and in the future -> the package's tier;
  *   - an expired or NULL `package_expires_at` falls back to FREE tier limits
- *     (while the user keeps every accumulated quota balance);
+ *     (unused balances stay available only through the renewal grace period);
  *   - `vip` is a permanent account-level tier (granted, not a time-boxed
  *     purchase) and always keeps its media entitlement.
  */
