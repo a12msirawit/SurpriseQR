@@ -1,12 +1,22 @@
 import { createClient } from "@/lib/supabase/client";
 
 /** Start Google OAuth only after Supabase returns a valid provider URL. */
-export async function startGoogleOAuth() {
+export async function startGoogleOAuth(nextPath?: string) {
   const supabase = createClient();
+  const origin =
+    typeof window !== "undefined" && window.location.origin
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_SITE_URL || "https://surprise-qr.vercel.app";
+
+  const redirectUrl = new URL("/auth/callback", origin);
+  if (nextPath) {
+    redirectUrl.searchParams.set("next", nextPath);
+  }
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: new URL("/auth/callback", window.location.origin).toString(),
+      redirectTo: redirectUrl.toString(),
       skipBrowserRedirect: true,
     },
   });
