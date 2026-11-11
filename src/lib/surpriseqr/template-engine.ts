@@ -572,7 +572,7 @@ function sqImgFallback(img){
   if(!img) return;
   img.onerror = null;
   img.classList.add('sq-img-fallback');
-  img.setAttribute('src', 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#8c244c"/><text x="100" y="118" font-size="70" text-anchor="middle">🌷</text></svg>'));
+  img.setAttribute('src', 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#8c244c"/><circle cx="100" cy="100" r="40" fill="#ec4899"/></svg>'));
 }
 </script>
 </head>
@@ -611,20 +611,20 @@ export const SURPRISE_QR_BODY: string = `
   <div class="sq-topbar"></div>
   <div class="sq-scroll sq-menu">
     <p class="sq-eyebrow" data-f="content.menu.subTitle">ของขวัญที่รออยู่</p>
-    <h2 class="sq-title" data-f="content.menu.title">เลือกของขวัญสักชิ้นสิ 💝</h2>
+    <h2 class="sq-title" data-f="content.menu.title">เลือกของขวัญสักชิ้นสิ</h2>
     <div class="sq-gifts">
       <button type="button" class="sq-gift" data-gift="3" data-target="3">
-        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card1Icon">💌</span>
+        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card1Icon"><i class="fa-solid fa-envelope"></i></span>
         <span class="sq-gift-title" data-f="content.menu.card1Title">ข้อความจากหัวใจ</span>
         <span class="sq-gift-sub" data-f="content.menu.card1Desc">จดหมายรักที่เขียนด้วยใจถึงเธอ</span>
       </button>
       <button type="button" class="sq-gift" data-gift="4" data-target="4">
-        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card2Icon">📸</span>
+        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card2Icon"><i class="fa-solid fa-camera"></i></span>
         <span class="sq-gift-title" data-f="content.menu.card2Title">ความทรงจำ</span>
         <span class="sq-gift-sub" data-f="content.menu.card2Desc">ภาพช่วงเวลาแสนดีของเรา</span>
       </button>
       <button type="button" class="sq-gift" data-gift="5" data-target="5">
-        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card3Icon">💐</span>
+        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card3Icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
         <span class="sq-gift-title" data-f="content.menu.card3Title">ดอกไม้</span>
         <span class="sq-gift-sub" data-f="content.menu.card3Desc">ช่อดอกไม้เสมือนจริงจากใจ</span>
       </button>
@@ -636,7 +636,7 @@ export const SURPRISE_QR_BODY: string = `
   <div class="sq-topbar"><button type="button" class="sq-back" data-act="menu"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> เมนู</button></div>
   <div class="sq-scroll">
     <p class="sq-eyebrow">จดหมายจากหัวใจ</p>
-    <h2 class="sq-title">💌</h2>
+    <h2 class="sq-title">MY LOVE LETTER</h2>
     <div class="sq-polaroids">
       <figure class="sq-polaroid"><span class="sq-tape"></span><img id="msg-img-0" class="sq-media-img" data-media="content.letter.headerImages.0.src" alt="ภาพที่ 1"></figure>
       <figure class="sq-polaroid"><img id="msg-img-1" class="sq-media-img" data-media="content.letter.headerImages.1.src" alt="ภาพที่ 2"></figure>
@@ -664,11 +664,11 @@ export const SURPRISE_QR_BODY: string = `
       <span class="sq-film-holes"></span>
     </div>
     <div class="sq-polgrid">
-      <figure class="sq-polaroid" style="--rot:-5deg"><img id="mem-pol-0" class="sq-media-img" data-media="content.memories.polaroidImages.0.src" alt="โพลารอยด์ 1"><figcaption class="sq-pol-caption">💕</figcaption></figure>
-      <figure class="sq-polaroid" style="--rot:0deg"><img id="mem-pol-1" class="sq-media-img" data-media="content.memories.polaroidImages.1.src" alt="โพลารอยด์ 2"><figcaption class="sq-pol-caption">✨</figcaption></figure>
-      <figure class="sq-polaroid" style="--rot:5deg"><img id="mem-pol-2" class="sq-media-img" data-media="content.memories.polaroidImages.2.src" alt="โพลารอยด์ 3"><figcaption class="sq-pol-caption">🌷</figcaption></figure>
-      <figure class="sq-polaroid" style="--rot:-4deg"><img id="mem-pol-3" class="sq-media-img" data-media="content.memories.polaroidImages.3.src" alt="โพลารอยด์ 4"><figcaption class="sq-pol-caption">🌸</figcaption></figure>
-      <figure class="sq-polaroid" style="--rot:4deg"><img id="mem-pol-4" class="sq-media-img" data-media="content.memories.polaroidImages.4.src" alt="โพลารอยด์ 5"><figcaption class="sq-pol-caption">💖</figcaption></figure>
+      <figure class="sq-polaroid" style="--rot:-5deg"><img id="mem-pol-0" class="sq-media-img" data-media="content.memories.polaroidImages.0.src" alt="โพลารอยด์ 1"><figcaption class="sq-pol-caption"></figcaption></figure>
+      <figure class="sq-polaroid" style="--rot:0deg"><img id="mem-pol-1" class="sq-media-img" data-media="content.memories.polaroidImages.1.src" alt="โพลารอยด์ 2"><figcaption class="sq-pol-caption"></figcaption></figure>
+      <figure class="sq-polaroid" style="--rot:5deg"><img id="mem-pol-2" class="sq-media-img" data-media="content.memories.polaroidImages.2.src" alt="โพลารอยด์ 3"><figcaption class="sq-pol-caption"></figcaption></figure>
+      <figure class="sq-polaroid" style="--rot:-4deg"><img id="mem-pol-3" class="sq-media-img" data-media="content.memories.polaroidImages.3.src" alt="โพลารอยด์ 4"><figcaption class="sq-pol-caption"></figcaption></figure>
+      <figure class="sq-polaroid" style="--rot:4deg"><img id="mem-pol-4" class="sq-media-img" data-media="content.memories.polaroidImages.4.src" alt="โพลารอยด์ 5"><figcaption class="sq-pol-caption"></figcaption></figure>
     </div>
     <p id="mem-desc" class="sq-desc" data-f="content.memories.description"></p>
   </div>
@@ -680,7 +680,7 @@ export const SURPRISE_QR_BODY: string = `
   <div class="sq-scroll">
     <p class="sq-eyebrow" style="color:#6e1b3d" data-f="content.flowers.subTitle">ข้อความ...</p>
     <div class="sq-flowers-panel">
-      <div class="sq-bouquet">🌷 🌹 🌷</div>
+      <div class="sq-bouquet"><i class="fa-solid fa-heart" style="color:#ec4899;font-size:32px;"></i></div>
       <h2 class="sq-title" style="color:#4a1127" data-f="content.flowers.title">หัวข้อ...</h2>
       <p id="flw-msg" class="sq-desc sq-flowers-msg" data-f="content.flowers.message"></p>
       <p id="flw-hl" class="sq-highlight" data-f="content.flowers.highlightText"></p>
@@ -696,7 +696,7 @@ export const SURPRISE_QR_BODY: string = `
 <section id="sq-screen-6" class="sq-screen" data-screen="6">
   <div class="sq-topbar"><button type="button" class="sq-back" data-act="menu"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> เมนู</button></div>
   <div class="sq-scroll">
-    <p id="song-eyebrow" class="sq-eyebrow" data-f="content.songMedia.sectionTitle" style="font-size:clamp(24px,5vw,34px)">🎬 ความทรงจำ</p>
+    <p id="song-eyebrow" class="sq-eyebrow" data-f="content.songMedia.sectionTitle" style="font-size:clamp(24px,5vw,34px)">ความทรงจำ</p>
     <h2 id="song-title" class="sq-title font-script" data-f="content.songMedia.songTitle" style="font-size:clamp(30px,6vw,46px)"></h2>
     <p id="song-artist" class="sq-artist" data-f="content.songMedia.songArtist"></p>
     <div class="sq-media-row">
@@ -704,7 +704,7 @@ export const SURPRISE_QR_BODY: string = `
       <div id="song-media-box" class="sq-media-box"></div>
       <figure class="sq-polaroid sq-accent"><img id="song-accent-1" class="sq-media-img" data-media="content.songMedia.accentImages.1.src" alt="ภาพประกอบ 2"></figure>
     </div>
-    <button type="button" class="sq-cta" data-act="next-finale"><i class="fa-solid fa-heart" aria-hidden="true"></i> ไปต่อกันเถอะ 💖</button>
+    <button type="button" class="sq-cta" data-act="next-finale"><i class="fa-solid fa-heart" aria-hidden="true"></i> ไปต่อกันเถอะ</button>
   </div>
 </section>
 
@@ -713,7 +713,7 @@ export const SURPRISE_QR_BODY: string = `
   <div id="finale-hero" class="sq-hero" data-bg="content.finale.heroImage.src"></div>
   <div class="sq-hero-overlay"></div>
   <div class="sq-scroll sq-finale">
-    <p class="sq-hero-kicker">💞</p>
+    <p class="sq-hero-kicker"></p>
     <h1 id="finale-main" class="sq-finale-main font-serif" data-f="content.finale.mainText"></h1>
     <p id="finale-sub" class="sq-finale-sub" data-f="content.finale.subText"></p>
     <div class="sq-finale-actions">
@@ -751,7 +751,7 @@ export const SURPRISE_QR_BODY: string = `
 <!-- PIN keypad modal -->
 <div id="sq-pin-modal" class="sq-overlay" role="dialog" aria-modal="true" aria-label="ใส่รหัสลับ">
   <div id="sq-pin-modal-card" class="sq-modal">
-    <p class="sq-modal-title">🔒 ซองจดหมายถูกล็อก</p>
+    <p class="sq-modal-title">ซองจดหมายถูกล็อก</p>
     <p class="sq-modal-sub">ใส่รหัส 4 หลักเพื่อเปิดซอง</p>
     <div class="sq-dots">
       <span id="dot-0" class="sq-dot"></span><span id="dot-1" class="sq-dot"></span><span id="dot-2" class="sq-dot"></span><span id="dot-3" class="sq-dot"></span>
@@ -769,14 +769,14 @@ export const SURPRISE_QR_BODY: string = `
 <!-- Pay / publish modal -->
 <div id="sq-pay-modal" class="sq-overlay" role="dialog" aria-modal="true" aria-label="ชำระเงินและเผยแพร่">
   <div class="sq-modal">
-    <p class="sq-pay-emoji">💳</p>
+    <p class="sq-pay-emoji"><i class="fa-solid fa-credit-card" style="font-size:46px;color:#ec4899"></i></p>
     <p class="sq-modal-title">เผยแพร่การ์ดนี้</p>
     <p id="sq-pay-target" class="sq-modal-sub"></p>
     <img id="sq-pay-qr" class="sq-pay-qr" alt="PromptPay QR">
     <p id="sq-pay-hint" class="sq-hint-note">สแกน QR เพื่อชำระเงิน จากนั้นกดปุ่มด้านล่างเพื่อปลดล็อกการส่งออก</p>
     <div class="sq-keypad" style="margin-top:14px">
       <button type="button" class="sq-key key-fn" data-act="pay-open"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> ชำระเงิน</button>
-      <button type="button" class="sq-key key-fn" data-act="pay-done">✅ ฉันชำระแล้ว</button>
+      <button type="button" class="sq-key key-fn" data-act="pay-done">ฉันชำระแล้ว</button>
       <button type="button" class="sq-key key-fn" data-act="close-pay">ปิด</button>
     </div>
   </div>
@@ -879,14 +879,14 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
         menu: {
           subTitle: 'ของขวัญที่รออยู่',
           title: 'เลือกของขวัญสักชิ้นสิ',
-          card1Icon: '💌', card1Title: 'ข้อความจากหัวใจ', card1Desc: 'จดหมายรักที่เขียนด้วยใจถึงเธอ',
-          card2Icon: '📸', card2Title: 'ความทรงจำ', card2Desc: 'ภาพช่วงเวลาแสนดีของเรา',
-          card3Icon: '💐', card3Title: 'ดอกไม้', card3Desc: 'ช่อดอกไม้เสมือนจริงจากใจ'
+          card1Icon: 'mail', card1Title: 'ข้อความจากหัวใจ', card1Desc: 'จดหมายรักที่เขียนด้วยใจถึงเธอ',
+          card2Icon: 'camera', card2Title: 'ความทรงจำ', card2Desc: 'ภาพช่วงเวลาแสนดีของเรา',
+          card3Icon: 'sparkles', card3Title: 'ดอกไม้', card3Desc: 'ช่อดอกไม้เสมือนจริงจากใจ'
         },
         bgMusic: { type: 'url', src: '' },
         letter: {
           title: 'Happy Anniversary, my love.',
-          paragraphs: ['ข้อความบรรทัดที่ 1...', 'ข้อความบรรทัดที่ 2...', 'และอีกมากมายที่ฉันอยากบอกเธอ ✨'],
+          paragraphs: ['ข้อความบรรทัดที่ 1...', 'ข้อความบรรทัดที่ 2...', 'และอีกมากมายที่ฉันอยากบอกเธอ'],
           headerImages: [{ type: 'url', src: '' }, { type: 'url', src: '' }]
         },
         memories: {
@@ -905,7 +905,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
           sectionTitle: 'for you',
           accentImages: [{ type: 'url', src: '' }, { type: 'url', src: '' }]
         },
-        finale: { heroImage: { src: '' }, mainText: 'HAPPY ANNIVERSARY', subText: 'Love of my life 💕' }
+        finale: { heroImage: { src: '' }, mainText: 'HAPPY ANNIVERSARY', subText: 'Love of my life' }
       }
     };
   }
@@ -927,20 +927,20 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     c.menu = c.menu || {};
     c.menu.subTitle = normStr(c.menu.subTitle, 'ของขวัญที่รออยู่');
     c.menu.title = normStr(c.menu.title, 'เลือกของขวัญสักชิ้นสิ');
-    c.menu.card1Icon = normStr(c.menu.card1Icon, '💌');
+    c.menu.card1Icon = normStr(c.menu.card1Icon, 'mail');
     c.menu.card1Title = normStr(c.menu.card1Title, 'ข้อความจากหัวใจ');
     c.menu.card1Desc = normStr(c.menu.card1Desc, 'จดหมายรักที่เขียนด้วยใจถึงเธอ');
-    c.menu.card2Icon = normStr(c.menu.card2Icon, '📸');
+    c.menu.card2Icon = normStr(c.menu.card2Icon, 'camera');
     c.menu.card2Title = normStr(c.menu.card2Title, 'ความทรงจำ');
     c.menu.card2Desc = normStr(c.menu.card2Desc, 'ภาพช่วงเวลาแสนดีของเรา');
-    c.menu.card3Icon = normStr(c.menu.card3Icon, '💐');
+    c.menu.card3Icon = normStr(c.menu.card3Icon, 'sparkles');
     c.menu.card3Title = normStr(c.menu.card3Title, 'ดอกไม้');
     c.menu.card3Desc = normStr(c.menu.card3Desc, 'ช่อดอกไม้เสมือนจริงจากใจ');
     c.bgMusic = c.bgMusic || {};
     c.bgMusic.src = normStr(c.bgMusic.src, '');
     c.letter = c.letter || {};
     c.letter.title = normStr(c.letter.title, 'Happy Anniversary, my love.');
-    if (!c.letter.paragraphs || !c.letter.paragraphs.length){ c.letter.paragraphs = ['ข้อความบรรทัดที่ 1...', 'ข้อความบรรทัดที่ 2...', 'และอีกมากมายที่ฉันอยากบอกเธอ ✨']; }
+    if (!c.letter.paragraphs || !c.letter.paragraphs.length){ c.letter.paragraphs = ['ข้อความบรรทัดที่ 1...', 'ข้อความบรรทัดที่ 2...', 'และอีกมากมายที่ฉันอยากบอกเธอ']; }
     c.letter.headerImages = normMedia(c.letter.headerImages, 2);
     c.memories = c.memories || {};
     c.memories.sectionTitle = normStr(c.memories.sectionTitle, 'Memories Made With You');
@@ -963,7 +963,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     c.finale = c.finale || {};
     c.finale.heroImage = (c.finale.heroImage && c.finale.heroImage.src) ? c.finale.heroImage : { type: 'url', src: '' };
     c.finale.mainText = normStr(c.finale.mainText, 'HAPPY ANNIVERSARY');
-    c.finale.subText = normStr(c.finale.subText, 'Love of my life 💕');
+    c.finale.subText = normStr(c.finale.subText, 'Love of my life');
     return cfg;
   }
   function post(obj){
@@ -1083,7 +1083,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     var note = byId('sq-pay-note');
     if (note){
       note.textContent = SQ.paid
-        ? '✅ การ์ดชำระแล้ว — พร้อมส่งออกไฟล์ HTML'
+        ? 'การ์ดชำระแล้ว — พร้อมส่งออกไฟล์ HTML'
         : 'การ์ดยังไม่ชำระ — ปิดการส่งออกอยู่';
     }
     var btn = byId('sq-export-btn');
@@ -1498,13 +1498,13 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     frag.appendChild(adminGroup('เมนูเลือกของขวัญ (หน้า 2)',
       fText('content.menu.subTitle', 'หัวข้อย่อย (Subtitle)', 'ของขวัญที่รออยู่'),
       fText('content.menu.title', 'หัวข้อหลัก (Title)', 'เลือกของขวัญสักชิ้นสิ'),
-      fText('content.menu.card1Icon', 'ไอคอนการ์ด 1 (Emoji)', '💌'),
+      fText('content.menu.card1Icon', 'ไอคอนการ์ด 1', 'mail'),
       fText('content.menu.card1Title', 'ชื่อการ์ด 1', 'ข้อความจากหัวใจ'),
       fText('content.menu.card1Desc', 'คำอธิบายการ์ด 1', 'จดหมายรักที่เขียนด้วยใจถึงเธอ'),
-      fText('content.menu.card2Icon', 'ไอคอนการ์ด 2 (Emoji)', '📸'),
+      fText('content.menu.card2Icon', 'ไอคอนการ์ด 2', 'camera'),
       fText('content.menu.card2Title', 'ชื่อการ์ด 2', 'ความทรงจำ'),
       fText('content.menu.card2Desc', 'คำอธิบายการ์ด 2', 'ภาพช่วงเวลาแสนดีของเรา'),
-      fText('content.menu.card3Icon', 'ไอคอนการ์ด 3 (Emoji)', '💐'),
+      fText('content.menu.card3Icon', 'ไอคอนการ์ด 3', 'sparkles'),
       fText('content.menu.card3Title', 'ชื่อการ์ด 3', 'ดอกไม้'),
       fText('content.menu.card3Desc', 'คำอธิบายการ์ด 3', 'ช่อดอกไม้เสมือนจริงจากใจ')
      ));
@@ -1543,7 +1543,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     frag.appendChild(adminGroup('จบการ์ด',
       fMedia('content.finale.heroImage.src', 'ภาพพื้นหลัง Finale', 'image/*'),
       fText('content.finale.mainText', 'ข้อความหลัก', 'HAPPY ANNIVERSARY'),
-      fText('content.finale.subText', 'ข้อความรอง', 'Love of my life 💕')
+      fText('content.finale.subText', 'ข้อความรอง', 'Love of my life')
     ));
     box.appendChild(frag);
     var sw = byId('sq-admin-screens');
@@ -1594,7 +1594,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     post({ type: 'sq:mark-paid', config: SQ.config });
     closePay();
     if (EngineEditMode){ refreshAdmin(); }
-    flashNote('ชำระเงินเรียบร้อย ✅ ปลดล็อกการส่งออกแล้ว');
+    flashNote('ชำระเงินเรียบร้อย ปลดล็อกการส่งออกแล้ว');
   }
   function markPaidExternal(){
     SQ.paid = true;
@@ -1644,7 +1644,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
   function copyLink(){
     var u = SQ.shareUrl || window.location.href;
     if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(u).then(function(){ flashNote('คัดลอกลิงก์แล้ว ✅'); }, function(){ promptCopy(u); });
+      navigator.clipboard.writeText(u).then(function(){ flashNote('คัดลอกลิงก์แล้ว'); }, function(){ promptCopy(u); });
     } else { promptCopy(u); }
   }
   function promptCopy(u){ window.prompt('คัดลอกลิงก์', u); }

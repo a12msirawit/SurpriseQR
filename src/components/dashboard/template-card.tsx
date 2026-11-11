@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, ExternalLink, Sparkles, X } from "lucide-react";
+import { Eye, ExternalLink, X, Gem, Zap, Crown, Wand2, Sparkles } from "lucide-react";
 import type { Template, TemplateDemoLinks } from "@/types/database";
 
 /** Safely coerce demo_video_links from the DB (null, object, or JSON string) into a record. */
@@ -30,6 +30,8 @@ function normalizeDemoLinks(value: unknown): TemplateDemoLinks {
 export interface TemplateCardData extends Template {
   /** Optional static thumbnail override; falls back to preview_url. */
   thumbnail_url?: string | null;
+  slug?: string;
+  badge?: string;
 }
 
 interface TemplateCardProps {
@@ -84,17 +86,35 @@ export default function TemplateCard({ template, fallbackImage }: TemplateCardPr
               src={thumbnailSrc}
               alt={title}
               fill
+              unoptimized={typeof thumbnailSrc === "string" && (thumbnailSrc.endsWith(".svg") || thumbnailSrc.includes(".svg?"))}
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 20vw"
               className="object-cover"
             />
           )}
+          {((template as { badge?: string }).badge === "INTERACTIVE" || template.slug === "velvet-candle" || title.toLowerCase().includes("velvet") || title.toLowerCase().includes("candle")) ? (
+            <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full border border-amber-300/60 bg-gradient-to-r from-red-950/95 via-amber-950/90 to-red-950/95 px-2.5 py-1 text-xs font-black tracking-wider text-amber-200 shadow-xl backdrop-blur-md">
+              <Sparkles className="w-3 h-3 mr-1 inline text-amber-300" /> INTERACTIVE
+            </span>
+          ) : ((template as { badge?: string }).badge === "CINEMATIC" || template.slug === "midnight-cinema" || title.toLowerCase().includes("midnight cinema") || title.toLowerCase().includes("cinema")) ? (
+            <span className="absolute left-3 top-3 z-10 rounded-full border border-amber-500/50 bg-gradient-to-r from-neutral-900/95 via-amber-950/90 to-neutral-900/95 px-2.5 py-1 text-xs font-black tracking-widest text-amber-200 shadow-xl backdrop-blur-md">
+              CINEMATIC
+            </span>
+          ) : ((template as { badge?: string }).badge === "LUXURY"  || template.slug === "vintage-wax-seal" || title.toLowerCase().includes("wax") || title.toLowerCase().includes("parchment")) ? (
+            <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-600/90 via-yellow-600/90 to-amber-500/90 px-2.5 py-1 text-xs font-black text-amber-100 shadow-lg backdrop-blur-md">
+              <Gem className="w-3 h-3 mr-1 inline" /> LUXURY
+            </span>
+          ) : ((template as { badge?: string }).badge || template.slug === "retro-y2k" || title.toLowerCase().includes("y2k")) ? (
+            <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full border border-teal-400/50 bg-gradient-to-r from-teal-500/90 via-emerald-500/90 to-cyan-500/90 px-2.5 py-1 text-xs font-black text-white shadow-lg backdrop-blur-md animate-pulse">
+              <Zap className="w-3 h-3 mr-1 inline" /> VIRAL Y2K
+            </span>
+          ) : null}
           {isPremium ? (
-            <span className="absolute right-3 top-3 z-10 rounded-full border border-amber-500/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2.5 py-1 text-xs font-semibold text-amber-300 shadow-lg backdrop-blur-md">
-              👑 พรีเมียม
+            <span className="absolute right-3 top-3 z-10 inline-flex items-center rounded-full border border-amber-500/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2.5 py-1 text-xs font-semibold text-amber-300 shadow-lg backdrop-blur-md">
+              <Crown className="w-3 h-3 mr-1 inline" /> พรีเมียม
             </span>
           ) : (
-            <span className="absolute right-3 top-3 z-10 rounded-full border border-emerald-500/40 bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-300 backdrop-blur-md">
-              🟢 ใช้งานฟรี
+            <span className="absolute right-3 top-3 z-10 inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-300 backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block mr-1.5" /> ใช้งานฟรี
             </span>
           )}
         </div>
@@ -120,7 +140,7 @@ export default function TemplateCard({ template, fallbackImage }: TemplateCardPr
             href={`/dashboard/create?template=${template.id}`}
             className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-semibold shadow-md shadow-purple-900/30 transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Wand2 className="w-3.5 h-3.5 mr-1.5" />
             เลือกเทมเพลต
           </Link>
         </div>

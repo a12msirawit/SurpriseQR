@@ -1,17 +1,17 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Trash2 } from "lucide-react";
+import { ImagePlus, Trash2, Square, Circle, Heart, Gift, Cake, Star, Coffee, type LucideIcon } from "lucide-react";
 import CustomQRCode, { type QRFrame, type QRShape } from "./CustomQRCode";
 
-const SHAPES: Array<{ id: QRShape; label: string; icon: string }> = [
-  { id: "square", label: "สี่เหลี่ยมปกติ", icon: "▦" },
-  { id: "rounded", label: "ทรงมน/วงกลม", icon: "●" },
-  { id: "heart", label: "รูปหัวใจ", icon: "♥" },
-  { id: "gift", label: "รูปกล่องของขวัญ", icon: "▣" },
-  { id: "cake", label: "รูปเค้กวันเกิด", icon: "♜" },
-  { id: "star", label: "รูปดาว", icon: "★" },
-  { id: "coffee", label: "รูปแก้วกาแฟ", icon: "☕" },
+const SHAPES: Array<{ id: QRShape; label: string; icon: LucideIcon }> = [
+  { id: "square", label: "สี่เหลี่ยมปกติ", icon: Square },
+  { id: "rounded", label: "ทรงมน/วงกลม", icon: Circle },
+  { id: "heart", label: "รูปหัวใจ", icon: Heart },
+  { id: "gift", label: "รูปกล่องของขวัญ", icon: Gift },
+  { id: "cake", label: "รูปเค้กวันเกิด", icon: Cake },
+  { id: "star", label: "รูปดาว", icon: Star },
+  { id: "coffee", label: "รูปแก้วกาแฟ", icon: Coffee },
 ];
 
 const FRAMES: Array<{ id: QRFrame; label: string }> = [
@@ -56,7 +56,7 @@ export default function QRCodeCustomizer({ value, svgRef }: QRCodeCustomizerProp
     </div>
     <div className="min-h-0 flex-1 overflow-y-auto p-6">
       <div className="space-y-4">
-      <fieldset><legend className="mb-2 text-sm font-bold text-slate-200">รูปทรง QR Code</legend><div className="grid grid-cols-2 gap-2">{SHAPES.map((item) => <button key={item.id} type="button" onClick={() => setShape(item.id)} className={`min-h-[44px] rounded-xl border px-2 py-2 text-xs font-semibold transition md:min-h-0 ${shape === item.id ? "border-space-accent bg-space-accent/15 text-pink-100" : "border-space-border bg-white/5 text-slate-300 hover:border-space-glow"}`}><span className="mr-1 text-base">{item.icon}</span>{item.label}</button>)}</div></fieldset>
+      <fieldset><legend className="mb-2 text-sm font-bold text-slate-200">รูปทรง QR Code</legend><div className="grid grid-cols-2 gap-2">{SHAPES.map((item) => { const Icon = item.icon; return (<button key={item.id} type="button" onClick={() => setShape(item.id)} className={`inline-flex items-center justify-center gap-1.5 min-h-[44px] rounded-xl border px-2 py-2 text-xs font-semibold transition md:min-h-0 ${shape === item.id ? "border-space-accent bg-space-accent/15 text-pink-100" : "border-space-border bg-white/5 text-slate-300 hover:border-space-glow"}`}><Icon className="h-3.5 w-3.5 text-pink-400" />{item.label}</button>); })}</div></fieldset>
       <fieldset><legend className="mb-2 text-sm font-bold text-slate-200">รูปแบบกรอบ</legend><div className="grid grid-cols-2 gap-2">{FRAMES.map((item) => <button key={item.id} type="button" onClick={() => setFrameStyle(item.id)} className={`min-h-[44px] rounded-xl border px-2 py-2 text-xs font-semibold transition md:min-h-0 ${frameStyle === item.id ? "border-space-accent bg-space-accent/15 text-pink-100" : "border-space-border bg-white/5 text-slate-300 hover:border-space-glow"}`}>{item.label}</button>)}</div></fieldset>
       <div className="grid grid-cols-3 gap-2"><label className="text-xs font-semibold text-slate-300">สี QR<input type="color" value={foregroundColor} onChange={(event) => setForegroundColor(event.target.value)} className="mt-1 h-11 min-h-[44px] w-full cursor-pointer rounded-lg border border-space-border bg-white/5 md:h-9" /></label><label className="text-xs font-semibold text-slate-300">สีพื้นหลัง<input type="color" value={backgroundColor} onChange={(event) => setBackgroundColor(event.target.value)} className="mt-1 h-11 min-h-[44px] w-full cursor-pointer rounded-lg border border-space-border bg-white/5 md:h-9" /></label><label className="text-xs font-semibold text-slate-300">สีกรอบ<input type="color" value={accentColor} onChange={(event) => setAccentColor(event.target.value)} className="mt-1 h-11 min-h-[44px] w-full cursor-pointer rounded-lg border border-space-border bg-white/5 md:h-9" /></label></div>
       <label className="block text-sm font-semibold text-slate-200">ข้อความใต้ QR Code<input value={text} onChange={(event) => setText(event.target.value)} maxLength={48} className="mt-2 w-full rounded-xl border border-space-border bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-space-accent" placeholder="สแกนเพื่อเปิดการ์ด" /></label>

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import generatePayload from "promptpay-qr";
 import QRCode from "qrcode";
-import { CheckCircle2, Lock, X } from "lucide-react";
+import { CheckCircle2, Lock, X, CreditCard } from "lucide-react";
 import { buildSurpriseQRHTML } from "@/lib/surpriseqr/template-engine";
 import type { SurpriseQRData } from "@/types/templates";
 
@@ -274,7 +274,7 @@ export default function SurpriseQR({
           <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#13111c] p-6 text-center text-white shadow-2xl">
             <div className="mb-2 flex items-start justify-between">
               <div className="text-left">
-                <p className="text-lg font-black">💳 ชำระเงินเพื่อเผยแพร่</p>
+                <p className="text-lg font-black flex items-center gap-2"><CreditCard className="h-5 w-5 text-fuchsia-400" />ชำระเงินเพื่อเผยแพร่</p>
                 <p className="mt-1 text-sm text-slate-300">
                   สแกน PromptPay หรือกดชำระเงินผ่านช่องทางที่เลือก
                 </p>
@@ -332,7 +332,7 @@ export default function SurpriseQR({
 
       {payConfirmed && (
         <div className="fixed bottom-5 left-1/2 z-[90] -translate-x-1/2 rounded-xl border border-emerald-300 bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-800 shadow-lg">
-          ✅ ชำระเงินเรียบร้อย — ปลดล็อกการส่งออกการ์ดแล้ว
+          <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-emerald-600" />ชำระเงินเรียบร้อย — ปลดล็อกการส่งออกการ์ดแล้ว</span>
         </div>
       )}
     </div>

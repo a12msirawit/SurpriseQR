@@ -92,7 +92,7 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
 /**
  * Every package starts a fresh 30-day subscription period.
  */
-export const RENEWAL_FEATURE = "⚡ ใช้งาน 30 วัน (ไม่ทบวัน)";
+export const RENEWAL_FEATURE = "ใช้งาน 30 วัน (ไม่ทบวัน)";
 
 /**
  * Kept as a named export for older callers; every package now has the same term.
@@ -101,7 +101,7 @@ export const GOD_STARTER_FEATURE = RENEWAL_FEATURE;
 
 /** Footnote rendered beneath the package grid. */
 export const STACKING_FOOTNOTE =
-  "📌 อัปเกรดเป็นแพ็กที่สูงกว่าได้ทันทีและเริ่มรอบ 30 วันใหม่ ต่อแพ็กเดิมได้เมื่อเหลือไม่เกิน 7 วัน ส่วนการลดแพ็กทำได้หลังแพ็กปัจจุบันหมดอายุ โดยสิทธิ์คงเหลืออยู่ต่อได้อีก 7 วัน";
+  "อัปเกรดเป็นแพ็กที่สูงกว่าได้ทันทีและเริ่มรอบ 30 วันใหม่ ต่อแพ็กเดิมได้เมื่อเหลือไม่เกิน 7 วัน ส่วนการลดแพ็กทำได้หลังแพ็กปัจจุบันหมดอายุ โดยสิทธิ์คงเหลืออยู่ต่อได้อีก 7 วัน";
 
 /**
  * Tier-aware feature lines for a package card.

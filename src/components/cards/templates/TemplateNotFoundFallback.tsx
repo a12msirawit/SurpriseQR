@@ -1,4 +1,5 @@
 "use client";
+import { AlertTriangle } from "lucide-react";
 
 type TemplateNotFoundFallbackProps = {
   message?: string;
@@ -21,7 +22,7 @@ export default function TemplateNotFoundFallback({
 }: TemplateNotFoundFallbackProps) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center text-slate-400 bg-white/5 rounded-2xl border border-white/10">
-      <div className="mb-3 text-2xl">⚠️</div>
+      <AlertTriangle className="mb-3 h-8 w-8 text-amber-400" />
       <p className="text-sm font-medium">{message ?? "ไม่พบคอมโพเนนต์เทมเพลตที่เลือก กรุณาติดต่อผู้ดูแลระบบ"}</p>
     </div>
   );

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import CardViewer from "@/components/cards/card-viewer";
 import Link from "next/link";
+import { ShieldAlert } from "lucide-react";
 import type { Card, Profile } from "@/types/database";
 
 export default async function CardViewPage({ params }: { params: Promise<{ hash_id: string }> }) {
@@ -44,7 +45,7 @@ export default async function CardViewPage({ params }: { params: Promise<{ hash_
   if (moderationStatus === "hidden" || moderationStatus === "flagged") {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 p-8 text-center">
-        <h1 className="text-2xl font-bold text-slate-800">🚫 การ์ดนี้ถูกระงับการเข้าชม</h1>
+        <h1 className="text-2xl font-bold text-slate-800 flex items-center justify-center gap-2"><ShieldAlert className="w-6 h-6 text-rose-500 inline" />การ์ดนี้ถูกระงับการเข้าชม</h1>
         <p className="text-slate-500">การ์ดนี้อยู่ระหว่างการตรวจสอบเนื้อหา หรือถูกผู้ดูแลระบบระงับการเข้าชมชั่วคราว</p>
         <Link href="/" className="mt-2 rounded-xl bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 hover:bg-rose-100">
           กลับหน้าแรก

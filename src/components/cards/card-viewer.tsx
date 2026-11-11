@@ -1,15 +1,34 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Sparkles, Gift, AlertCircle, Music, Clock, Heart, ThumbsUp, Smile, ArrowLeft, ArrowRight } from "lucide-react";
+import { Lock, Sparkles, Gift, AlertCircle, Music, Clock, Heart, ThumbsUp, Smile, ArrowLeft, ArrowRight, Check, Play, Pause } from "lucide-react";
 import confetti from "canvas-confetti";
 import type { Card, UserTier, ReactionType, DatabaseSceneType } from "@/types/database";
 import { verifyCardPin, incrementCardViewCount, submitCardReaction } from "@/app/c/[hash_id]/actions";
+import BackgroundAudioPlayer from "@/components/audio/BackgroundAudioPlayer";
+import { isYouTubeUrl } from "@/lib/audio-helper";
 
 import { getTemplateComponent, TemplateNotFoundFallback } from "@/lib/template-components";
-import { getTemplateSlugById } from "@/data/templates";
-import { defaultSurpriseQRData } from "@/data/templates";
+import {
+  getTemplateSlugById,
+  defaultSurpriseQRData,
+  defaultRetroY2KData,
+  defaultVintageWaxSealData,
+  defaultMidnightCinemaData,
+  defaultStarlightMemoriesData,
+  defaultVelvetCandleData,
+  type TemplateSlug,
+} from "@/data/templates";
+
+function getDefaultDataForSlug(slug: TemplateSlug | null): SurpriseQRData {
+  if (slug === "velvet-candle") return defaultVelvetCandleData;
+  if (slug === "starlight-memories") return defaultStarlightMemoriesData;
+  if (slug === "midnight-cinema") return defaultMidnightCinemaData;
+  if (slug === "vintage-wax-seal") return defaultVintageWaxSealData;
+  if (slug === "retro-y2k") return defaultRetroY2KData;
+  return defaultSurpriseQRData;
+}
 import type { SurpriseQRData } from "@/types/templates";
 import {
   resolveTemplateRenderStrategy,
@@ -48,6 +67,7 @@ function getStringValue(value: unknown) {
 function buildSurpriseQRData(
   card: Card,
   embeddedContent: Record<string, unknown>,
+  defaultData: SurpriseQRData = defaultSurpriseQRData,
 ): SurpriseQRData {
   const rawConfigRaw = embeddedContent.config;
   const rawConfig =
@@ -63,7 +83,7 @@ function buildSurpriseQRData(
       ? (rawConfig.content as Record<string, unknown>)
       : (embeddedContent.content as Record<string, unknown> | undefined);
 
-  const d = defaultSurpriseQRData;
+  const d = defaultData;
   const str = (v: unknown, fallback: string) => getStringValue(v) || fallback;
   const media = (v: unknown, fallback: string) => {
     if (v && typeof v === "object") {
@@ -289,7 +309,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
   const [submittingReaction, setSubmittingReaction] = useState(false);
   const [reactionSubmitted, setReactionSubmitted] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   const scenes = card.scenes || [];
   const hasScenes = scenes.length > 0;
@@ -316,7 +336,14 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
 
   // Increment view count when the card is opened. The two full-bleed template
   // strategies render without the generic gates, so they count on mount.
-  const isImmersiveStrategy = renderStrategy === "anniversary-surprise" || renderStrategy === "storyline";
+  const isImmersiveStrategy =
+    renderStrategy === "anniversary-surprise" ||
+    renderStrategy === "storyline" ||
+    renderStrategy === "retro-y2k" ||
+    renderStrategy === "vintage-wax-seal" ||
+    renderStrategy === "midnight-cinema" ||
+    renderStrategy === "starlight-memories" ||
+    renderStrategy === "velvet-candle";
   useEffect(() => {
     if ((isOpened || isImmersiveStrategy) && !error) {
       incrementCardViewCount(hashId);
@@ -366,10 +393,8 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
   function handleOpenCard() {
     setIsOpened(true);
     
-    if (audioRef.current && card.audio_url) {
-      audioRef.current.play().catch((err) => {
-        console.error("Audio playback failed:", err);
-      });
+    if (card.audio_url) {
+      setIsAudioPlaying(true);
     }
 
     confetti({
@@ -457,8 +482,15 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
 
   function buildTemplateConfig(card: Card, embeddedContent: Record<string, unknown>): unknown {
     const slug = templateSlug;
-    if (slug === "anniversary-surprise") {
-      return buildSurpriseQRData(card, embeddedContent);
+    if (
+      slug === "anniversary-surprise" ||
+      slug === "retro-y2k" ||
+      slug === "vintage-wax-seal" ||
+      slug === "midnight-cinema" ||
+      slug === "starlight-memories" ||
+      slug === "velvet-candle"
+    ) {
+      return buildSurpriseQRData(card, embeddedContent, getDefaultDataForSlug(slug));
     }
     if (slug === "candles") {
       return {
@@ -495,7 +527,15 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
 
   // Anniversary Surprise owns its PIN flow. Blow Candles is a public birthday
   // experience and must not show the generic PIN screen from this viewer.
-  if (renderStrategy === "anniversary-surprise" && TemplateComponent) {
+  if (
+    (renderStrategy === "anniversary-surprise" ||
+      renderStrategy === "retro-y2k" ||
+      renderStrategy === "vintage-wax-seal" ||
+      renderStrategy === "midnight-cinema" ||
+      renderStrategy === "starlight-memories" ||
+      renderStrategy === "velvet-candle") &&
+    TemplateComponent
+  ) {
     return (
       <div className="h-[100dvh] w-screen overflow-hidden">
         <TemplateComponent
@@ -660,7 +700,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
                         : "bg-white/10 text-slate-400 hover:bg-white/20"
                     }`}
                   >
-                    {index < currentSceneIndex ? "✓" : index + 1}
+                    {index < currentSceneIndex ? <Check className="w-4 h-4 mx-auto" /> : index + 1}
                   </motion.button>
                 ))}
               </div>
@@ -758,7 +798,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
                         animate={{ scale: 1, opacity: 1 }}
                         className="bg-gradient-to-br from-yellow-100 to-amber-100 border border-yellow-300 rounded-2xl p-6 shadow-inner"
                       >
-                        <p className="text-amber-800 font-bold text-lg">🎉 คุณพบของขวัญลับ!</p>
+                        <p className="text-amber-800 font-bold text-lg flex items-center justify-center gap-2"><Gift className="w-5 h-5 text-amber-600 inline" />คุณพบของขวัญลับ!</p>
                       </motion.div>
                     )}
                   </motion.div>
@@ -791,7 +831,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
                         animate={{ scale: 1, opacity: 1 }}
                         className="bg-gradient-to-br from-green-100 to-emerald-100 border border-green-300 rounded-2xl p-6 shadow-inner"
                       >
-                        <p className="text-green-800 font-bold text-lg">✨ เปิดกล่องของขวัญแล้ว!</p>
+                        <p className="text-green-800 font-bold text-lg flex items-center justify-center gap-2"><Sparkles className="w-5 h-5 text-emerald-600 inline" />เปิดกล่องของขวัญแล้ว!</p>
                       </motion.div>
                     )}
                   </motion.div>
@@ -956,11 +996,38 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
         )}
 
         {card.audio_url && (
-          <div className="bg-gradient-to-br from-white/5 to-white/10 border border-space-border rounded-2xl p-4 flex items-center gap-3 shadow-inner">
-            <Music className="w-6 h-6 text-slate-400" />
-            <audio ref={audioRef} controls src={card.audio_url} className="flex-1">
-              เบราว์เซอร์ของคุณไม่รองรับไฟล์เสียง
-            </audio>
+          <div className="bg-gradient-to-br from-white/5 to-white/10 border border-space-border rounded-2xl p-4 flex items-center justify-between gap-3 shadow-inner">
+            <div className="flex items-center gap-3">
+              <Music className="w-6 h-6 text-space-accent" />
+              <div>
+                <p className="text-sm font-semibold text-white">เพลงประกอบการ์ด</p>
+                <p className="text-xs text-slate-400">
+                  {isYouTubeUrl(card.audio_url) ? "YouTube Audio" : "เสียงดนตรี"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsAudioPlaying(!isAudioPlaying)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-space-accent/20 px-3.5 py-2 text-xs font-bold text-space-accent hover:bg-space-accent/30 transition-colors"
+            >
+              {isAudioPlaying ? (
+                <>
+                  <Pause className="w-3.5 h-3.5" />
+                  <span>พักชั่วคราว</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5" />
+                  <span>เล่นเพลง</span>
+                </>
+              )}
+            </button>
+            <BackgroundAudioPlayer
+              url={card.audio_url}
+              isPlaying={isAudioPlaying}
+              loop
+            />
           </div>
         )}
 

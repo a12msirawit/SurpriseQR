@@ -108,7 +108,7 @@ export default function TopupForm({ userId }: TopupFormProps) {
               <div className="text-center">
                 <p className="text-lg font-bold text-white">{pkg.name}</p>
                 <p className="text-3xl font-bold text-space-accent my-2">฿{pkg.price}</p>
-                <ul className="mt-3 space-y-1 text-left text-xs font-medium leading-5 text-slate-400">{getPackageFeatures(pkg).map((feature) => <li key={feature}>✓ {feature}</li>)}</ul>
+                <ul className="mt-3 space-y-1 text-left text-xs font-medium leading-5 text-slate-400">{getPackageFeatures(pkg).map((feature) => <li key={feature} className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" /><span>{feature}</span></li>)}</ul>
                 <p className="mt-4 rounded-xl bg-white/10 px-3 py-2 text-sm font-bold text-white">เลือกแพ็กเกจนี้</p>
               </div>
             </button>

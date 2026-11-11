@@ -6,19 +6,24 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowLeft,
+  Cake,
   Check,
+  Film,
   Flower,
   Gift,
   Grid2X2,
   Image as ImageIcon,
+  Images,
   Info,
   Key,
   Lock,
   Mail,
+  Music,
   RefreshCw,
   Save,
   Sparkles,
   Star,
+  Upload,
   Video,
   Wallet,
 } from "lucide-react";
@@ -31,7 +36,13 @@ import type {
 import { defaultStorylineModel, type StorylineModel } from "@/types/storyline";
 import { compressImage, compressDataUrl } from "@/lib/image-compression";
 import {
+  defaultBlowCandlesData,
+  defaultMidnightCinemaData,
+  defaultRetroY2KData,
+  defaultStarlightMemoriesData,
   defaultSurpriseQRData,
+  defaultVelvetCandleData,
+  defaultVintageWaxSealData,
   getTemplateById,
   getTemplateSlugById,
   templateCatalog,
@@ -75,6 +86,37 @@ const EDITOR_STEPS: Array<{
   { id: 5, screen: 5, label: "ดอกไม้ & เสียงพื้นหลัง", icon: Flower },
   { id: 6, screen: 6, label: "วิดีโอความทรงจำ", icon: Video },
   { id: 7, screen: 7, label: "Finale", icon: Star },
+];
+
+/**
+ * Editor steps specifically customized for Starlight Memories (3-Act Cutscene & Finale).
+ */
+const STARLIGHT_MEMORIES_STEPS: Array<{
+  id: number;
+  screen: number;
+  label: string;
+  icon: LucideIcon;
+}> = [
+  { id: 1, screen: 1, label: "ข้อมูล & เพลง", icon: Music },
+  { id: 2, screen: 2, label: "ฉาก 1: จุดเริ่มต้น", icon: Film },
+  { id: 3, screen: 3, label: "ฉาก 2: ช่วงเวลาของเรา", icon: Sparkles },
+  { id: 4, screen: 4, label: "ฉาก 3: คำสัญญา", icon: Star },
+  { id: 5, screen: 5, label: "ฉากส่งท้าย Finale", icon: ImageIcon },
+];
+
+/**
+ * Editor steps specifically customized for Velvet Candle & Cake (Interactive Birthday).
+ */
+const VELVET_CANDLE_STEPS: Array<{
+  id: number;
+  screen: number;
+  label: string;
+  icon: LucideIcon;
+}> = [
+  { id: 1, screen: 1, label: "ข้อมูลวันเกิด & เพลง", icon: Cake },
+  { id: 2, screen: 2, label: "คำอธิษฐาน & ข้อความในเค้ก", icon: Sparkles },
+  { id: 3, screen: 3, label: "ลูกโป่งคำอวยพร", icon: Gift },
+  { id: 4, screen: 4, label: "อัลบั้มภาพวันเกิด", icon: Images },
 ];
 
 interface SceneFormData {
@@ -160,7 +202,14 @@ function SurpriseQRMediaInput({
           disabled={busy}
           className="inline-flex items-center gap-2 rounded-xl border border-slate-600 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {busy ? "กำลังแปลงไฟล์..." : "📂 อัปโหลดไฟล์"}
+          {busy ? (
+            "กำลังแปลงไฟล์..."
+          ) : (
+            <>
+              <Upload className="h-4 w-4" />
+              <span>อัปโหลดไฟล์</span>
+            </>
+          )}
         </button>
         {value ? (
           <button
@@ -216,9 +265,23 @@ const ANNIVERSARY_TEMPLATE_SLUG: TemplateSlug = "anniversary-surprise";
 
 /** Creation is locked to the Anniversary Surprise template as the primary option. Other resolved templates are also supported. */
 function resolveOptionStrategy(option: DashboardTemplateOption | null): TemplateSlug {
-  return getTemplateSlugById(option?.id) ?? getTemplateSlugById(option?.systemDef?.id) ??
-    (option?.name?.toLowerCase().includes("blow candles") ? "candles" :
-      option?.name?.toLowerCase().includes("storyline") ? "storyline" : ANNIVERSARY_TEMPLATE_SLUG);
+  const byId = getTemplateSlugById(option?.id) ?? getTemplateSlugById(option?.systemDef?.id);
+  if (byId) return byId;
+
+  const lower = (option?.name ?? "").toLowerCase();
+  if (lower.includes("velvet") || lower.includes("cake") || lower.includes("เค้ก") || lower.includes("เป่าเทียนวันเกิด")) {
+    return "velvet-candle";
+  }
+  if (lower.includes("starlight") || lower.includes("stars") || lower.includes("ดวงดาว") || lower.includes("แสงดาว")) {
+    return "starlight-memories";
+  }
+  if (lower.includes("blow candles") || lower.includes("candles")) {
+    return "candles";
+  }
+  if (lower.includes("storyline") || lower.includes("story-line")) {
+    return "storyline";
+  }
+  return ANNIVERSARY_TEMPLATE_SLUG;
 }
 
 function mapUnifiedToOption(t: UnifiedTemplate): DashboardTemplateOption {
@@ -338,10 +401,37 @@ function CreateStoryCardPageInner() {
   const [candlePhotos, setCandlePhotos] = useState<string[]>(["", "", ""]);
   const [storylineModel, setStorylineModel] = useState<StorylineModel>(() => structuredClone(defaultStorylineModel));
   const [activeStep, setActiveStep] = useState(1);
+  const [highlightedFieldId, setHighlightedFieldId] = useState<string | null>(null);
   const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
   const selectedStrategy: TemplateSlug = resolveOptionStrategy(selectedTemplate);
+  const stepsToUse =
+    selectedStrategy === "velvet-candle"
+      ? VELVET_CANDLE_STEPS
+      : selectedStrategy === "starlight-memories"
+        ? STARLIGHT_MEMORIES_STEPS
+        : EDITOR_STEPS;
   // Preview jumps to the screen whose step is currently active.
-  const activeStepScreen = EDITOR_STEPS.find((s) => s.id === activeStep)?.screen ?? 1;
+  const activeStepScreen = stepsToUse.find((s) => s.id === activeStep)?.screen ?? 1;
+
+  const handleSelectField = useCallback((tabIndex: number, fieldId?: string) => {
+    setActiveStep(tabIndex);
+    if (fieldId) {
+      setHighlightedFieldId(fieldId);
+      setTimeout(() => {
+        const el = document.getElementById(fieldId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          if ("focus" in el && typeof (el as HTMLInputElement).focus === "function") {
+            (el as HTMLInputElement).focus();
+          }
+        }
+      }, 60);
+      setTimeout(() => {
+        setHighlightedFieldId((curr) => (curr === fieldId ? null : curr));
+      }, 2000);
+    }
+  }, []);
+
   const activeConfig = selectedStrategy === "storyline"
     ? {
         storylineModel: {
@@ -361,6 +451,20 @@ function CreateStoryCardPageInner() {
         wishMessage: surpriseQRData.content.finale.subText,
         message: surpriseQRData.content.letter.paragraphs.join("\n\n"),
         photos: candlePhotos.filter(Boolean).map((src) => ({ src })),
+      }
+    : (selectedStrategy === "starlight-memories" || selectedStrategy === "velvet-candle")
+    ? {
+        ...surpriseQRData,
+        title: cardTitle || surpriseQRData.content.title,
+        recipientName: recipientName || surpriseQRData.content.menu.subTitle,
+        content: {
+          ...surpriseQRData.content,
+          title: cardTitle || surpriseQRData.content.title,
+          menu: {
+            ...surpriseQRData.content.menu,
+            subTitle: recipientName || surpriseQRData.content.menu.subTitle,
+          },
+        },
       }
     : surpriseQRData;
   const PreviewComponent = getTemplateComponent(selectedStrategy);
@@ -552,6 +656,25 @@ function CreateStoryCardPageInner() {
     if (!found) found = templateOptions[0] ?? null;
     if (found) {
       setSelectedTemplate(found);
+      const slug = getTemplateSlugById(found.id) ?? getTemplateSlugById(found.systemDef?.id);
+      if (slug === "velvet-candle") {
+        setCardTitle((curr) => (!curr || curr === "Happy Anniversary, Love !") ? "Happy Birthday" : curr);
+        setSurpriseQRData((prev) => {
+          if (!prev || prev === defaultSurpriseQRData || prev.content?.title === "Happy Anniversary, Love !") {
+            return structuredClone(defaultVelvetCandleData);
+          }
+          return prev;
+        });
+      }
+      if (slug === "starlight-memories") {
+        setCardTitle((curr) => (!curr || curr === "Happy Anniversary, Love !") ? "Starlight Memories" : curr);
+        setSurpriseQRData((prev) => {
+          if (!prev || prev === defaultSurpriseQRData || prev.content?.title === "Happy Anniversary, Love !") {
+            return structuredClone(defaultStarlightMemoriesData);
+          }
+          return prev;
+        });
+      }
       if (found.systemDef === undefined) {
         const sysDef = getTemplateById(found.id, found.name);
         if (sysDef) {
@@ -708,19 +831,33 @@ function CreateStoryCardPageInner() {
       };
     }
 
-    // Anniversary Surprise persists the full spec schema verbatim.
+    // Starlight Memories & Anniversary Surprise persist the full spec schema verbatim.
+    const mergedSurpriseData = {
+      ...surpriseQRData,
+      title: cardTitle || surpriseQRData.content.title,
+      recipientName: recipientName || surpriseQRData.content.menu.subTitle,
+      content: {
+        ...surpriseQRData.content,
+        title: cardTitle || surpriseQRData.content.title,
+        menu: {
+          ...surpriseQRData.content.menu,
+          subTitle: recipientName || surpriseQRData.content.menu.subTitle,
+        },
+      },
+    };
+
     return {
       ...base,
       title: cardTitle || surpriseQRData.content.title || recipientName || base.title,
       content: {
         templateId,
         recipientName,
-        title: surpriseQRData.content.title,
+        title: cardTitle || surpriseQRData.content.title,
         settings: { ...surpriseQRData.settings },
-        content: { ...surpriseQRData.content, title: surpriseQRData.content.title },
-        config: JSON.parse(JSON.stringify(surpriseQRData)),
+        content: mergedSurpriseData.content,
+        config: mergedSurpriseData,
       },
-      config: JSON.parse(JSON.stringify(surpriseQRData)),
+      config: mergedSurpriseData,
     };
   }
 
@@ -917,6 +1054,7 @@ function CreateStoryCardPageInner() {
                       studio
                       activeScreen={activeStepScreen}
                       refreshToken={previewRefreshToken}
+                      onSelectField={handleSelectField}
                     />
                   )}
                 </div>
@@ -930,7 +1068,7 @@ function CreateStoryCardPageInner() {
             aria-label="ขั้นตอนการสร้างการ์ด"
             className="sticky top-2 z-10 flex flex-wrap items-center gap-1.5 rounded-2xl border border-white/10 bg-[#0d071b]/90 p-2 shadow-lg shadow-black/20 backdrop-blur-md"
           >
-            {EDITOR_STEPS.map((step) => {
+            {stepsToUse.map((step) => {
               const Icon = step.icon;
               const isActive = activeStep === step.id;
               return (
@@ -941,9 +1079,13 @@ function CreateStoryCardPageInner() {
                   aria-current={isActive ? "step" : undefined}
                   aria-controls={`editor-step-panel-${step.id}`}
                   aria-label={`ขั้นตอน ${step.id}: ${step.label}`}
-                  className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border px-2.5 py-2 text-sm font-bold transition-colors ${
+                  className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border px-2.5 py-2 text-sm font-bold transition-all ${
                     isActive
-                      ? "border-fuchsia-500 bg-fuchsia-500/20 text-white"
+                      ? selectedStrategy === "velvet-candle"
+                        ? "border-amber-400 bg-amber-500/25 text-amber-200 shadow-sm shadow-amber-500/30 ring-1 ring-amber-400/40"
+                        : selectedStrategy === "starlight-memories"
+                        ? "border-violet-400 bg-violet-500/25 text-violet-200 shadow-sm shadow-violet-500/30 ring-1 ring-violet-400/40"
+                        : "border-fuchsia-500 bg-fuchsia-500/20 text-white"
                       : "border-space-border bg-white/5 text-slate-300 hover:bg-white/10"
                   }`}
                 >
@@ -974,7 +1116,7 @@ function CreateStoryCardPageInner() {
             className="space-y-5"
           >
 
-<section id="editor-step-panel-1" aria-labelledby="card-info-heading" hidden={selectedStrategy === "storyline" || activeStep !== 1} className="rounded-2xl border border-white/10 bg-[#120a21]/80 p-5">
+<section id="editor-step-panel-1" aria-labelledby="card-info-heading" hidden={selectedStrategy === "storyline" || selectedStrategy === "starlight-memories" || selectedStrategy === "velvet-candle" || activeStep !== 1} className="rounded-2xl border border-white/10 bg-[#120a21]/80 p-5">
                <div className="mb-5 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-fuchsia-400" />
                 <h2 id="card-info-heading" className="text-xl font-bold text-slate-100">ข้อมูลการ์ด</h2>
@@ -1033,10 +1175,911 @@ function CreateStoryCardPageInner() {
 
             <section className="rounded-2xl border border-white/10 bg-[#120a21]/80 p-5">
               <div className="mb-5 flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-fuchsia-400" />
-                <h2 className="text-xl font-bold text-slate-100">{selectedStrategy === "storyline" ? "Storyline" : "ฉากและเนื้อหา"}</h2>
+                <Cake className="h-5 w-5 text-amber-400" />
+                <h2 className="text-xl font-bold text-slate-100">
+                  {selectedStrategy === "velvet-candle"
+                    ? "Velvet Candle & Cake · ปรับแต่งวันเกิดและ 4 ลูกเล่นอินเทอร์แอคทีฟ"
+                    : selectedStrategy === "starlight-memories"
+                    ? "Starlight Memories · ลำดับฉากภาพยนตร์ 3 องค์ & ฉากส่งท้าย"
+                    : selectedStrategy === "storyline"
+                    ? "Storyline"
+                    : "ฉากและเนื้อหา"}
+                </h2>
               </div>
               <div id="theme-style" className="mt-6 border-t border-slate-700/60 pt-6">
+                {selectedStrategy === "velvet-candle" && (
+                  <div
+                    className="space-y-6"
+                    onFocusCapture={handleEditingStart}
+                    onBlurCapture={handleEditingEnd}
+                  >
+                    {/* TAB 1: ข้อมูลวันเกิด & เพลง */}
+                    <div
+                      id="editor-step-panel-1"
+                      hidden={activeStep !== 1}
+                      className="space-y-5 rounded-2xl border border-amber-500/20 bg-amber-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center gap-2 border-b border-amber-500/20 pb-3">
+                        <Cake className="h-5 w-5 text-amber-400" />
+                        <h3 className="text-lg font-bold text-amber-100">แท็บ 1: ข้อมูลวันเกิด & เพลงประกอบ</h3>
+                      </div>
+                      <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <Info className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+                        <span className="text-yellow-300">หมายเหตุ: หากไม่ต้องการให้แสดงข้อความในจุดใด ให้ใส่เว้นวรรค (Spacebar) 1 ครั้งในช่องนั้น</span>
+                      </p>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <label className="text-base font-semibold text-slate-200">
+                          ชื่อเจ้าของวันเกิด (Recipient Name)
+                          <input
+                            id="field-velvet-name"
+                            value={recipientName}
+                            onChange={(e) => setRecipientName(e.target.value)}
+                            placeholder="คนพิเศษ"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all ${
+                              highlightedFieldId === "field-velvet-name"
+                                ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+
+                        <label className="text-base font-semibold text-slate-200">
+                          ชื่อการ์ด / หัวเรื่องวันเกิด (Title)
+                          <input
+                            id="field-velvet-title"
+                            value={cardTitle}
+                            onChange={(e) => setCardTitle(e.target.value)}
+                            placeholder="Happy Birthday"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all ${
+                              highlightedFieldId === "field-velvet-title"
+                                ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+
+                        <label className="text-base font-semibold text-slate-200">
+                          อายุ / จำนวนเทียน (1-9 เล่ม หรือข้อความบนป้ายทอง)
+                          <input
+                            id="field-velvet-age"
+                            value={surpriseQRData.content.flowers?.highlightText ?? "25"}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => ({
+                                ...current,
+                                content: {
+                                  ...current.content,
+                                  flowers: {
+                                    ...current.content.flowers,
+                                    highlightText: val,
+                                  },
+                                },
+                              }));
+                            }}
+                            placeholder="เช่น 25"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all ${
+                              highlightedFieldId === "field-velvet-age"
+                                ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                          <p className="mt-1.5 text-xs text-slate-400">
+                            ตัวเลขนี้จะสลักบนป้ายทองคำหน้าเค้ก และกำหนดจำนวนเทียนบนเค้ก (สูงสุด 9 เล่ม)
+                          </p>
+                        </label>
+
+                        <div className="md:col-span-2">
+                          <label className="text-base font-semibold text-slate-200">
+                            ลิงก์เพลงประกอบ (YouTube หรือ .mp3)
+                            <input
+                              id="field-velvet-music"
+                              value={surpriseQRData.content.songMedia.audioSrc || surpriseQRData.content.bgMusic.src || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSurpriseQRData((current) => ({
+                                  ...current,
+                                  content: {
+                                    ...current.content,
+                                    songMedia: {
+                                      ...current.content.songMedia,
+                                      audioSrc: val,
+                                      src: val,
+                                    },
+                                    bgMusic: {
+                                      ...current.content.bgMusic,
+                                      src: val,
+                                    },
+                                  },
+                                }));
+                              }}
+                              placeholder="https://www.youtube.com/watch?v=... หรือ https://.../song.mp3 (เว้นว่างเพื่อใช้ดนตรีกล่องดนตรี)"
+                              className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all ${
+                                highlightedFieldId === "field-velvet-music"
+                                  ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                  : ""
+                              }`}
+                            />
+                          </label>
+                          <p className="mt-1.5 text-xs text-slate-400">
+                            รองรับทั้งลิงก์ YouTube และไฟล์ .mp3 หากไม่ระบุ ระบบจะบรรเลงเพลงวันเกิด Happy Birthday สไตล์กล่องดนตรีไขลานสังเคราะห์อัตโนมัติ
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TAB 2: คำอธิษฐาน & ข้อความในเค้ก */}
+                    <div
+                      id="editor-step-panel-2"
+                      hidden={activeStep !== 2}
+                      className="space-y-5 rounded-2xl border border-amber-500/20 bg-amber-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center gap-2 border-b border-amber-500/20 pb-3">
+                        <Sparkles className="h-5 w-5 text-amber-400" />
+                        <h3 className="text-lg font-bold text-amber-100">แท็บ 2: คำอธิษฐาน & ข้อความลับในเค้ก (Gimmick 1 & 2)</h3>
+                      </div>
+
+                      <div className="space-y-4">
+                        <label className="block text-base font-semibold text-slate-200">
+                          ข้อความก่อนเป่าเทียน (Make a Wish Prompt)
+                          <input
+                            id="field-velvet-wish"
+                            value={surpriseQRData.content.letter.title || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => ({
+                                ...current,
+                                content: {
+                                  ...current.content,
+                                  letter: {
+                                    ...current.content.letter,
+                                    title: val,
+                                  },
+                                },
+                              }));
+                            }}
+                            placeholder="หลับตาอธิษฐาน แล้วเป่าเทียนเพื่อเริ่มงานวันเกิด"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all ${
+                              highlightedFieldId === "field-velvet-wish"
+                                ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+
+                        <div className="grid gap-4 md:grid-cols-2 pt-2 border-t border-amber-500/15">
+                          <label className="block text-base font-semibold text-slate-200">
+                            คำโปรยการ์ดในเค้ก (Eyebrow)
+                            <input
+                              id="field-velvet-secret-eyebrow"
+                              value={surpriseQRData.content.flowers?.subTitle || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSurpriseQRData((current) => ({
+                                  ...current,
+                                  content: {
+                                    ...current.content,
+                                    flowers: {
+                                      ...current.content.flowers,
+                                      subTitle: val,
+                                    },
+                                  },
+                                }));
+                              }}
+                              placeholder="A SWEET SURPRISE"
+                              className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
+                            />
+                          </label>
+
+                          <label className="block text-base font-semibold text-slate-200">
+                            หัวข้อของขวัญลับในเค้ก (Secret Title)
+                            <input
+                              id="field-velvet-secret-title"
+                              value={surpriseQRData.content.flowers?.title || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSurpriseQRData((current) => ({
+                                  ...current,
+                                  content: {
+                                    ...current.content,
+                                    flowers: {
+                                      ...current.content.flowers,
+                                      title: val,
+                                    },
+                                  },
+                                }));
+                              }}
+                              placeholder="ของขวัญลับในก้อนเค้ก"
+                              className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
+                            />
+                          </label>
+                        </div>
+
+                        <label className="block text-base font-semibold text-slate-200">
+                          ข้อความลับในเค้ก (ปรากฏเมื่อผู้รับใช้นิ้วปาดตัดเค้ก)
+                          <textarea
+                            id="field-velvet-secret"
+                            rows={4}
+                            value={surpriseQRData.content.flowers?.message || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => ({
+                                ...current,
+                                content: {
+                                  ...current.content,
+                                  flowers: {
+                                    ...current.content.flowers,
+                                    message: val,
+                                  },
+                                },
+                              }));
+                            }}
+                            placeholder="ขอบคุณที่เป็นความสุขและรอยยิ้มให้กันเสมอมา ขอให้ทุกวันของเธอสดใสและอบอุ่นดั่งแสงเทียนในค่ำคืนนี้"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all ${
+                              highlightedFieldId === "field-velvet-secret"
+                                ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* TAB 3: ลูกโป่งคำอวยพร */}
+                    <div
+                      id="editor-step-panel-3"
+                      hidden={activeStep !== 3}
+                      className="space-y-5 rounded-2xl border border-amber-500/20 bg-amber-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center gap-2 border-b border-amber-500/20 pb-3">
+                        <Gift className="h-5 w-5 text-amber-400" />
+                        <h3 className="text-lg font-bold text-amber-100">แท็บ 3: ลูกโป่งคำอวยพร 3 ลูก (Gimmick 3: Tap to Pop)</h3>
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        ลูกโป่ง 3 เฉดสีพาสเทลหรู (Champagne Gold, Dusty Rose, Midnight Navy) เมื่อแตะจะแตกพร้อมเสียงป๊อป และปล่อยการ์ดคำอวยพรหรือรูปภาพออกมา
+                      </p>
+
+                      <div className="space-y-6">
+                        {/* Balloon 1 */}
+                        <div
+                          id="field-velvet-balloon-1"
+                          className={`rounded-xl border border-amber-500/20 bg-white/5 p-4 transition-all ${
+                            highlightedFieldId === "field-velvet-balloon-1"
+                              ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                              : ""
+                          }`}
+                        >
+                          <p className="font-bold text-amber-200 mb-3 text-sm">ลูกโป่งที่ 1 — Champagne Gold</p>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <label className="text-sm font-semibold text-slate-200">
+                              หัวข้อคำอวยพร
+                              <input
+                                value={surpriseQRData.content.menu.card1Title}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSurpriseQRData((current) => ({
+                                    ...current,
+                                    content: {
+                                      ...current.content,
+                                      menu: { ...current.content.menu, card1Title: val },
+                                    },
+                                  }));
+                                }}
+                                placeholder="ความสุขที่เปล่งประกาย"
+                                className="mt-1 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100"
+                              />
+                            </label>
+                            <label className="text-sm font-semibold text-slate-200">
+                              ข้อความในลูกโป่ง
+                              <input
+                                value={surpriseQRData.content.menu.card1Desc}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSurpriseQRData((current) => ({
+                                    ...current,
+                                    content: {
+                                      ...current.content,
+                                      menu: { ...current.content.menu, card1Desc: val },
+                                    },
+                                  }));
+                                }}
+                                placeholder="ขอให้รอยยิ้มนี้อยู่คู่เธอเสมอในทุกๆ วัน"
+                                className="mt-1 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100"
+                              />
+                            </label>
+                            <div className="md:col-span-2">
+                              <SurpriseQRMediaInput
+                                label="รูปภาพในการ์ดลูกโป่งที่ 1 (ไม่บังคับ)"
+                                value={surpriseQRData.content.memories.polaroidImages?.[0]?.src || ""}
+                                onChange={(src) => setSurpriseQRImage("polaroid", 0, src)}
+                                placeholder="วาง URL หรือเลือกไฟล์รูป"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Balloon 2 */}
+                        <div
+                          id="field-velvet-balloon-2"
+                          className={`rounded-xl border border-rose-500/20 bg-white/5 p-4 transition-all ${
+                            highlightedFieldId === "field-velvet-balloon-2"
+                              ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                              : ""
+                          }`}
+                        >
+                          <p className="font-bold text-rose-200 mb-3 text-sm">ลูกโป่งที่ 2 — Dusty Rose</p>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <label className="text-sm font-semibold text-slate-200">
+                              หัวข้อคำอวยพร
+                              <input
+                                value={surpriseQRData.content.menu.card2Title}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSurpriseQRData((current) => ({
+                                    ...current,
+                                    content: {
+                                      ...current.content,
+                                      menu: { ...current.content.menu, card2Title: val },
+                                    },
+                                  }));
+                                }}
+                                placeholder="การเดินทางบทใหม่"
+                                className="mt-1 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100"
+                              />
+                            </label>
+                            <label className="text-sm font-semibold text-slate-200">
+                              ข้อความในลูกโป่ง
+                              <input
+                                value={surpriseQRData.content.menu.card2Desc}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSurpriseQRData((current) => ({
+                                    ...current,
+                                    content: {
+                                      ...current.content,
+                                      menu: { ...current.content.menu, card2Desc: val },
+                                    },
+                                  }));
+                                }}
+                                placeholder="เติบโตอย่างงดงาม และเป็นตัวเองในเวอร์ชันที่มีความสุขที่สุด"
+                                className="mt-1 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100"
+                              />
+                            </label>
+                            <div className="md:col-span-2">
+                              <SurpriseQRMediaInput
+                                label="รูปภาพในการ์ดลูกโป่งที่ 2 (ไม่บังคับ)"
+                                value={surpriseQRData.content.memories.polaroidImages?.[1]?.src || ""}
+                                onChange={(src) => setSurpriseQRImage("polaroid", 1, src)}
+                                placeholder="วาง URL หรือเลือกไฟล์รูป"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Balloon 3 */}
+                        <div
+                          id="field-velvet-balloon-3"
+                          className={`rounded-xl border border-indigo-500/20 bg-white/5 p-4 transition-all ${
+                            highlightedFieldId === "field-velvet-balloon-3"
+                              ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                              : ""
+                          }`}
+                        >
+                          <p className="font-bold text-indigo-200 mb-3 text-sm">ลูกโป่งที่ 3 — Midnight Navy</p>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <label className="text-sm font-semibold text-slate-200">
+                              หัวข้อคำอวยพร
+                              <input
+                                value={surpriseQRData.content.menu.card3Title}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSurpriseQRData((current) => ({
+                                    ...current,
+                                    content: {
+                                      ...current.content,
+                                      menu: { ...current.content.menu, card3Title: val },
+                                    },
+                                  }));
+                                }}
+                                placeholder="คำอวยพรพิเศษ"
+                                className="mt-1 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100"
+                              />
+                            </label>
+                            <label className="text-sm font-semibold text-slate-200">
+                              ข้อความในลูกโป่ง
+                              <input
+                                value={surpriseQRData.content.menu.card3Desc}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSurpriseQRData((current) => ({
+                                    ...current,
+                                    content: {
+                                      ...current.content,
+                                      menu: { ...current.content.menu, card3Desc: val },
+                                    },
+                                  }));
+                                }}
+                                placeholder="ไม่ว่าจะเกิดอะไรขึ้น จะมีฉันคอยอยู่เคียงข้างและเป็นกำลังใจให้เสมอ"
+                                className="mt-1 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100"
+                              />
+                            </label>
+                            <div className="md:col-span-2">
+                              <SurpriseQRMediaInput
+                                label="รูปภาพในการ์ดลูกโป่งที่ 3 (ไม่บังคับ)"
+                                value={surpriseQRData.content.memories.polaroidImages?.[2]?.src || ""}
+                                onChange={(src) => setSurpriseQRImage("polaroid", 2, src)}
+                                placeholder="วาง URL หรือเลือกไฟล์รูป"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TAB 4: อัลบั้มภาพวันเกิด & ส่งท้าย */}
+                    <div
+                      id="editor-step-panel-4"
+                      hidden={activeStep !== 4}
+                      className="space-y-5 rounded-2xl border border-amber-500/20 bg-amber-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center gap-2 border-b border-amber-500/20 pb-3">
+                        <Images className="h-5 w-5 text-amber-400" />
+                        <h3 className="text-lg font-bold text-amber-100">แท็บ 4: คลังภาพวันเกิดและข้อความส่งท้าย (Finale)</h3>
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        ภาพถ่ายแห่งความสุขของผู้รับในกรอบโพลารอยด์เรืองแสง และกล่องจดหมายอวยพรยาวจากใจ
+                      </p>
+
+                      <div className="space-y-4">
+                        <label className="block text-base font-semibold text-slate-200">
+                          หัวข้อหน้าอัลบั้มวันเกิด (Finale Title)
+                          <input
+                            id="field-velvet-finale-title"
+                            value={surpriseQRData.content.finale.mainText || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => ({
+                                ...current,
+                                content: {
+                                  ...current.content,
+                                  finale: {
+                                    ...current.content.finale,
+                                    mainText: val,
+                                  },
+                                },
+                              }));
+                            }}
+                            placeholder="HAPPY BIRTHDAY"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all ${
+                              highlightedFieldId === "field-velvet-finale-title"
+                                ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+
+                        <div className="pt-2">
+                          <p className="font-semibold text-slate-200 mb-2">รูปภาพความทรงจำ 4 ภาพ (กรอบโพลารอยด์)</p>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            {[0, 1, 2, 3].map((idx) => (
+                              <div
+                                key={idx}
+                                id={`field-velvet-photo-${idx + 1}`}
+                                className={`rounded-xl p-1 transition-all ${
+                                  highlightedFieldId === `field-velvet-photo-${idx + 1}`
+                                    ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                    : ""
+                                }`}
+                              >
+                                <SurpriseQRMediaInput
+                                  label={`รูปภาพที่ ${idx + 1}`}
+                                  value={surpriseQRData.content.memories.filmstripImages?.[idx]?.src || ""}
+                                  onChange={(src) => setSurpriseQRImage("filmstrip", idx, src)}
+                                  placeholder="วาง URL หรือเลือกไฟล์รูป"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <label className="block text-base font-semibold text-slate-200 pt-2">
+                          ข้อความอวยพรยาวจากใจ (Paragraphs)
+                          <textarea
+                            id="field-velvet-finale-msg"
+                            rows={4}
+                            value={surpriseQRData.content.letter.paragraphs.join("\n\n")}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => ({
+                                ...current,
+                                content: {
+                                  ...current.content,
+                                  letter: {
+                                    ...current.content.letter,
+                                    paragraphs: val.split(/\n\n+/).filter(Boolean),
+                                  },
+                                },
+                              }));
+                            }}
+                            placeholder="สุขสันต์วันเกิดนะ ขอให้ปีนี้เป็นปีที่แสนพิเศษ เต็มไปด้วยความทรงจำดีๆ..."
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all ${
+                              highlightedFieldId === "field-velvet-finale-msg"
+                                ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+
+                        <label className="block text-base font-semibold text-slate-200">
+                          คำลงท้าย (Sign-off)
+                          <input
+                            id="field-velvet-finale-sign"
+                            value={surpriseQRData.content.finale.subText || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => ({
+                                ...current,
+                                content: {
+                                  ...current.content,
+                                  finale: {
+                                    ...current.content.finale,
+                                    subText: val,
+                                  },
+                                },
+                              }));
+                            }}
+                            placeholder="ด้วยรักและความปรารถนาดีเสมอ"
+                            className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {selectedStrategy === "starlight-memories" && (
+                  <div
+                    className="space-y-6"
+                    onFocusCapture={handleEditingStart}
+                    onBlurCapture={handleEditingEnd}
+                  >
+                    {/* TAB 1: ข้อมูลเรื่องราว & เพลง */}
+                    <div
+                      id="editor-step-panel-1"
+                      hidden={activeStep !== 1}
+                      className="space-y-5 rounded-2xl border border-violet-500/20 bg-violet-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center gap-2 border-b border-violet-500/20 pb-3">
+                        <Music className="h-5 w-5 text-violet-400" />
+                        <h3 className="text-lg font-bold text-violet-100">แท็บ 1: ข้อมูลเรื่องราว & เพลงประกอบ</h3>
+                      </div>
+                      <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <Info className="h-3.5 w-3.5 shrink-0 text-violet-400" />
+                        <span className="text-yellow-300">หมายเหตุ: หากไม่ต้องการให้แสดงข้อความในจุดใด ให้ใส่เว้นวรรค (Spacebar) 1 ครั้งในช่องนั้น</span>
+                      </p>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <label className="text-base font-semibold text-slate-200">
+                          ชื่อการ์ด / ชื่อเรื่องราว (Story Title)
+                          <input
+                            id="field-starlight-story-title"
+                            value={cardTitle}
+                            onChange={(e) => setCardTitle(e.target.value)}
+                            placeholder="A Story of Us"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all ${
+                              highlightedFieldId === "field-starlight-story-title"
+                                ? "ring-4 ring-violet-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+
+                        <label className="text-base font-semibold text-slate-200">
+                          ชื่อผู้รับ (Recipient Name)
+                          <input
+                            id="field-starlight-recipient"
+                            value={recipientName}
+                            onChange={(e) => setRecipientName(e.target.value)}
+                            placeholder="ถึงคนพิเศษของฉัน"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all ${
+                              highlightedFieldId === "field-starlight-recipient"
+                                ? "ring-4 ring-violet-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+
+                        <div className="md:col-span-2">
+                          <label className="text-base font-semibold text-slate-200">
+                            ลิงก์เพลงประกอบ (YouTube หรือ .mp3)
+                            <input
+                              id="field-starlight-music"
+                              value={surpriseQRData.content.songMedia.audioSrc || surpriseQRData.content.bgMusic.src || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSurpriseQRData((current) => ({
+                                  ...current,
+                                  content: {
+                                    ...current.content,
+                                    songMedia: {
+                                      ...current.content.songMedia,
+                                      audioSrc: val,
+                                      src: val,
+                                    },
+                                    bgMusic: {
+                                      ...current.content.bgMusic,
+                                      src: val,
+                                    },
+                                  },
+                                }));
+                              }}
+                              placeholder="https://www.youtube.com/watch?v=... หรือ https://.../song.mp3"
+                              className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all ${
+                                highlightedFieldId === "field-starlight-music"
+                                  ? "ring-4 ring-violet-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                  : ""
+                              }`}
+                            />
+                          </label>
+                          <p className="mt-1.5 text-xs text-slate-400">
+                            รองรับทั้งลิงก์ YouTube Shorts, วิดีโอ YouTube และไฟล์เสียง .mp3 เล่นแบบเล่นวนซ้ำอัตโนมัติตลอดการฉาย
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TAB 2: ฉากที่ 1: จุดเริ่มต้น (Act 1) */}
+                    <div
+                      id="editor-step-panel-2"
+                      hidden={activeStep !== 2}
+                      className="space-y-5 rounded-2xl border border-violet-500/20 bg-violet-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center justify-between border-b border-violet-500/20 pb-3">
+                        <div className="flex items-center gap-2">
+                          <Film className="h-5 w-5 text-violet-400" />
+                          <h3 className="text-lg font-bold text-violet-100">แท็บ 2: ฉากที่ 1 — จุดเริ่มต้น (ACT 1: THE ENCOUNTER)</h3>
+                        </div>
+                        <span className="text-xs font-mono text-violet-300">04.0s - 12.0s</span>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div
+                          id="field-starlight-act-1"
+                          className={`rounded-xl transition-all p-1 ${
+                            highlightedFieldId === "field-starlight-act-1"
+                              ? "ring-4 ring-violet-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                              : ""
+                          }`}
+                        >
+                          <SurpriseQRMediaInput
+                            label="รูปภาพฉากที่ 1 (Widescreen 21:9)"
+                            value={surpriseQRData.content.memories.filmstripImages?.[0]?.src || ""}
+                            onChange={(src) => setSurpriseQRImage("filmstrip", 0, src)}
+                            placeholder="วาง URL หรือเลือกไฟล์รูปภาพที่ 1"
+                          />
+                        </div>
+
+                        <label className="block text-base font-semibold text-slate-200">
+                          ข้อความความในใจฉากที่ 1 (Subtitle ท่อนที่ 1)
+                          <textarea
+                            rows={3}
+                            value={surpriseQRData.content.letter.paragraphs[0] || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => {
+                                const nextParas = [...current.content.letter.paragraphs];
+                                nextParas[0] = val;
+                                return {
+                                  ...current,
+                                  content: {
+                                    ...current.content,
+                                    letter: {
+                                      ...current.content.letter,
+                                      paragraphs: nextParas,
+                                    },
+                                  },
+                                };
+                              });
+                            }}
+                            placeholder="ในค่ำคืนที่ท้องฟ้าพร่างพราวไปด้วยแสงดาว..."
+                            className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* TAB 3: ฉากที่ 2: ช่วงเวลาของเรา (Act 2) */}
+                    <div
+                      id="editor-step-panel-3"
+                      hidden={activeStep !== 3}
+                      className="space-y-5 rounded-2xl border border-violet-500/20 bg-violet-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center justify-between border-b border-violet-500/20 pb-3">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-5 w-5 text-violet-400" />
+                          <h3 className="text-lg font-bold text-violet-100">แท็บ 3: ฉากที่ 2 — ช่วงเวลาของเรา (ACT 2: JOURNEY IN TIME)</h3>
+                        </div>
+                        <span className="text-xs font-mono text-violet-300">12.0s - 20.0s</span>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div
+                          id="field-starlight-act-2"
+                          className={`rounded-xl transition-all p-1 ${
+                            highlightedFieldId === "field-starlight-act-2"
+                              ? "ring-4 ring-violet-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                              : ""
+                          }`}
+                        >
+                          <SurpriseQRMediaInput
+                            label="รูปภาพฉากที่ 2 (Widescreen 21:9)"
+                            value={surpriseQRData.content.memories.filmstripImages?.[1]?.src || ""}
+                            onChange={(src) => setSurpriseQRImage("filmstrip", 1, src)}
+                            placeholder="วาง URL หรือเลือกไฟล์รูปภาพที่ 2"
+                          />
+                        </div>
+
+                        <label className="block text-base font-semibold text-slate-200">
+                          ข้อความความในใจฉากที่ 2 (Subtitle ท่อนที่ 2)
+                          <textarea
+                            rows={3}
+                            value={surpriseQRData.content.letter.paragraphs[1] || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => {
+                                const nextParas = [...current.content.letter.paragraphs];
+                                nextParas[1] = val;
+                                return {
+                                  ...current,
+                                  content: {
+                                    ...current.content,
+                                    letter: {
+                                      ...current.content.letter,
+                                      paragraphs: nextParas,
+                                    },
+                                  },
+                                };
+                              });
+                            }}
+                            placeholder="ทุกช่วงเวลาที่เราได้หัวเราะและแบ่งปันรอยยิ้มด้วยกัน คือความทรงจำที่ล้ำค่าที่สุดในชีวิต..."
+                            className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* TAB 4: ฉากที่ 3: คำสัญญา (Act 3) */}
+                    <div
+                      id="editor-step-panel-4"
+                      hidden={activeStep !== 4}
+                      className="space-y-5 rounded-2xl border border-violet-500/20 bg-violet-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center justify-between border-b border-violet-500/20 pb-3">
+                        <div className="flex items-center gap-2">
+                          <Star className="h-5 w-5 text-violet-400" />
+                          <h3 className="text-lg font-bold text-violet-100">แท็บ 4: ฉากที่ 3 — คำสัญญา (ACT 3: THE HEARTBEAT)</h3>
+                        </div>
+                        <span className="text-xs font-mono text-violet-300">20.0s - 28.0s (Climax)</span>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div
+                          id="field-starlight-act-3"
+                          className={`rounded-xl transition-all p-1 ${
+                            highlightedFieldId === "field-starlight-act-3"
+                              ? "ring-4 ring-violet-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                              : ""
+                          }`}
+                        >
+                          <SurpriseQRMediaInput
+                            label="รูปภาพฉากที่ 3 (Widescreen 21:9 — ไคลแมกซ์)"
+                            value={surpriseQRData.content.memories.filmstripImages?.[2]?.src || ""}
+                            onChange={(src) => setSurpriseQRImage("filmstrip", 2, src)}
+                            placeholder="วาง URL หรือเลือกไฟล์รูปภาพที่ 3"
+                          />
+                        </div>
+
+                        <label className="block text-base font-semibold text-slate-200">
+                          ข้อความความในใจฉากที่ 3 (Subtitle ไคลแมกซ์)
+                          <textarea
+                            rows={3}
+                            value={surpriseQRData.content.letter.paragraphs[2] || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => {
+                                const nextParas = [...current.content.letter.paragraphs];
+                                nextParas[2] = val;
+                                return {
+                                  ...current,
+                                  content: {
+                                    ...current.content,
+                                    letter: {
+                                      ...current.content.letter,
+                                      paragraphs: nextParas,
+                                    },
+                                  },
+                                };
+                              });
+                            }}
+                            placeholder="ขอบคุณที่คอยเป็นแสงสว่างที่แสนอบอุ่น และทำให้ทุกๆ วันมีความหมายเสมอมา..."
+                            className="mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* TAB 5: ฉากส่งท้าย Finale */}
+                    <div
+                      id="editor-step-panel-5"
+                      hidden={activeStep !== 5}
+                      className="space-y-5 rounded-2xl border border-violet-500/20 bg-violet-950/20 p-5 shadow-lg shadow-black/30 backdrop-blur"
+                    >
+                      <div className="flex items-center gap-2 border-b border-violet-500/20 pb-3">
+                        <ImageIcon className="h-5 w-5 text-violet-400" />
+                        <h3 className="text-lg font-bold text-violet-100">แท็บ 5: ฉากส่งท้าย (Polaroid Memory Stack & Finale)</h3>
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        ฉากส่งท้ายจะแสดงผลหลังจบคัดซีน 28 วินาที เป็นโพลารอยด์แห่งความทรงจำที่ผู้รับสามารถแตะเปิดดูภาพขยายและอ่านข้อความทบทวนได้อย่างอิสระ
+                      </p>
+
+                      <div className="space-y-4">
+                        <label className="block text-base font-semibold text-slate-200">
+                          ข้อความหัวเรื่องฉากส่งท้าย (Polaroid Header)
+                          <input
+                            id="field-starlight-finale-title"
+                            value={surpriseQRData.content.finale.mainText || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => ({
+                                ...current,
+                                content: {
+                                  ...current.content,
+                                  finale: {
+                                    ...current.content.finale,
+                                    mainText: val,
+                                  },
+                                },
+                              }));
+                            }}
+                            placeholder="ALWAYS IN MY HEART"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all ${
+                              highlightedFieldId === "field-starlight-finale-title"
+                                ? "ring-4 ring-violet-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+
+                        <label className="block text-base font-semibold text-slate-200">
+                          คำอวยพรจบ / ข้อความปิดท้าย (Finale Message)
+                          <textarea
+                            id="field-starlight-finale-msg"
+                            rows={3}
+                            value={surpriseQRData.content.finale.subText || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSurpriseQRData((current) => ({
+                                ...current,
+                                content: {
+                                  ...current.content,
+                                  finale: {
+                                    ...current.content.finale,
+                                    subText: val,
+                                  },
+                                },
+                              }));
+                            }}
+                            placeholder="และจะยังคงเป็นดวงดาวที่งดงามที่สุดเสมอ"
+                            className={`mt-2 w-full rounded-xl border border-slate-700/60 bg-slate-950/60 px-4 py-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all ${
+                              highlightedFieldId === "field-starlight-finale-msg"
+                                ? "ring-4 ring-violet-400 ring-offset-2 ring-offset-slate-950 animate-pulse"
+                                : ""
+                            }`}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {selectedStrategy === "anniversary-surprise" && (
                   <div
                     className="space-y-6"

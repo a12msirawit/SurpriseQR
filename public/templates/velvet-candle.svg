@@ -1,0 +1,72 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="velvet-bg" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#4a1525" />
+      <stop offset="60%" stop-color="#20070e" />
+      <stop offset="100%" stop-color="#0a0205" />
+    </radialGradient>
+    <radialGradient id="warm-glow" cx="50%" cy="40%" r="45%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.35" />
+      <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="cake-tier" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6b1d30" />
+      <stop offset="50%" stop-color="#a8324e" />
+      <stop offset="100%" stop-color="#541323" />
+    </linearGradient>
+    <linearGradient id="cream-drip" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e8d5be" />
+      <stop offset="50%" stop-color="#fff8ed" />
+      <stop offset="100%" stop-color="#d4bda2" />
+    </linearGradient>
+    <linearGradient id="gold-accent" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient Dark Velvet Room -->
+  <rect width="400" height="300" fill="url(#velvet-bg)" />
+  <circle cx="200" cy="120" r="130" fill="url(#warm-glow)" />
+
+  <!-- Gold Plate Stand -->
+  <ellipse cx="200" cy="205" rx="100" ry="14" fill="#854d0e" opacity="0.6" />
+  <ellipse cx="200" cy="200" rx="90" ry="11" fill="url(#gold-accent)" />
+
+  <!-- Bottom Tier -->
+  <path d="M 125 155 L 125 195 A 75 12 0 0 0 275 195 L 275 155 Z" fill="url(#cake-tier)" />
+  <ellipse cx="200" cy="155" rx="75" ry="12" fill="url(#cream-drip)" />
+
+  <!-- Top Tier -->
+  <path d="M 150 115 L 150 150 A 50 8 0 0 0 250 150 L 250 115 Z" fill="url(#cake-tier)" />
+  <ellipse cx="200" cy="115" rx="50" ry="8" fill="url(#cream-drip)" />
+
+  <!-- Center Candle -->
+  <rect x="197" y="85" width="6" height="30" rx="2" fill="#fffbeb" />
+  <rect x="198" y="85" width="2" height="30" fill="#fbbf24" opacity="0.8" />
+  <line x1="200" y1="85" x2="200" y2="80" stroke="#451a03" stroke-width="1.2" stroke-linecap="round" />
+
+  <!-- Candle Flame -->
+  <path d="M 200 64 C 196 70 195 75 200 80 C 205 75 204 70 200 64 Z" fill="#f59e0b" />
+  <path d="M 200 68 C 198 72 198 75 200 78 C 202 75 202 72 200 68 Z" fill="#fef08a" />
+  <circle cx="200" cy="72" r="10" fill="#fde047" opacity="0.25" />
+
+  <!-- Side Candles -->
+  <rect x="175" y="93" width="5" height="23" rx="1.5" fill="#fffbeb" />
+  <line x1="177.5" y1="93" x2="177.5" y2="89" stroke="#451a03" stroke-width="1" />
+  <path d="M 177.5 76 C 174 81 174 85 177.5 89 C 181 85 181 81 177.5 76 Z" fill="#f59e0b" />
+
+  <rect x="220" y="93" width="5" height="23" rx="1.5" fill="#fffbeb" />
+  <line x1="222.5" y1="93" x2="222.5" y2="89" stroke="#451a03" stroke-width="1" />
+  <path d="M 222.5 76 C 219 81 219 85 222.5 89 C 226 85 226 81 222.5 76 Z" fill="#f59e0b" />
+
+  <!-- Gold Plaque on cake -->
+  <rect x="180" y="165" width="40" height="16" rx="4" fill="url(#gold-accent)" />
+  <text x="200" y="177" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-size="9" fill="#3b1a0a" letter-spacing="1">HBD</text>
+
+  <!-- Typography -->
+  <text x="200" y="245" text-anchor="middle" font-family="Georgia, serif" font-weight="600" font-size="16" fill="#fef08a" letter-spacing="2">VELVET CANDLE &amp; CAKE</text>
+  <text x="200" y="268" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fde68a" opacity="0.8" letter-spacing="1.5">INTERACTIVE BIRTHDAY EXPERIENCE</text>
+</svg>
+

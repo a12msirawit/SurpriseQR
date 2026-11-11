@@ -1,4 +1,4 @@
-﻿import type { Card } from "@/types/database";
+import type { Card } from "@/types/database";
 
 /**
  * Production template identifiers (canonical slug, legacy slug and the seeded
@@ -19,7 +19,56 @@ const CANDLES_TEMPLATE_IDS = new Set([
 
 const STORYLINE_TEMPLATE_IDS = new Set(["storyline", "story-line", "10000000-0000-4000-8000-000000000008"]);
 
-export type TemplateRenderStrategy = "anniversary-surprise" | "candles" | "storyline" | "generic";
+const RETRO_Y2K_TEMPLATE_IDS = new Set([
+  "retro-y2k",
+  "retro",
+  "y2k",
+  "windows-98",
+  "10000000-0000-4000-8000-000000000009",
+]);
+
+const VINTAGE_WAX_SEAL_TEMPLATE_IDS = new Set([
+  "vintage-wax-seal",
+  "wax-seal",
+  "vintage",
+  "parchment",
+  "10000000-0000-4000-8000-000000000010",
+]);
+
+const MIDNIGHT_CINEMA_TEMPLATE_IDS = new Set([
+  "midnight-cinema",
+  "cinema",
+  "35mm",
+  "midnight",
+  "film",
+  "10000000-0000-4000-8000-000000000011",
+]);
+
+const STARLIGHT_MEMORIES_TEMPLATE_IDS = new Set([
+  "starlight-memories",
+  "starlight",
+  "stars",
+  "10000000-0000-4000-8000-000000000012",
+]);
+
+const VELVET_CANDLE_TEMPLATE_IDS = new Set([
+  "velvet-candle",
+  "velvet",
+  "cake",
+  "เค้ก",
+  "10000000-0000-4000-8000-000000000013",
+]);
+
+export type TemplateRenderStrategy =
+  | "anniversary-surprise"
+  | "candles"
+  | "storyline"
+  | "retro-y2k"
+  | "vintage-wax-seal"
+  | "midnight-cinema"
+  | "starlight-memories"
+  | "velvet-candle"
+  | "generic";
 
 function hasAnyKey(value: unknown, keys: string[]): boolean {
   if (typeof value !== "object" || value === null) return false;
@@ -71,6 +120,11 @@ export function resolveTemplateRenderStrategy(
     return "candles";
   }
   if (STORYLINE_TEMPLATE_IDS.has(requestedTemplateId)) return "storyline";
+  if (RETRO_Y2K_TEMPLATE_IDS.has(requestedTemplateId)) return "retro-y2k";
+  if (VINTAGE_WAX_SEAL_TEMPLATE_IDS.has(requestedTemplateId)) return "vintage-wax-seal";
+  if (MIDNIGHT_CINEMA_TEMPLATE_IDS.has(requestedTemplateId)) return "midnight-cinema";
+  if (STARLIGHT_MEMORIES_TEMPLATE_IDS.has(requestedTemplateId)) return "starlight-memories";
+  if (VELVET_CANDLE_TEMPLATE_IDS.has(requestedTemplateId)) return "velvet-candle";
   if (looksLikeSurpriseQRData(embeddedContent)) return "anniversary-surprise";
   return "generic";
 }

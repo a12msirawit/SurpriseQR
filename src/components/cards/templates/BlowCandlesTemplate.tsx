@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Cake, PartyPopper, Wind } from "lucide-react";
 
 interface BlowCandlesTemplateProps {
   config?: unknown;
@@ -21,16 +22,16 @@ export default function BlowCandlesTemplate({
 }: BlowCandlesTemplateProps) {
   const configData = (config as { recipientName?: string; wishMessage?: string; data?: { recipientName?: string; wishMessage?: string } }) || {};
   const recipientName = configData?.recipientName || configData?.data?.recipientName || data?.recipientName || "";
-  const wishMessage = configData?.wishMessage || configData?.data?.wishMessage || data?.wishMessage || "เป่าเทียนเพื่อขอพร";
+  const wishMessage = configData?.wishMessage || configData?.data?.wishMessage || data?.wishMessage || "Happy Birthday! Wishing you an amazing year ahead.";
 
   return (
     <div className="w-full h-full min-h-[400px] bg-gradient-to-b from-indigo-950 via-purple-900 to-black text-white p-6 flex flex-col items-center justify-center rounded-xl shadow-2xl relative overflow-hidden">
       {/* Birthday Header */}
       <h2 className="text-2xl md:text-3xl font-bold text-pink-300 mb-2 animate-bounce">
-        🎂 Happy Birthday!
+        <Cake className="w-6 h-6 inline mr-2 text-pink-400" />Happy Birthday!
       </h2>
       <p className="text-sm text-gray-300 mb-6 text-center">
-        {recipientName ? `To: ${recipientName}` : "Make a wish & blow out the candles!"}
+        {recipientName ? `To: ${recipientName}` : wishMessage}
       </p>
 
       {/* Birthday Cake Graphic & Candles */}
@@ -43,7 +44,7 @@ export default function BlowCandlesTemplate({
         </div>
         {/* Cake Body */}
         <div className="w-44 h-24 bg-pink-500 rounded-t-3xl border-b-4 border-pink-700 flex items-center justify-center shadow-lg relative">
-          <span className="text-2xl">🎉</span>
+          <PartyPopper className="w-8 h-8 text-yellow-300" />
         </div>
         <div className="w-52 h-10 bg-amber-800 rounded-b-xl shadow-md" />
       </div>
@@ -51,7 +52,7 @@ export default function BlowCandlesTemplate({
       {/* Blow Action Controls */}
       <div className="mt-6 flex flex-col items-center gap-2">
         <button className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 font-semibold rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95">
-          💨 เป่าเทียน (Blow Candles)
+          <Wind className="w-4 h-4 inline mr-1.5" />เป่าเทียน
         </button>
         <span className="text-xs text-gray-400">รองรับการเป่าผ่านไมโครโฟน / แตะที่หน้าจอ</span>
       </div>

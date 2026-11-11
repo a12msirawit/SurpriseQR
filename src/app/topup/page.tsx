@@ -1,7 +1,7 @@
 import { requireAuth, getAuthUser, getProfile } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Coins } from "lucide-react";
+import { ArrowLeft, Coins, History } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import PaymentModal from "@/components/payment/PaymentModal";
 import type { Payment } from "@/types/database";
@@ -80,7 +80,7 @@ function TopupHistoryTable({ items }: { items: TopupHistoryItem[] }) {
   return (
     <section className="w-full mt-8 bg-[#120a21]/80 border border-white/10 rounded-2xl p-5 backdrop-blur-md shadow-xl">
       <h2 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 mb-4">
-        📜 ประวัติการทำรายการเติมเงิน
+        <History className="h-5 w-5 text-purple-400 inline mr-2" />ประวัติการทำรายการเติมเงิน
       </h2>
 
       <div className="overflow-hidden rounded-xl border border-white/10">

@@ -14,6 +14,26 @@ const StorylineTemplate = dynamic(
   () => import("@/components/cards/templates/StorylineTemplate"),
   { ssr: false },
 );
+const RetroY2KTemplate = dynamic(
+  () => import("@/components/cards/templates/RetroY2KTemplate"),
+  { ssr: false },
+);
+const VintageWaxSealTemplate = dynamic(
+  () => import("@/components/cards/templates/VintageWaxSealTemplate"),
+  { ssr: false },
+);
+const MidnightCinemaTemplate = dynamic(
+  () => import("@/components/cards/templates/MidnightCinemaTemplate"),
+  { ssr: false },
+);
+const StarlightMemoriesTemplate = dynamic(
+  () => import("@/components/cards/templates/StarlightMemoriesTemplate"),
+  { ssr: false },
+);
+const VelvetCandleTemplate = dynamic(
+  () => import("@/components/cards/templates/VelvetCandleTemplate"),
+  { ssr: false },
+);
 
 export type TemplatePreviewComponent = React.ComponentType<{
   config: unknown;
@@ -30,12 +50,19 @@ export type TemplatePreviewComponent = React.ComponentType<{
   hashId?: string;
   /** Whether this template should render its own server-verified PIN scene. */
   pinRequired?: boolean;
+  /** Interactive click-to-edit callback from live preview to form tabs. */
+  onSelectField?: (tabIndex: number, fieldId?: string) => void;
 }>;
 
 const COMPONENT_BY_SLUG: Partial<Record<TemplateSlug, TemplatePreviewComponent>> = {
   "anniversary-surprise": AnniversaryTemplate as TemplatePreviewComponent,
   candles: BlowCandlesTemplate as TemplatePreviewComponent,
   storyline: StorylineTemplate as TemplatePreviewComponent,
+  "retro-y2k": RetroY2KTemplate as TemplatePreviewComponent,
+  "vintage-wax-seal": VintageWaxSealTemplate as TemplatePreviewComponent,
+  "midnight-cinema": MidnightCinemaTemplate as TemplatePreviewComponent,
+  "starlight-memories": StarlightMemoriesTemplate as TemplatePreviewComponent,
+  "velvet-candle": VelvetCandleTemplate as TemplatePreviewComponent,
 };
 
 /**

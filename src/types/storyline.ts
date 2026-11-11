@@ -49,7 +49,7 @@ export const defaultStorylineModel: StorylineModel = {
       type: "video_moment",
       videoSource: "mp4",
       videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-couple-walking-on-the-beach-at-sunset-1929-large.mp4",
-      caption: "รอยยิ้มและช่วงเวลานี้ที่ทำให้ทุกวันมีความหมาย ❤️",
+      caption: "รอยยิ้มและช่วงเวลานี้ที่ทำให้ทุกวันมีความหมาย",
     },
     {
       step: 3,
@@ -73,7 +73,7 @@ export const defaultStorylineModel: StorylineModel = {
   finale: {
     anniversaryDate: "2024-02-14",
     counterEnabled: true,
-    secretMessage: "สัญญาว่าจะดูแลและเป็นความสุขให้กันแบบนี้ไปนานๆ เลยนะ ❤️",
+    secretMessage: "สัญญาว่าจะดูแลและเป็นความสุขให้กันแบบนี้ไปนานๆ เลยนะ",
     confettiStyle: "heart-petals",
   },
 };

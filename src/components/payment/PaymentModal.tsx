@@ -310,9 +310,9 @@ export default function PaymentModal({
               </div>
             ) : null}
             <div className={`space-y-2 rounded-2xl border bg-red-400/10 p-4 text-sm font-semibold leading-6 text-red-200 ${embedded ? "border-red-300/40" : "border-red-300/20"}`}>
-              <p>⚠️ QR Code ใช้ได้ครั้งเดียวเท่านั้น - ห้ามสแกนโอนซ้ำ</p>
-              <p>⚠️ ต้องโอนตรงตามยอดที่ระบุเท่านั้น - ห้ามโอนผิดจำนวน</p>
-              <p>⚠️ QR มีอายุ 10 นาที - หากหมดเวลาให้กดสร้าง QR ใหม่</p>
+              <p className="flex items-center gap-1.5"><AlertCircle className="h-4 w-4 shrink-0 text-red-400" />QR Code ใช้ได้ครั้งเดียวเท่านั้น - ห้ามสแกนโอนซ้ำ</p>
+              <p className="flex items-center gap-1.5"><AlertCircle className="h-4 w-4 shrink-0 text-red-400" />ต้องโอนตรงตามยอดที่ระบุเท่านั้น - ห้ามโอนผิดจำนวน</p>
+              <p className="flex items-center gap-1.5"><AlertCircle className="h-4 w-4 shrink-0 text-red-400" />QR มีอายุ 10 นาที - หากหมดเวลาให้กดสร้าง QR ใหม่</p>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
               {visiblePackages.map((pkg) => {
@@ -340,7 +340,7 @@ export default function PaymentModal({
           </div>
         ) : expired ? (
           <div className="space-y-5 py-12 text-center">
-            <p className="text-xl font-bold text-red-700">⌛ QR Code หมดอายุแล้ว</p>
+            <p className="text-xl font-bold text-red-700 flex items-center justify-center gap-2"><Clock3 className="h-6 w-6 text-red-600" />QR Code หมดอายุแล้ว</p>
             <button type="button" onClick={resetModal} className="btn-gradient rounded-xl px-5 py-3 font-bold text-white">สร้าง QR Code ใหม่</button>
           </div>
         ) : (
