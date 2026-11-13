@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidPin, validateCustomSlug } from "@/lib/tierRules";
 
 export async function GET(
@@ -77,7 +78,7 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
   const { data: card } = await supabase.from("cards").select("is_permanent, custom_slug").eq("id", id).eq("user_id", user.id).single();
   if (!card) return NextResponse.json({ error: "ไม่พบการ์ดของคุณ" }, { status: 404 });
-  const { data: profile } = await supabase.from("profiles").select("tier").eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("tier, custom_url_quota").eq("id", user.id).single();
   const body = (await request.json()) as {
     customSlug?: string | null;
     pinCode?: string | null;
@@ -98,8 +99,10 @@ export async function PATCH(
 
   if (wantsUrl) {
     const input = (body.customSlug ?? "").trim();
-    if (!card.is_permanent && profile?.tier !== "pro" && profile?.tier !== "god" && profile?.tier !== "vip") {
-      return NextResponse.json({ error: "การ์ดนี้ยังไม่มีสิทธิ์ใช้ Custom URL" }, { status: 403 });
+    const hasQuota = (profile?.custom_url_quota ?? 0) > 0;
+    const isEntitledTier = profile?.tier === "pro" || profile?.tier === "god" || profile?.tier === "vip";
+    if (!card.is_permanent && !isEntitledTier && !hasQuota) {
+      return NextResponse.json({ error: "การ์ดนี้ยังไม่มีสิทธิ์ใช้ Custom URL หรือสิทธิ์โควต้าหมดแล้ว" }, { status: 403 });
     }
     if (card.custom_slug) {
       return NextResponse.json({ error: "ตั้งชื่อ URL แล้วไม่สามารถแก้ไขได้อีก" }, { status: 400 });
@@ -109,6 +112,16 @@ export async function PATCH(
     }
     const result = validateCustomSlug(input);
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
+
+    if (!card.is_permanent && !isEntitledTier && hasQuota) {
+      const adminClient = createAdminClient();
+      await adminClient
+        .from("profiles")
+        .update({ custom_url_quota: (profile?.custom_url_quota ?? 1) - 1 })
+        .eq("id", user.id)
+        .gt("custom_url_quota", 0);
+    }
+
     update.custom_slug = result.slug;
     responseSlug = result.slug;
   }

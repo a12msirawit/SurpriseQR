@@ -2,11 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  compress: true,
   experimental: {
-    middlewareClientMaxBodySize: "50mb",
+    middlewareClientMaxBodySize: "1024mb",
     serverActions: {
-      bodySizeLimit: "50mb",
+      bodySizeLimit: "1024mb",
     },
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "canvas-confetti",
+      "qrcode.react",
+    ],
   },
   images: {
     dangerouslyAllowSVG: true,

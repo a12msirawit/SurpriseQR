@@ -15,6 +15,7 @@ export function getExpirationLabel(
   return `หมดอายุใน ${days} วัน`;
 }
 
-export function getCardSharePath(hashId: string): string {
-  return `/c/${hashId}`;
+export function getCardSharePath(hashId: string, customSlug?: string | null): string {
+  const slug = (customSlug ?? "").trim();
+  return slug ? `/c/${slug}` : `/c/${hashId}`;
 }

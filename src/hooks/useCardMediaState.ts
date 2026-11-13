@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import type { UserTier } from "@/types/database";
 import { compressImage } from "@/lib/image-compression";
+import { getMediaLimit } from "@/lib/tierRules";
 
 export interface CardMediaState {
   imageFile: File | null;
@@ -28,20 +29,29 @@ export interface UseCardMediaStateOptions {
   initialImageUrl?: string | null;
   initialAudioSelection?: string;
   errorSetter?: (message: string | null) => void;
+  isPremiumTemplate?: boolean;
 }
 
 const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
 const AUDIO_ACCEPT = "audio/mpeg,audio/wav,audio/mp3";
 
-function resolveMaxSizeMB(tier: UserTier): { image: number; audio: number } {
-  const size = tier === "pro" || tier === "vip" ? 10 : 5;
-  return { image: size, audio: size };
+function resolveMaxSizeMB(tier: UserTier, isPremiumTemplate: boolean = false): { image: number; audio: number } {
+  return {
+    image: getMediaLimit(tier, "image", { isPaidTemplate: isPremiumTemplate }),
+    audio: getMediaLimit(tier, "audio", { isPaidTemplate: isPremiumTemplate }),
+  };
 }
 
 export const MEDIA_ACCEPT = { IMAGE_ACCEPT, AUDIO_ACCEPT };
 
 export function useCardMediaState(options: UseCardMediaStateOptions): CardMediaState {
-  const { tier, initialImageUrl = null, initialAudioSelection = "", errorSetter } = options;
+  const {
+    tier,
+    initialImageUrl = null,
+    initialAudioSelection = "",
+    errorSetter,
+    isPremiumTemplate = false,
+  } = options;
   const setError = errorSetter ?? (() => undefined);
 
   const [imageFile, setImageFileState] = useState<File | null>(null);
@@ -58,7 +68,7 @@ export function useCardMediaState(options: UseCardMediaStateOptions): CardMediaS
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const { image: maxSizeMB } = resolveMaxSizeMB(tier);
+    const { image: maxSizeMB } = resolveMaxSizeMB(tier, isPremiumTemplate);
     if (file.size > maxSizeMB * 1024 * 1024) {
       setError(`รูปภาพต้องมีขนาดไม่เกิน ${maxSizeMB} MB`);
       return;
@@ -76,7 +86,7 @@ export function useCardMediaState(options: UseCardMediaStateOptions): CardMediaS
   function handleAudioChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const { audio: maxSizeMB } = resolveMaxSizeMB(tier);
+    const { audio: maxSizeMB } = resolveMaxSizeMB(tier, isPremiumTemplate);
     if (file.size > maxSizeMB * 1024 * 1024) {
       setError(`ไฟล์เพลง MP3 ต้องมีขนาดไม่เกิน ${maxSizeMB} MB`);
       return;

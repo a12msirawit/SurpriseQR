@@ -432,7 +432,7 @@ export async function POST(request: Request) {
     const { data: card, error: cardError } = await supabase
       .from("cards")
       .insert(cardPayload)
-      .select("id, hash_id")
+      .select("id, hash_id, custom_slug")
       .single();
 
     let createdCard = card;
@@ -448,7 +448,7 @@ export async function POST(request: Request) {
       const fallbackResult = await supabase
         .from("cards")
         .insert({ ...corePayload, status })
-        .select("id, hash_id")
+        .select("id, hash_id, custom_slug")
         .single();
       createdCard = fallbackResult.data;
       creationError = fallbackResult.error;
@@ -487,11 +487,13 @@ export async function POST(request: Request) {
       }
     }
 
-    const redirectUrl = `/c/${createdCard.hash_id}`;
+    const finalSlug = createdCard.custom_slug || createdCard.hash_id;
+    const redirectUrl = `/c/${finalSlug}`;
     return NextResponse.json({
       success: true,
       cardId: createdCard.id,
       hashId: createdCard.hash_id,
+      customSlug: createdCard.custom_slug,
       redirectUrl,
       qrData: redirectUrl,
       status,

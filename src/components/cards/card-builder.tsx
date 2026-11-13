@@ -30,12 +30,16 @@ export default function CardBuilder({ templates, isPremium, userId, tier }: Card
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const selectedTemplate = templates.find((t) => t.id === templateId);
+  const isPremiumTemplate = Boolean(
+    selectedTemplate?.is_premium || (selectedTemplate?.price && selectedTemplate.price > 0)
+  );
+
   const media = useCardMediaState({
     tier,
     errorSetter: setError,
+    isPremiumTemplate,
   });
-
-  const selectedTemplate = templates.find((t) => t.id === templateId);
 
   const previewCard = {
     recipient_name: recipientName || "ชื่อผู้รับ",
@@ -194,6 +198,7 @@ export default function CardBuilder({ templates, isPremium, userId, tier }: Card
 
         <MediaUploader
           tier={tier}
+          isPremiumTemplate={isPremiumTemplate}
           imagePreview={media.imagePreview}
           imageInputRef={media.imageInputRef as React.RefObject<HTMLInputElement>}
           audioInputRef={media.audioInputRef as React.RefObject<HTMLInputElement>}

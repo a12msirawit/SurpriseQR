@@ -3,17 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Check, CheckCircle2, Clock3, Download, QrCode, UploadCloud, Wallet, X } from "lucide-react";
+import { AlertCircle, ArrowDown, Check, CheckCircle2, Clock3, Download, QrCode, UploadCloud, Wallet, X } from "lucide-react";
 import generatePayload from "promptpay-qr";
 import { QRCodeSVG } from "qrcode.react";
 import type { UserTier } from "@/types/database";
+import type { TopupHistoryItem } from "@/components/topup/TopupHistoryTable";
 import { createClient } from "@/lib/supabase/client";
 import { PACKAGE_TIER_RANK, PRICING_PACKAGES, getPackageFeatures, STACKING_FOOTNOTE, type PricingPackage } from "@/lib/packages";
 
 interface PaymentModalProps {
   open: boolean;
   onClose?: () => void;
-  onSubmitted?: () => void;
+  onSubmitted?: (item?: TopupHistoryItem) => void;
   embedded?: boolean;
   currentTier?: UserTier;
   currentPackageTier?: string | null;
@@ -164,7 +165,15 @@ export default function PaymentModal({
       router.refresh();
       setMessage(isScheduledRenewal ? "ตั้งค่าต่ออายุแพ็กสำเร็จแล้ว" : "ซื้อแพ็กเกจสำเร็จแล้ว");
       setStep("submitted");
-      onSubmitted?.();
+      const newItem: TopupHistoryItem = {
+        id: `wallet-${Date.now()}`,
+        date: new Date().toLocaleString("th-TH"),
+        channel: `แพ็กเกจ ${selectedPackage.name}`,
+        amount: `฿${selectedPackage.price.toFixed(2)}`,
+        status: isScheduledRenewal ? "pending" : "approved",
+        isNew: true,
+      };
+      onSubmitted?.(newItem);
     } catch {
       setError("ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่");
     } finally {
@@ -226,7 +235,17 @@ export default function PaymentModal({
       setSubmittedAt(new Date());
       setMessage(null);
       setStep("submitted");
-      onSubmitted?.();
+      router.refresh();
+      const paymentId = (data.payment?.id as string) || `slip-${Date.now()}`;
+      const newItem: TopupHistoryItem = {
+        id: paymentId,
+        date: new Date().toLocaleString("th-TH"),
+        channel: selectedPackage ? `แพ็กเกจ ${selectedPackage.name}` : "เติมเงิน (PromptPay QR)",
+        amount: `฿${selectedAmount.toFixed(2)}`,
+        status: "pending",
+        isNew: true,
+      };
+      onSubmitted?.(newItem);
     } catch {
       setError("ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่");
     } finally {
@@ -250,7 +269,13 @@ export default function PaymentModal({
         {step === "submitted" ? (
           <div className="space-y-5">
             <div className="rounded-2xl border border-amber-300/20 bg-amber-400/10 p-6 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-3xl">⏳</div>
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+                {walletPurchaseSucceeded ? (
+                  <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+                ) : (
+                  <Clock3 className="h-8 w-8 text-amber-600" />
+                )}
+              </div>
               <h3 className="mt-4 text-xl font-black text-white">{walletPurchaseSucceeded ? (isScheduledRenewal ? "ตั้งค่าต่ออายุแพ็กสำเร็จแล้ว!" : "ซื้อแพ็กเกจสำเร็จแล้ว!") : "ส่งหลักฐานการชำระเงินเรียบร้อยแล้ว!"}</h3>
               <p className="mt-2 text-sm leading-6 text-slate-300">{walletPurchaseSucceeded ? (isScheduledRenewal ? `แพ็กปัจจุบันใช้ได้ถึง ${renewalDateLabel} และแพ็กที่ต่อไว้จะเริ่มวันนั้น` : "สิทธิ์แพ็กเกจของคุณพร้อมใช้งานแล้ว") : (isScheduledRenewal ? `รอผู้ดูแลตรวจสอบ เมื่ออนุมัติ แพ็กปัจจุบันยังใช้ได้ถึง ${renewalDateLabel} แล้วจึงเริ่มรอบใหม่` : "ระบบได้รับข้อมูลเรียบร้อยแล้ว อยู่ระหว่างผู้ดูแลระบบตรวจสอบยอดเงิน")}</p>
             </div>
@@ -264,6 +289,20 @@ export default function PaymentModal({
               <Link href="/dashboard" className="btn-gradient rounded-xl px-4 py-3 text-center font-bold text-white">ไปที่แดชบอร์ด</Link>
               <button type="button" onClick={resetModal} className={`rounded-xl border bg-white/10 px-4 py-3 font-bold text-slate-200 hover:bg-white/20 hover:text-white ${embedded ? "border-pink-400/30" : "border-space-border"}`}>ทำรายการเติมเงินใหม่</button>
             </div>
+            {embedded && (
+              <button
+                type="button"
+                onClick={() => {
+                  const targetElement = document.getElementById("topup-history");
+                  if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600/20 border border-purple-500/40 px-4 py-3 font-semibold text-purple-200 hover:bg-purple-600/30 hover:text-white transition-colors"
+              >
+                <ArrowDown className="h-4 w-4" /> ดูรายการในคิวประวัติการเติมเงิน (อยู่ด้านล่าง)
+              </button>
+            )}
           </div>
         ) : step === "confirm" && selectedPackage ? (
           <div className="space-y-5">
@@ -314,6 +353,37 @@ export default function PaymentModal({
               <p className="flex items-center gap-1.5"><AlertCircle className="h-4 w-4 shrink-0 text-red-400" />ต้องโอนตรงตามยอดที่ระบุเท่านั้น - ห้ามโอนผิดจำนวน</p>
               <p className="flex items-center gap-1.5"><AlertCircle className="h-4 w-4 shrink-0 text-red-400" />QR มีอายุ 10 นาที - หากหมดเวลาให้กดสร้าง QR ใหม่</p>
             </div>
+
+            {/* Single Upgrade Option */}
+            <div className="rounded-3xl border border-pink-500/30 bg-gradient-to-r from-pink-950/40 via-purple-950/30 to-[#120a21]/90 p-6 backdrop-blur-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-pink-500/20 border border-pink-500/30 px-3 py-0.5 text-xs font-bold text-pink-300 mb-2">
+                    ตัวเลือกอัปเกรดรายใบ (Single Upgrade)
+                  </div>
+                  <h3 className="text-xl font-black text-white">อัปเกรดรายใบ (25 บาท)</h3>
+                  <p className="mt-1 text-sm text-slate-300">
+                    สิทธิ์จัดเก็บถาวร 1 ใบ + ตั้งชื่อ Custom URL ได้ 1 ใบ (จ่ายครั้งเดียว ไม่ต้องมีแพ็กเกจ)
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPackage(null);
+                    setCustomAmount("25");
+                    setError(null);
+                  }}
+                  className={`shrink-0 rounded-2xl border px-5 py-3 font-bold transition-all ${
+                    customAmount === "25" && !selectedPackage
+                      ? "border-pink-400 bg-pink-500 text-white shadow-lg shadow-pink-500/40"
+                      : "border-pink-500/40 bg-pink-500/10 text-pink-200 hover:bg-pink-500/20"
+                  }`}
+                >
+                  {customAmount === "25" && !selectedPackage ? "เลือกแล้ว (25 บาท)" : "เลือกเติม 25 บาท"}
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
               {visiblePackages.map((pkg) => {
                 const sameActivePackage = activePackageTier === pkg.tierKey;

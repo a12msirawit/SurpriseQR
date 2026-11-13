@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Gift, UserPlus, AlertCircle, Check } from "lucide-react";
+import { ArrowLeft, Gift, UserPlus, AlertCircle, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GoogleLoginButton from "@/components/auth/google-login-button";
 
@@ -53,7 +53,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#06030c] p-4">
+    <main className="relative flex min-h-screen items-center justify-center bg-[#06030c] p-4 pt-16 sm:pt-4">
+      <Link
+        href="/"
+        aria-label="กลับสู่หน้าเริ่มต้น"
+        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-sm font-medium text-slate-300 backdrop-blur-md transition-all hover:border-white/20 hover:bg-white/10 hover:text-white sm:left-6 sm:top-6"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span>กลับหน้าเริ่มต้น</span>
+      </Link>
+
       <div className="w-full max-w-md space-y-6 rounded-3xl border border-space-border glass-panel bg-white/5 p-8 backdrop-blur-xl">
         <div className="flex justify-center">
           <Gift className="w-12 h-12 text-space-accent" />
@@ -127,12 +136,22 @@ export default function RegisterPage() {
 
         <GoogleLoginButton />
 
-        <p className="text-center text-slate-600">
+        <p className="text-center text-slate-400">
           มีบัญชีอยู่แล้ว?{" "}
           <Link href="/login" className="text-rose-600 hover:text-rose-700 font-semibold">
             เข้าสู่ระบบ
           </Link>
         </p>
+
+        <div className="border-t border-white/5 pt-4 text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 transition-colors hover:text-slate-200"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>กลับสู่หน้าเริ่มต้น</span>
+          </Link>
+        </div>
       </div>
     </main>
   );

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Clock3, Copy, Download, Eye, EyeOff, Layers, MoreVertical, PencilLine, Plus, QrCode, Save, Share2, Trash2, X } from "lucide-react";
+import { ArrowRight, Check, Clock3, Copy, Download, ExternalLink, Eye, EyeOff, Layers, MoreVertical, PencilLine, Plus, QrCode, Save, Share2, Trash2, X } from "lucide-react";
 import type { Card, TemplateDemoLinks, UserTier } from "@/types/database";
 import type { UnifiedTemplate } from "@/lib/templates";
 import { getExpirationLabel, getCardSharePath } from "@/lib/card-utils";
@@ -82,21 +82,31 @@ export function getCardTemplateInfo(templateId: string, dbTemplates?: UnifiedTem
 
 function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted, onAddOn }: { card: Card; tier: UserTier; baseUrl: string; isGuest: boolean; isDraft: boolean; templates?: UnifiedTemplate[]; onDeleted: (id: string) => void; onAddOn: (id: string) => void }) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const shareUrl = `${baseUrl}${getCardSharePath(card.hash_id)}`;
+  const [savedSlug, setSavedSlug] = useState(card.custom_slug ?? "");
+  const [copiedLink, setCopiedLink] = useState(false);
+  const effectiveSlug = (savedSlug || card.custom_slug || "").trim();
+  const cardUrl = effectiveSlug ? `${baseUrl}/c/${effectiveSlug}` : `${baseUrl}${getCardSharePath(card.hash_id)}`;
+  const isLocalHost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+  const productionBaseUrl = "https://surprise-qr.vercel.app";
+  const [useOnlineForQr, setUseOnlineForQr] = useState(true);
+  const onlineUrl = effectiveSlug ? `${productionBaseUrl}/c/${effectiveSlug}` : `${productionBaseUrl}${getCardSharePath(card.hash_id)}`;
+  const qrTargetUrl = isLocalHost && useOnlineForQr ? onlineUrl : cardUrl;
+  const shareUrl = cardUrl;
   const expirationLabel = getExpirationLabel(tier, card.expires_at ?? card.expiry_date);
   const isExpired = expirationLabel === "หมดอายุ";
   const [qrOpen, setQrOpen] = useState(false);
-  const [customSlug, setCustomSlug] = useState(card.custom_slug ?? "");
+  const [customSlug, setCustomSlug] = useState(effectiveSlug);
   const [pinVisible, setPinVisible] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [savedPin, setSavedPin] = useState(card.pin_code ?? "");
   const [editPin, setEditPin] = useState(card.pin_code ?? "");
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinSaving, setPinSaving] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [urlSaving, setUrlSaving] = useState(false);
-  const urlLocked = !!card.custom_slug;
+  const urlLocked = !!effectiveSlug;
   const template = getCardTemplateInfo(card.template_id, templates);
   // Draft cards (status === 'draft' or rendered on /dashboard/drafts) get a
   // distinct unpublished presentation: a template preview instead of a QR code
@@ -107,7 +117,6 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
   const draftDaysRemaining = card.draft_expires_at
     ? Math.max(0, Math.ceil((new Date(card.draft_expires_at).getTime() - Date.now()) / 86400000))
     : null;
-  const cardUrl = card.custom_slug ? `${baseUrl}/c/${card.custom_slug}` : shareUrl;
   const daysRemaining = card.expires_at ? Math.max(0, Math.ceil((new Date(card.expires_at).getTime() - Date.now()) / 86400000)) : null;
   async function downloadQrCode() {
     if (typeof document !== "undefined" && document.fonts) {
@@ -128,7 +137,7 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
       const link = document.createElement("a");
       link.href = canvas.toDataURL("image/png");
-      link.download = `surpriseqr-${card.hash_id}.png`;
+      link.download = `surpriseqr-${effectiveSlug || card.hash_id}.png`;
       link.click();
       URL.revokeObjectURL(svgUrl);
     };
@@ -142,16 +151,22 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `surpriseqr-${card.hash_id}.svg`;
+    link.download = `surpriseqr-${effectiveSlug || card.hash_id}.svg`;
     link.click();
     URL.revokeObjectURL(url);
   }
 
   function copyShareLink() {
     navigator.clipboard.writeText(cardUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   }
 
   async function savePin() {
+    if (editPin && !/^\d{4}$/.test(editPin)) {
+      setPinError("รหัส PIN ต้องเป็นตัวเลข 4 หลัก");
+      return;
+    }
     setPinSaving(true);
     setPinError(null);
     try {
@@ -166,6 +181,8 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
         return;
       }
       card.pin_code = data.pinCode;
+      setSavedPin(data.pinCode ?? "");
+      setEditPin(data.pinCode ?? "");
       setEditOpen(false);
     } catch {
       setPinError("ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่");
@@ -174,33 +191,43 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
     }
   }
 
-  async function saveUrl() {
-    if (urlLocked) return;
-    setUrlSaving(true);
-    setUrlError(null);
+  async function persistCustomSlug(nextSlug: string): Promise<{ ok: boolean; error?: string; customSlug?: string }> {
+    if (urlLocked) return { ok: false, error: "Custom URL ถูกล็อกแล้ว" };
     try {
       const response = await fetch(`/api/cards/${card.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customSlug }),
+        body: JSON.stringify({ customSlug: nextSlug }),
       });
       const data = await response.json();
       if (!response.ok) {
-        setUrlError(data.error || "ไม่สามารถแก้ไข Custom URL ได้");
-        return;
+        return { ok: false, error: data.error || "ไม่สามารถแก้ไข Custom URL ได้" };
       }
       card.custom_slug = data.customSlug;
-      setEditOpen(false);
+      setSavedSlug(data.customSlug);
+      setCustomSlug(data.customSlug ?? "");
+      return { ok: true, customSlug: data.customSlug };
     } catch {
-      setUrlError("ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่");
-    } finally {
-      setUrlSaving(false);
+      return { ok: false, error: "ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่" };
     }
+  }
+
+  async function saveUrl() {
+    if (urlLocked) return;
+    setUrlSaving(true);
+    setUrlError(null);
+    const result = await persistCustomSlug(customSlug);
+    setUrlSaving(false);
+    if (!result.ok) {
+      setUrlError(result.error ?? "ไม่สามารถแก้ไข Custom URL ได้");
+      return;
+    }
+    setEditOpen(false);
   }
 
   function openEditModal() {
     setEditPin(card.pin_code ?? "");
-    setCustomSlug(card.custom_slug ?? "");
+    setCustomSlug(effectiveSlug);
     setPinError(null);
     setUrlError(null);
     setEditOpen(true);
@@ -350,25 +377,36 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
           </div>
         </div>
 
-        {isDraftCard && (
-          <Link
-            href={draftEditHref}
-            aria-label={`แก้ไขฉบับร่าง ${card.recipient_name}`}
-            className="mt-4 flex items-center justify-center rounded-2xl border border-dashed border-amber-400/30 bg-gradient-to-br from-white/5 via-white/5 to-slate-900/30 p-6 transition-colors hover:border-amber-400/60"
-          >
-            <span className="relative block h-[162px] w-full max-w-[210px] overflow-hidden rounded-2xl shadow-lg shadow-slate-950/30">
-              <img
-                src={template.image ?? "/templates/surprise-qr.svg"}
-                alt={`ตัวอย่างเทมเพลต ${template.title}`}
-                className="h-full w-full object-cover"
-              />
-              <span className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-transparent" />
-              <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-slate-950/70 px-2 py-1.5 text-xs font-bold text-amber-200 backdrop-blur-sm">
-                <PencilLine className="h-3.5 w-3.5" />
-                ฉบับร่าง — ยังไม่เผยแพร่
+        {!isDraftCard && (
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs">
+            <div className="min-w-0 flex-1 truncate font-mono">
+              <span className="text-slate-500">/c/</span>
+              <span className={effectiveSlug ? "font-bold text-amber-300" : "text-slate-200"}>
+                {effectiveSlug || card.hash_id}
               </span>
-            </span>
-          </Link>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={copyShareLink}
+                title="คัดลอกลิงก์การ์ด"
+                aria-label="คัดลอกลิงก์การ์ด"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/15 hover:text-white"
+              >
+                {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
+              <a
+                href={cardUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="เปิดลิงก์ในแท็บใหม่"
+                aria-label="เปิดลิงก์ในแท็บใหม่"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/15 hover:text-white"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
         )}
 
         <div className="mt-4 grid grid-cols-2 gap-3">
@@ -411,38 +449,19 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
                     type="button"
                     onClick={() => setQrOpen(false)}
                     aria-label="ปิดหน้าต่าง"
-                    className="absolute right-3 top-3 z-10 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-white/10 text-xl font-bold text-slate-200 shadow-md hover:bg-white/20 hover:text-white"
+                    className="absolute right-4 top-4 z-20 flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full bg-white/10 text-slate-200 shadow-md transition-colors hover:bg-white/20 hover:text-white"
                   >
                     <X className="h-5 w-5" />
                   </button>
                   <div className="min-h-0">
-                    <QRCodeCustomizer value={cardUrl} svgRef={svgRef} />
-                  </div>
-                  <div className="flex shrink-0 flex-wrap gap-3 border-t border-space-border bg-black/20 p-4">
-                    <button
-                      type="button"
-                      onClick={copyShareLink}
-                      className="inline-flex items-center gap-2 rounded-xl border border-space-border bg-white/10 px-4 py-3 text-base font-bold text-slate-200 hover:bg-white/20"
-                    >
-                      <Copy className="h-4 w-4" />
-                      คัดลอกลิงก์
-                    </button>
-                    <button
-                      type="button"
-                      onClick={downloadQrCode}
-                      className="btn-gradient inline-flex items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-white"
-                    >
-                      <Download className="h-4 w-4" />
-                      ดาวน์โหลด PNG
-                    </button>
-                    <button
-                      type="button"
-                      onClick={downloadQrSvg}
-                      className="inline-flex items-center gap-2 rounded-xl border border-space-border bg-white/10 px-4 py-3 text-base font-bold text-slate-200 hover:bg-white/20"
-                    >
-                      <Download className="h-3 w-3" />
-                      ดาวน์โหลด SVG
-                    </button>
+                    <QRCodeCustomizer
+                      value={qrTargetUrl}
+                      svgRef={svgRef}
+                      customUrlBase={baseUrl}
+                      customSlug={effectiveSlug}
+                      isCustomSlugLocked={urlLocked}
+                      onSaveCustomSlug={persistCustomSlug}
+                    />
                   </div>
                 </div>
               </div>,
@@ -471,58 +490,101 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
                 </button>
               </div>
               <section className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4">
-                <h4 className="font-bold text-white">รหัส PIN</h4>
-                <div className="mt-3 flex items-center gap-2">
-                  <input
-                    type={pinVisible ? "text" : "password"}
-                    value={editPin}
-                    onChange={(event) =>
-                      setEditPin(
-                        event.target.value.replace(/\D/g, "").slice(0, 4),
-                      )
-                    }
-                    inputMode="numeric"
-                    maxLength={4}
-                    className="min-w-0 flex-1 rounded-xl border border-space-border bg-black/20 px-4 py-3 text-white"
-                    placeholder="ระบุรหัส PIN 4 หลัก"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setPinVisible((visible) => !visible)}
-                    aria-label={pinVisible ? "ซ่อนรหัส PIN" : "แสดงรหัส PIN"}
-                    className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-space-border bg-white/10 text-slate-200 hover:bg-white/20"
-                  >
-                    {pinVisible ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-white">รหัส PIN</h4>
+                  {savedPin ? (
+                    <span className="rounded-md border border-emerald-400/20 bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-300">
+                      ตั้งรหัสผ่านแล้ว
+                    </span>
+                  ) : (
+                    <span className="rounded-md border border-white/10 bg-white/10 px-2 py-0.5 text-xs font-semibold text-slate-300">
+                      ไม่มี
+                    </span>
+                  )}
                 </div>
-                <p className="mt-2 text-xs text-slate-400">รหัส PIN ต้องเป็นตัวเลข 4 หลัก</p>
-                {pinError && (
-                  <p className="mt-2 rounded-lg bg-red-400/10 p-2 text-xs text-red-200">{pinError}</p>
+                {savedPin ? (
+                  <>
+                    <div className="mt-3 flex items-center gap-2">
+                      <input
+                        type={pinVisible ? "text" : "password"}
+                        value={editPin}
+                        onChange={(event) =>
+                          setEditPin(
+                            event.target.value.replace(/\D/g, "").slice(0, 4),
+                          )
+                        }
+                        inputMode="numeric"
+                        maxLength={4}
+                        className="min-w-0 flex-1 rounded-xl border border-space-border bg-black/20 px-4 py-3 text-white"
+                        placeholder="ระบุรหัส PIN 4 หลัก"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPinVisible((visible) => !visible)}
+                        aria-label={pinVisible ? "ซ่อนรหัส PIN" : "แสดงรหัส PIN"}
+                        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-space-border bg-white/10 text-slate-200 hover:bg-white/20"
+                      >
+                        {pinVisible ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-slate-400">รหัส PIN ต้องเป็นตัวเลข 4 หลัก</p>
+                    {pinError && (
+                      <p className="mt-2 rounded-lg bg-red-400/10 p-2 text-xs text-red-200">{pinError}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => void savePin()}
+                      disabled={pinSaving}
+                      className="btn-gradient mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                    >
+                      <Save className="h-4 w-4" />
+                      {pinSaving ? "กำลังบันทึก PIN..." : "บันทึก PIN"}
+                    </button>
+                  </>
+                ) : (
+                  <p className="mt-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-400">
+                    ไม่มีรหัส PIN (การ์ดนี้ไม่ได้ตั้งรหัสผ่าน)
+                  </p>
                 )}
-                <button
-                  type="button"
-                  onClick={() => void savePin()}
-                  disabled={pinSaving}
-                  className="btn-gradient mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-                >
-                  <Save className="h-4 w-4" />
-                  {pinSaving ? "กำลังบันทึก PIN..." : "บันทึก PIN"}
-                </button>
               </section>
               <section className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
-                <h4 className="font-bold text-white">Custom URL</h4>
-                <input
-                  value={customSlug}
-                  onChange={(event) => setCustomSlug(event.target.value)}
-                  readOnly={urlLocked}
-                  className="mt-3 w-full rounded-xl border border-space-border bg-white/5 px-4 py-3 text-white read-only:cursor-not-allowed read-only:text-slate-400"
-                  placeholder={urlLocked ? "" : "my-special-card"}
-                />
-                {!urlLocked && (
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-white">Custom URL</h4>
+                  {effectiveSlug && (
+                    <span className="rounded-md border border-emerald-400/20 bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-300">
+                      เปิดใช้งานแล้ว
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3 flex overflow-hidden rounded-xl border border-space-border bg-white/5">
+                  <span className="flex shrink-0 items-center border-r border-white/10 bg-black/30 px-3 font-mono text-xs text-slate-400">
+                    {baseUrl}/c/
+                  </span>
+                  <input
+                    value={customSlug}
+                    onChange={(event) => setCustomSlug(event.target.value)}
+                    readOnly={urlLocked}
+                    className="min-w-0 flex-1 bg-transparent px-3 py-2.5 font-mono text-sm text-white placeholder:text-slate-500 outline-none read-only:cursor-not-allowed read-only:text-slate-400"
+                    placeholder={urlLocked ? "" : "my-special-card"}
+                  />
+                </div>
+                {effectiveSlug ? (
+                  <div className="mt-3 flex items-center justify-between gap-2 rounded-lg bg-emerald-500/10 p-2.5 text-xs text-emerald-300">
+                    <span className="truncate font-mono">{baseUrl}/c/{effectiveSlug}</span>
+                    <button
+                      type="button"
+                      onClick={copyShareLink}
+                      className="inline-flex shrink-0 items-center gap-1 rounded bg-emerald-500/20 px-2 py-1 font-bold text-white hover:bg-emerald-500/30"
+                    >
+                      {copiedLink ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                      คัดลอก
+                    </button>
+                  </div>
+                ) : (
                   <p className="mt-2 text-xs font-semibold text-amber-400">
                     ตั้งชื่อ URL แล้วบันทึกจะไม่สามารถแก้ไขได้อีก!
                   </p>
@@ -591,14 +653,6 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
                       </dd>
                     </div>
                     <div className="flex items-start justify-between gap-3">
-                      <dt className="font-semibold text-slate-300">
-                        ผู้รับ / ผู้ส่ง
-                      </dt>
-                      <dd className="text-right font-bold text-white">
-                        {card.recipient_name} ← {card.sender_name}
-                      </dd>
-                    </div>
-                    <div className="flex items-start justify-between gap-3">
                       <dt className="font-semibold text-slate-300">สถานะ</dt>
                       <dd
                         className={`text-right font-bold ${isExpired ? "text-red-400" : "text-emerald-400"}`}
@@ -621,6 +675,21 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
                       </dt>
                       <dd className="text-right font-bold text-white">
                         {card.view_count ?? 0}
+                      </dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-3">
+                      <dt className="font-semibold text-slate-300">ลิงก์การ์ด</dt>
+                      <dd className="flex items-center gap-1.5 text-right font-mono text-xs font-bold text-amber-300">
+                        <span className="truncate max-w-[200px]">{cardUrl}</span>
+                        <button
+                          type="button"
+                          onClick={copyShareLink}
+                          title="คัดลอกลิงก์"
+                          aria-label="คัดลอกลิงก์"
+                          className="rounded border border-white/10 bg-white/5 p-1 text-slate-300 transition-colors hover:bg-white/15 hover:text-white"
+                        >
+                          {copiedLink ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                        </button>
                       </dd>
                     </div>
                   </dl>
@@ -655,6 +724,7 @@ function CardItem({ card, tier, baseUrl, isGuest, isDraft, templates, onDeleted,
 export default function CardList({ cards, tier, baseUrl, isGuest = false, isDraft = false, templates }: CardListProps) {
   const [visibleCards, setVisibleCards] = useState(cards);
   const [addOnCardId, setAddOnCardId] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     if (!isGuest) return;
@@ -681,17 +751,35 @@ export default function CardList({ cards, tier, baseUrl, isGuest = false, isDraf
     );
   }
 
+  const displayedCards = isExpanded ? visibleCards : visibleCards.slice(0, 5);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-      {visibleCards.map((card) => (
-        <CardItem key={card.id} card={card} tier={tier} baseUrl={baseUrl} isGuest={isGuest} isDraft={isDraft} templates={templates} onDeleted={(id) => setVisibleCards((current) => current.filter((item) => item.id !== id))} onAddOn={setAddOnCardId} />
-      ))}
-      {!isGuest && <AddOnPurchaseModal
-        open={addOnCardId !== null}
-        onClose={() => setAddOnCardId(null)}
-        cardId={addOnCardId ?? undefined}
-        onSubmitted={() => setVisibleCards((current) => current.map((item) => item.id === addOnCardId ? { ...item, is_permanent: true, storage_type: "permanent", expires_at: null } : item))}
-      />}
-    </div>
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        {displayedCards.map((card) => (
+          <CardItem key={card.id} card={card} tier={tier} baseUrl={baseUrl} isGuest={isGuest} isDraft={isDraft} templates={templates} onDeleted={(id) => setVisibleCards((current) => current.filter((item) => item.id !== id))} onAddOn={setAddOnCardId} />
+        ))}
+        {!isGuest && <AddOnPurchaseModal
+          open={addOnCardId !== null}
+          onClose={() => setAddOnCardId(null)}
+          cardId={addOnCardId ?? undefined}
+          onSubmitted={() => setVisibleCards((current) => current.map((item) => item.id === addOnCardId ? { ...item, is_permanent: true, storage_type: "permanent", expires_at: null } : item))}
+        />}
+      </div>
+
+      {visibleCards.length > 5 && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            aria-expanded={isExpanded}
+            onClick={() => setIsExpanded((expanded) => !expanded)}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-white/10 px-6 py-2.5 text-base font-bold text-slate-200 transition-colors hover:bg-white/20 hover:text-white"
+          >
+            {isExpanded ? "ซ่อนบางส่วน" : "ดูทั้งหมด"}
+            <ArrowRight className={`h-4 w-4 transition-transform ${isExpanded ? "-rotate-90" : ""}`} />
+          </button>
+        </div>
+      )}
+    </>
   );
 }

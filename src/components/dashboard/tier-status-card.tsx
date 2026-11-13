@@ -25,13 +25,13 @@ const TIER_LABELS: Record<UserTier, string> = {
 };
 
 const PACKAGE_SPECS: Record<string, { media: string; priority: boolean }> = {
-  guest: { media: "ภาพ 5 MB | เสียง 5 MB | วิดีโอ 10 MB ต่อไฟล์", priority: false },
-  free: { media: "ภาพ 5 MB | เสียง 5 MB | วิดีโอ 10 MB ต่อไฟล์", priority: false },
-  starter: { media: "ภาพ 5 MB | เสียง 5 MB | วิดีโอ 10 MB ต่อไฟล์", priority: false },
-  value: { media: "ภาพ 10 MB | เสียง 10 MB | วิดีโอ 35 MB ต่อไฟล์", priority: false },
-  pro: { media: "ภาพ 10 MB | เสียง 20 MB | วิดีโอ 50 MB ต่อไฟล์", priority: true },
-  god: { media: "ภาพ 15 MB | เสียง 25 MB | วิดีโอ 100 MB ต่อไฟล์", priority: true },
-  vip: { media: "ภาพ 15 MB | เสียง 25 MB | วิดีโอ 100 MB ต่อไฟล์", priority: true },
+  guest: { media: "รวมสูงสุด 150 MB ต่อเทมเพลต", priority: false },
+  free: { media: "รวมสูงสุด 150 MB (เทมเพลตพรีเมียม 300 MB)", priority: false },
+  starter: { media: "รวมสูงสุด 200 MB ต่อเทมเพลต", priority: false },
+  value: { media: "รวมสูงสุด 300 MB ต่อเทมเพลต", priority: false },
+  pro: { media: "รวมสูงสุด 500 MB ต่อเทมเพลต", priority: true },
+  god: { media: "รวมสูงสุด 1 GB ต่อเทมเพลต", priority: true },
+  vip: { media: "รวมสูงสุด 1 GB ต่อเทมเพลต", priority: true },
 };
 
 const UNLIMITED_QUOTA = 2147483647;
@@ -41,11 +41,10 @@ export default function TierStatusCard({ tier, permanentQuota, premiumQuota, use
   void usedPermanentQuota;
   const [open, setOpen] = useState(false);
   const effectiveTier = tier || "free";
-  const expirationDate = quotaExpiresAt ? new Date(quotaExpiresAt) : null;
-  const hasActivePackage = expirationDate !== null && !Number.isNaN(expirationDate.getTime()) && expirationDate > new Date();
-  const expirationLabel = hasActivePackage
-    ? `เหลือเวลา ${Math.max(0, Math.ceil((expirationDate.getTime() - Date.now()) / 86400000))} วัน (หมดอายุ ${expirationDate.toLocaleDateString("th-TH")})`
-    : quotaExpiresAt ? "หมดอายุแล้ว" : "ยังไม่มีแพ็กเกจใช้งาน";
+  const hasQuota = permanentQuota > 0 || premiumQuota > 0;
+  const expirationLabel = effectiveTier === "free" || effectiveTier === "guest"
+    ? (hasQuota ? "สิทธิ์คงเหลือไม่มีวันหมดอายุ" : "ยังไม่มีแพ็กเกจใช้งาน")
+    : "โควตาและสิทธิ์ไม่มีวันหมดอายุ (เก็บไว้ใช้ได้ตลอด)";
   const packageTier = effectiveTier === "guest" ? "free" : effectiveTier;
   const baseSpecs = PACKAGE_SPECS[packageTier] ?? PACKAGE_SPECS.free;
   const isUnlimited = UNLIMITED_TIERS.has(packageTier) || permanentQuota >= UNLIMITED_QUOTA;

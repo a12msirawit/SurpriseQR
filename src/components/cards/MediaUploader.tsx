@@ -3,6 +3,7 @@
 import React from "react";
 import { UploadCloud, Image as ImageIcon, Music, X } from "lucide-react";
 import { MEDIA_ACCEPT } from "@/hooks/useCardMediaState";
+import { getMediaLimit } from "@/lib/tierRules";
 import type { UserTier } from "@/types/database";
 
 export interface RoyaltyFreeAudio {
@@ -18,8 +19,8 @@ export const DEFAULT_ROYALTY_FREE_AUDIO: RoyaltyFreeAudio[] = [
   { id: "https://example.com/audio/gentle-apology.mp3", name: "เพลงขอโทษ" },
 ];
 
-function resolveSizeLabelMB(tier: UserTier): number {
-  return tier === "pro" || tier === "vip" ? 10 : 5;
+function resolveSizeLabelMB(tier: UserTier, kind: "image" | "audio", isPremiumTemplate: boolean = false): number {
+  return getMediaLimit(tier, kind, { isPaidTemplate: isPremiumTemplate });
 }
 
 interface ImageUploaderProps {
@@ -29,6 +30,7 @@ interface ImageUploaderProps {
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClearImage: () => void;
   clearButtonClass?: string;
+  isPremiumTemplate?: boolean;
 }
 
 interface AudioUploaderProps {
@@ -41,6 +43,7 @@ interface AudioUploaderProps {
   onSelectionChange: (value: string) => void;
   clearButtonClass?: string;
   royaltyFreeAudio?: RoyaltyFreeAudio[];
+  isPremiumTemplate?: boolean;
 }
 
 export function ImageUploader({
@@ -50,8 +53,9 @@ export function ImageUploader({
   onImageChange,
   onClearImage,
   clearButtonClass = "px-4 py-2 rounded-xl font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition-all flex items-center gap-2 mx-auto",
+  isPremiumTemplate = false,
 }: ImageUploaderProps) {
-  const size = resolveSizeLabelMB(tier);
+  const size = resolveSizeLabelMB(tier, "image", isPremiumTemplate);
   return (
     <div>
       <label htmlFor="media-uploader-image" className="mb-2 block text-sm font-medium text-slate-300">
@@ -105,8 +109,9 @@ export function AudioUploader({
   onSelectionChange,
   clearButtonClass = "px-4 py-2 rounded-xl font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition-all flex items-center gap-2 mx-auto",
   royaltyFreeAudio = DEFAULT_ROYALTY_FREE_AUDIO,
+  isPremiumTemplate = false,
 }: AudioUploaderProps) {
-  const size = resolveSizeLabelMB(tier);
+  const size = resolveSizeLabelMB(tier, "audio", isPremiumTemplate);
   return (
     <>
       <div>
@@ -191,6 +196,7 @@ export default function MediaUploader(props: {
   title?: string;
   titleIcon?: React.ReactNode;
   sectionClass?: string;
+  isPremiumTemplate?: boolean;
 }) {
   const {
     tier,
@@ -209,6 +215,7 @@ export default function MediaUploader(props: {
     title = "สื่อ",
     titleIcon = <ImageIcon className="w-5 h-5 text-space-accent" />,
     sectionClass = "glass-panel rounded-3xl border-space-border bg-white/5 p-6 space-y-6 backdrop-blur-xl",
+    isPremiumTemplate = false,
   } = props;
   return (
     <section className={sectionClass}>
@@ -223,6 +230,7 @@ export default function MediaUploader(props: {
         onImageChange={onImageChange}
         onClearImage={onClearImage}
         clearButtonClass={clearImageClass}
+        isPremiumTemplate={isPremiumTemplate}
       />
       <AudioUploader
         tier={tier}
@@ -236,6 +244,7 @@ export default function MediaUploader(props: {
           if (value && audioInputRef.current) audioInputRef.current.value = "";
         }}
         clearButtonClass={clearAudioClass}
+        isPremiumTemplate={isPremiumTemplate}
       />
     </section>
   );

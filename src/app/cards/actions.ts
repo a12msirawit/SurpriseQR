@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireAuth, getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { uploadCardMedia } from "@/lib/storage-server";
-import { getMediaLimit, isPaidTier, isValidPin, resolveMediaTier, validateCustomSlug } from "@/lib/tierRules";
+import { getMediaLimit, getTotalMediaLimit, isPaidTier, isValidPin, resolveMediaTier, validateCustomSlug } from "@/lib/tierRules";
 import type { CardStatus, DatabaseSceneType, StorageType } from "@/types/database";
 import {
   computeAndApplyCharges,
@@ -146,6 +147,13 @@ export async function updateCard(cardId: string, formData: FormData) {
     return { error: "Card not found." };
   }
 
+  const existingTemplate = existingCard.template_id
+    ? await resolveTemplate(supabase, existingCard.template_id)
+    : null;
+  const isPaidOrPremiumTemplate = Boolean(
+    existingTemplate?.is_premium || (existingTemplate?.price && existingTemplate.price > 0)
+  );
+
   if (existingCard.user_id !== user.id) {
     return { error: "You can only edit your own cards." };
   }
@@ -198,11 +206,22 @@ export async function updateCard(cardId: string, formData: FormData) {
     return { error: "รหัส PIN ต้องเป็นตัวเลข 4 หลัก" };
   }
 
-  // custom_slug is a premium/permanent-card-only field. Reject writes from
-  // any non-permanent card regardless of how the form was submitted. After
-  // a URL is set it becomes immutable — clients cannot change or clear it.
+  // custom_slug: Once set it becomes immutable. Check quota or permanent entitlement.
   if (customSlugInput !== null && customSlugInput !== "" && !existingCard.is_permanent) {
-    return { error: "Custom URL ใช้ได้เฉพาะการ์ดถาวรเท่านั้น" };
+    const { data: userProfile } = await supabase.from("profiles").select("tier, custom_url_quota").eq("id", user.id).single();
+    const hasQuota = (userProfile?.custom_url_quota ?? 0) > 0;
+    const isEntitled = userProfile?.tier === "pro" || userProfile?.tier === "god" || userProfile?.tier === "vip";
+    if (!hasQuota && !isEntitled) {
+      return { error: "Custom URL ใช้ได้เฉพาะการ์ดถาวร หรือบัญชีที่มีสิทธิ์ Custom URL เท่านั้น" };
+    }
+    if (!isEntitled && hasQuota) {
+      const adminClient = createAdminClient();
+      await adminClient
+        .from("profiles")
+        .update({ custom_url_quota: (userProfile?.custom_url_quota ?? 1) - 1 })
+        .eq("id", user.id)
+        .gt("custom_url_quota", 0);
+    }
   }
   if (
     existingCard.custom_slug &&
@@ -239,8 +258,20 @@ export async function updateCard(cardId: string, formData: FormData) {
     audioUrl = null;
   }
 
+  const incomingTotalBytes =
+    (imageFile?.size ?? 0) +
+    (image1File?.size ?? 0) +
+    (image2File?.size ?? 0) +
+    (audioFile?.size ?? 0);
+  const totalMediaLimitMB = getTotalMediaLimit(mediaTier, { isPaidTemplate: isPaidOrPremiumTemplate });
+  if (incomingTotalBytes > totalMediaLimitMB * 1024 * 1024) {
+    return {
+      error: `ขนาดไฟล์สื่อทั้งหมดรวมกัน (${(incomingTotalBytes / (1024 * 1024)).toFixed(1)} MB) เกินโควตารวมของเทมเพลต (${totalMediaLimitMB} MB)`,
+    };
+  }
+
   if (imageFile && imageFile.size > 0) {
-    const maxImageMB = getMediaLimit(mediaTier, "image");
+    const maxImageMB = getMediaLimit(mediaTier, "image", { isPaidTemplate: isPaidOrPremiumTemplate });
     const maxImageBytes = maxImageMB * 1024 * 1024;
 
     if (imageFile.size > maxImageBytes) {
@@ -257,7 +288,7 @@ export async function updateCard(cardId: string, formData: FormData) {
 
   for (const [field, file] of [["image_1", image1File], ["image_2", image2File]] as const) {
     if (!file || file.size === 0) continue;
-    const maxImageMB = getMediaLimit(mediaTier, "image");
+    const maxImageMB = getMediaLimit(mediaTier, "image", { isPaidTemplate: isPaidOrPremiumTemplate });
     if (file.size > maxImageMB * 1024 * 1024) return { error: `ขนาด${field}เกิน ${maxImageMB}MB` };
     const previous = field === "image_1" ? image1Url : image2Url;
     await removeStorageObject(previous);
@@ -268,7 +299,7 @@ export async function updateCard(cardId: string, formData: FormData) {
   }
 
   if (audioFile && audioFile.size > 0) {
-    const maxAudioMB = getMediaLimit(mediaTier, "audio");
+    const maxAudioMB = getMediaLimit(mediaTier, "audio", { isPaidTemplate: isPaidOrPremiumTemplate });
     const maxAudioBytes = maxAudioMB * 1024 * 1024;
 
     if (audioFile.size > maxAudioBytes) {
@@ -469,13 +500,25 @@ export async function updateDraftCard(formData: FormData) {
     packageExpiresAt: profile.package_expires_at ?? null,
   });
 
+  const isPaidOrPremiumTemplate = Boolean(
+    template.is_premium || (template.price !== undefined && template.price > 0)
+  );
+
   const imageFile = formData.get("image") as File | null;
   const audioFile = formData.get("audio") as File | null;
   let imageUrl = existingCard.image_url as string | null;
   let audioUrl = existingCard.audio_url as string | null;
 
+  const incomingDraftBytes = (imageFile?.size ?? 0) + (audioFile?.size ?? 0);
+  const totalMediaLimitMB = getTotalMediaLimit(mediaTier, { isPaidTemplate: isPaidOrPremiumTemplate });
+  if (incomingDraftBytes > totalMediaLimitMB * 1024 * 1024) {
+    return {
+      error: `ขนาดไฟล์สื่อทั้งหมดรวมกัน (${(incomingDraftBytes / (1024 * 1024)).toFixed(1)} MB) เกินโควตารวมของเทมเพลต (${totalMediaLimitMB} MB)`,
+    };
+  }
+
   if (imageFile && imageFile.size > 0) {
-    const maxImageMB = getMediaLimit(mediaTier, "image");
+    const maxImageMB = getMediaLimit(mediaTier, "image", { isPaidTemplate: isPaidOrPremiumTemplate });
     if (imageFile.size > maxImageMB * 1024 * 1024) {
       return { error: `Image size exceeds ${maxImageMB}MB limit.` };
     }
@@ -486,7 +529,7 @@ export async function updateDraftCard(formData: FormData) {
     imageUrl = url;
   }
   if (audioFile && audioFile.size > 0) {
-    const maxAudioMB = getMediaLimit(mediaTier, "audio");
+    const maxAudioMB = getMediaLimit(mediaTier, "audio", { isPaidTemplate: isPaidOrPremiumTemplate });
     if (audioFile.size > maxAudioMB * 1024 * 1024) {
       return { error: `Audio size exceeds ${maxAudioMB}MB limit.` };
     }

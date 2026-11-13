@@ -78,7 +78,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="relative mx-auto flex w-full max-w-md items-center justify-center" aria-label="ตัวอย่างการ์ดของขวัญ">
+        <section className="relative mx-auto flex w-full max-w-md flex-col items-center justify-center" aria-label="ตัวอย่างการ์ดของขวัญ">
           <div className="absolute -right-5 -top-5 flex h-16 w-16 rotate-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-xl shadow-amber-500/20">
             <Star className="h-8 w-8 fill-current" />
           </div>

@@ -139,14 +139,19 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
   const initialAudioSelection =
     DEFAULT_ROYALTY_FREE_AUDIO.find((a) => a.id === card.audio_url)?.id || "";
 
+  const selectedTemplate = templates.find((t) => t.id === card.template_id);
+  const isPremiumTemplate = Boolean(
+    selectedTemplate?.is_premium || (selectedTemplate?.price && selectedTemplate.price > 0)
+  );
+
   const media = useCardMediaState({
     tier,
     initialImageUrl: card.image_url,
     initialAudioSelection,
     errorSetter: setError,
+    isPremiumTemplate,
   });
 
-  const selectedTemplate = templates.find((t) => t.id === card.template_id);
   const cardUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/c/${card.custom_slug || card.hash_id}`;
 
   async function handleCopyCardLink() {
@@ -200,7 +205,7 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
     formData.append("sender_name", senderName);
     formData.append("message", buildSubmitMessage());
     formData.append("pin_code", pinCode);
-    if (card.is_permanent && !card.custom_slug) formData.append("custom_slug", customSlug);
+    if (!card.custom_slug && customSlug.trim()) formData.append("custom_slug", customSlug.trim());
     if (media.imageFile) formData.append("image", media.imageFile);
     if (media.audioFile) formData.append("audio", media.audioFile);
     if (media.audioSelection) formData.append("audio_selection", media.audioSelection);
@@ -236,8 +241,8 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
     setAccessError(null);
     const formData = new FormData();
     if (field === "pin") formData.append("pin_code", pinCode);
-    if (field === "url" && card.is_permanent && !card.custom_slug) {
-      formData.append("custom_slug", customSlug);
+    if (field === "url" && !card.custom_slug && customSlug.trim()) {
+      formData.append("custom_slug", customSlug.trim());
     }
     const result = await updateCard(card.id, formData);
     setAccessLoading(false);
@@ -301,33 +306,36 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
           </button>
         </form>
 
-        {/* Custom URL form (only for permanent cards) */}
-        {card.is_permanent && (
-          <form onSubmit={(event) => void handleAccessSubmit(event, "url")} className="space-y-4 rounded-3xl border border-space-border bg-white/5 p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-white">แก้ไข Custom URL</h2>
-            <label className="block text-sm font-medium text-slate-300">
-              Custom URL
-              <input
-                value={customSlug}
-                onChange={(event) => setCustomSlug(event.target.value)}
-                readOnly={urlLocked}
-                className="mt-2 w-full rounded-xl border border-space-border bg-white/5 px-4 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-space-accent/30 read-only:cursor-not-allowed read-only:text-slate-400"
-                placeholder={urlLocked ? "" : "ชื่อ-ลิงก์-ของคุณ"}
-              />
-              {!urlLocked && (
-                <span className="mt-2 block text-xs font-semibold text-amber-400">
-                  ตั้งชื่อ URL แล้วบันทึกจะไม่สามารถแก้ไขได้อีก!
-                </span>
-              )}
-            </label>
-            {accessError && (
-              <p className="rounded-xl bg-red-500/10 p-3 text-sm text-red-400">{accessError}</p>
+        {/* Custom URL form */}
+        <form onSubmit={(event) => void handleAccessSubmit(event, "url")} className="space-y-4 rounded-3xl border border-space-border bg-white/5 p-6 shadow-xl">
+          <h2 className="text-lg font-bold text-white">แก้ไข Custom URL</h2>
+          <label className="block text-sm font-medium text-slate-300">
+            Custom URL
+            <input
+              value={customSlug}
+              onChange={(event) => setCustomSlug(event.target.value)}
+              readOnly={urlLocked}
+              className="mt-2 w-full rounded-xl border border-space-border bg-white/5 px-4 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-space-accent/30 read-only:cursor-not-allowed read-only:text-slate-400"
+              placeholder={urlLocked ? "" : "ชื่อ-ลิงก์-ของคุณ"}
+            />
+            {!urlLocked && (
+              <span className="mt-2 block text-xs font-semibold text-amber-400">
+                ตั้งชื่อ URL แล้วบันทึกจะไม่สามารถแก้ไขได้อีก!
+              </span>
             )}
-            <button type="submit" disabled={accessLoading || urlLocked} className="w-full rounded-xl bg-space-accent px-4 py-3 font-bold text-white disabled:opacity-50">
-              {accessLoading ? "กำลังบันทึก URL..." : urlLocked ? "URL ถูกล็อกแล้ว" : "บันทึก URL"}
-            </button>
-          </form>
-        )}
+          </label>
+          {urlLocked && (
+            <p className="text-xs text-slate-400">
+              ลิงก์ปัจจุบัน: <span className="font-mono text-space-accent">{cardUrl}</span>
+            </p>
+          )}
+          {accessError && (
+            <p className="rounded-xl bg-red-500/10 p-3 text-sm text-red-400">{accessError}</p>
+          )}
+          <button type="submit" disabled={accessLoading || urlLocked} className="w-full rounded-xl bg-space-accent px-4 py-3 font-bold text-white disabled:opacity-50">
+            {accessLoading ? "กำลังบันทึก URL..." : urlLocked ? "URL ถูกล็อกแล้ว" : "บันทึก URL"}
+          </button>
+        </form>
 
         <button type="button" onClick={() => router.push("/dashboard")} className="w-full rounded-xl border border-space-border bg-white/5 px-4 py-3 font-bold text-slate-200">
           กลับไปแดชบอร์ด
@@ -439,33 +447,31 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
           <section className="space-y-4 rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">
             <h2 className="text-lg font-bold text-white">ความปลอดภัยและลิงก์</h2>
 
-            {card.is_permanent && (
-              <div>
-                <label htmlFor="custom-slug" className="mb-2 block text-sm font-medium text-slate-300">
-                  ชื่อ Custom URL
-                </label>
-                <div className="flex overflow-hidden rounded-xl border border-neutral-700 bg-white/5 focus-within:border-space-accent focus-within:ring-2 focus-within:ring-space-accent/30">
-                  <span className="flex shrink-0 items-center border-r border-neutral-700 bg-white/5 px-3 text-sm text-slate-400">
-                    {typeof window === "undefined" ? "surpriseqr.com/c/" : `${window.location.host}/c/`}
-                  </span>
-                  <input
-                    id="custom-slug"
-                    value={customSlug}
-                    onChange={(event) => setCustomSlug(event.target.value)}
-                    readOnly={!!card.custom_slug}
-                    className="min-w-0 flex-1 bg-transparent px-4 py-3 text-slate-200 outline-none placeholder-slate-500 read-only:cursor-not-allowed read-only:text-slate-400"
-                    placeholder={card.custom_slug ? "" : "ชื่อ-ลิงก์-ของคุณ"}
-                  />
-                </div>
-                {!card.custom_slug && (
-                  <p className="mt-2 text-xs font-semibold text-amber-400">
-                    ตั้งชื่อ URL แล้วบันทึกจะไม่สามารถแก้ไขได้อีก!
-                  </p>
-                )}
+            <div>
+              <label htmlFor="custom-slug" className="mb-2 block text-sm font-medium text-slate-300">
+                ชื่อ Custom URL
+              </label>
+              <div className="flex overflow-hidden rounded-xl border border-neutral-700 bg-white/5 focus-within:border-space-accent focus-within:ring-2 focus-within:ring-space-accent/30">
+                <span className="flex shrink-0 items-center border-r border-neutral-700 bg-white/5 px-3 text-sm text-slate-400">
+                  {typeof window === "undefined" ? "surpriseqr.com/c/" : `${window.location.host}/c/`}
+                </span>
+                <input
+                  id="custom-slug"
+                  value={customSlug}
+                  onChange={(event) => setCustomSlug(event.target.value)}
+                  readOnly={!!card.custom_slug}
+                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-slate-200 outline-none placeholder-slate-500 read-only:cursor-not-allowed read-only:text-slate-400"
+                  placeholder={card.custom_slug ? "" : "ชื่อ-ลิงก์-ของคุณ"}
+                />
               </div>
-            )}
+              {!card.custom_slug && (
+                <p className="mt-2 text-xs font-semibold text-amber-400">
+                  ตั้งชื่อ URL แล้วบันทึกจะไม่สามารถแก้ไขได้อีก!
+                </p>
+              )}
+            </div>
 
-            {card.is_permanent && card.custom_slug && (
+            {card.custom_slug && (
               <div className="rounded-xl border border-neutral-700 bg-black/10 p-3">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Card Link</p>
                 <div className="mt-2 flex items-center gap-2">
@@ -507,6 +513,7 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
             <h2 className="text-lg font-bold text-white">รูปภาพและเสียง</h2>
             <MediaUploader
               tier={tier}
+              isPremiumTemplate={isPremiumTemplate}
               imagePreview={media.imagePreview}
               imageInputRef={media.imageInputRef as React.RefObject<HTMLInputElement>}
               audioInputRef={media.audioInputRef as React.RefObject<HTMLInputElement>}
@@ -587,7 +594,7 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
 
           <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5 shadow-xl">
             <h3 className="mb-4 text-lg font-bold text-white">ปรับแต่ง QR Code</h3>
-            <QRCodeCustomizer value={`/c/${card.hash_id}`} />
+            <QRCodeCustomizer value={cardUrl} />
           </section>
         </div>
       </div>

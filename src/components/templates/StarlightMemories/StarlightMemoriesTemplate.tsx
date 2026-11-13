@@ -279,13 +279,10 @@ export default function StarlightMemoriesTemplate({
       </AnimatePresence>
 
       {/* CINEMATIC LETTERBOX: TOP BAR */}
-      <motion.div
-        animate={{
-          height: mode === "cutscene" ? (typeof window !== "undefined" && window.innerWidth >= 768 ? 48 : 36) : 0,
-          opacity: mode === "cutscene" ? 1 : 0,
-        }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full bg-black z-30 shrink-0 flex items-center justify-between px-6 overflow-hidden border-b border-white/5"
+      <div
+        className={`w-full bg-black z-30 shrink-0 flex items-center justify-between px-4 sm:px-6 overflow-hidden border-b border-white/5 transition-all duration-700 ${
+          mode === "cutscene" ? "h-9 md:h-12 opacity-100" : "h-0 opacity-0"
+        }`}
       >
         {/* Blinking REC Indicator */}
         <div className="flex items-center gap-2 text-[10px] md:text-xs font-mono tracking-widest text-slate-300">
@@ -336,7 +333,7 @@ export default function StarlightMemoriesTemplate({
             </button>
           )}
         </div>
-      </motion.div>
+      </div>
 
       {/* MAIN VIEWPORT */}
       <main className="relative flex-1 flex flex-col items-center justify-center overflow-hidden z-10 w-full h-full">
@@ -674,18 +671,15 @@ export default function StarlightMemoriesTemplate({
       </AnimatePresence>
 
       {/* CINEMATIC LETTERBOX: BOTTOM BAR */}
-      <motion.div
-        animate={{
-          height: mode === "cutscene" ? (typeof window !== "undefined" && window.innerWidth >= 768 ? 48 : 36) : 0,
-          opacity: mode === "cutscene" ? 1 : 0,
-        }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full bg-black z-30 shrink-0 flex items-center justify-center border-t border-white/5 overflow-hidden"
+      <div
+        className={`w-full bg-black z-30 shrink-0 flex items-center justify-center border-t border-white/5 overflow-hidden transition-all duration-700 ${
+          mode === "cutscene" ? "h-9 md:h-12 opacity-100" : "h-0 opacity-0"
+        }`}
       >
         <span className="text-[9px] md:text-[10px] font-mono tracking-[0.4em] text-slate-500 uppercase">
           CINEMATIC 21:9 WIDESCREEN EXPERIENCE
         </span>
-      </motion.div>
+      </div>
     </div>
   );
 }

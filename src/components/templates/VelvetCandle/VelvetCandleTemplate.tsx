@@ -428,10 +428,13 @@ export default function VelvetCandleTemplate({
             className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/25 bg-black/40 px-3 py-1.5 font-sans text-[11px] font-semibold tracking-wide text-amber-100/80 backdrop-blur hover:ring-2 hover:ring-amber-300/60"
           >
             <Music className="h-3.5 w-3.5" />
-            {data.musicUrl ? "เพลงประกอบ" : " "}
+            {data.musicUrl ? "เพลงประกอบ" : "เพลงวันเกิดกล่องดนตรี"}
           </button>
         ) : (
-          <span />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/20 bg-black/40 px-3 py-1.5 font-sans text-[11px] font-medium tracking-wide text-amber-100/70 backdrop-blur">
+            <Music className="h-3.5 w-3.5" />
+            {data.musicUrl ? "เพลงประกอบ" : "เพลงวันเกิดกล่องดนตรี"}
+          </span>
         )}
         {musicOn ? (
           <button
@@ -738,8 +741,8 @@ export default function VelvetCandleTemplate({
             transition={{ duration: 0.8 }}
             className="space-y-2 text-center"
           >
-            <p className="font-sans text-[11px] uppercase tracking-[0.45em] text-amber-200/70">Wishes for you</p>
-            <h2 className={`text-2xl font-light md:text-3xl ${gold}`}>แตะลูกโป่งดูสิ</h2>
+            <p className="font-sans text-[11px] uppercase tracking-[0.45em] text-amber-200/70">WISHES FOR YOU</p>
+            <h2 className={`text-2xl font-light md:text-3xl ${gold}`}>แตะลูกโป่งเพื่อเปิดคำอวยพร</h2>
           </motion.div>
 
           <div className="relative flex w-full max-w-md flex-1 items-end justify-around pb-6">
@@ -762,8 +765,9 @@ export default function VelvetCandleTemplate({
                         <motion.div
                           animate={{ y: [0, -12, 0], rotate: [-2, 2, -2] }}
                           transition={{ duration: 4 + i * 0.7, repeat: Infinity, ease: "easeInOut" }}
+                          className="flex justify-center"
                         >
-                          <svg width="96" height="168" viewBox="0 0 96 168" aria-hidden="true">
+                          <svg className="w-20 sm:w-24 h-auto max-w-full" viewBox="0 0 96 168" aria-hidden="true">
                             <defs>
                               <radialGradient id={`velvet-balloon-${i}`} cx="35%" cy="30%" r="75%">
                                 <stop offset="0%" stopColor={style.from} />
@@ -844,7 +848,7 @@ export default function VelvetCandleTemplate({
                   className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#e8c873] via-[#f6e2a6] to-[#c99a3f] px-6 py-3 font-sans text-sm font-semibold tracking-wide text-[#3a1a0a] shadow-[0_8px_30px_rgba(232,200,115,0.35)] transition hover:brightness-105"
                 >
                   <Images className="h-4 w-4" />
-                  ลองดูนี่
+                  ดูอัลบั้มวันเกิด
                 </motion.button>
               )}
             </AnimatePresence>

@@ -47,17 +47,6 @@ export default function TemplateShowcase({ templates }: TemplateShowcaseProps) {
             <p className="mb-2 text-base font-bold text-slate-300">เทมเพลตยอดนิยม</p>
             <h2 className="text-2xl font-extrabold text-white">เลือกเทมเพลตสร้างการ์ดเซอร์ไพรส์</h2>
           </div>
-          {filteredTemplates.length > 5 && (
-            <button
-              type="button"
-              aria-expanded={isExpanded}
-              onClick={() => setIsExpanded((expanded) => !expanded)}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-base font-bold text-slate-200 transition-colors hover:bg-white/20 hover:text-white"
-            >
-              {isExpanded ? "ซ่อนบางส่วน" : "ดูทั้งหมด"}
-              <ArrowRight className={`h-4 w-4 transition-transform ${isExpanded ? "-rotate-90" : ""}`} />
-            </button>
-          )}
         </div>
 
         <div className="mb-6 flex flex-nowrap gap-2 overflow-x-auto pb-2 no-scrollbar md:flex-wrap md:overflow-visible md:pb-0">
@@ -99,7 +88,7 @@ export default function TemplateShowcase({ templates }: TemplateShowcaseProps) {
           className="overflow-hidden transition-[max-height] duration-500"
           style={{ maxHeight: templateGridHeight == null ? undefined : `${templateGridHeight}px` }}
         >
-          <div ref={templateGridRef} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div ref={templateGridRef} className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             {visibleTemplates.map((template) => (
               <TemplateCard
                 key={template.id}
@@ -109,6 +98,20 @@ export default function TemplateShowcase({ templates }: TemplateShowcaseProps) {
             ))}
           </div>
         </div>
+
+        {filteredTemplates.length > 5 && (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              aria-expanded={isExpanded}
+              onClick={() => setIsExpanded((expanded) => !expanded)}
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-white/10 px-6 py-2.5 text-base font-bold text-slate-200 transition-colors hover:bg-white/20 hover:text-white"
+            >
+              {isExpanded ? "ซ่อนบางส่วน" : "ดูทั้งหมด"}
+              <ArrowRight className={`h-4 w-4 transition-transform ${isExpanded ? "-rotate-90" : ""}`} />
+            </button>
+          </div>
+        )}
       </section>
     </>
   );

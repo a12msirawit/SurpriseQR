@@ -122,13 +122,13 @@ export default function TemplateManager({ templates: initialTemplates }: Templat
         const result = await deleteTemplate(templateId);
         if (result.success === false || result.error) {
           // Restore the row locally if deletion failed.
-          setTemplates((current) => [...current, targetTemplate]);
+          setTemplates((current) => [targetTemplate, ...current]);
           const message = result.error ?? "ไม่สามารถลบเทมเพลตได้ กรุณาลองใหม่อีกครั้ง";
           setError(message);
           window.alert(`ไม่สามารถลบ${targetTemplate.title}ได้: ${message}`);
         }
       } catch {
-        setTemplates((current) => [...current, targetTemplate]);
+        setTemplates((current) => [targetTemplate, ...current]);
         setError("ไม่สามารถลบเทมเพลตได้ กรุณาลองใหม่อีกครั้ง");
         window.alert("ไม่สามารถลบเทมเพลตได้ กรุณาลองใหม่อีกครั้ง");
       }

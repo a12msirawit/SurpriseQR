@@ -4,6 +4,7 @@ import { uploadCardMedia } from "@/lib/storage-server";
 import {
   canUseAudio,
   getMediaLimit,
+  getTotalMediaLimit,
   hasUnlimitedQuota,
   resolveMediaTier,
   validateCustomSlug,
@@ -108,6 +109,7 @@ export interface CreateCardResult {
   success?: boolean;
   cardId?: string;
   hashId?: string;
+  customSlug?: string | null;
   remainingCredits?: number;
   error?: string;
   status?: CardStatus;
@@ -256,7 +258,7 @@ export async function computeAndApplyCharges(
     input.usePermanentQuota === true ||
     (input.usePermanentQuota === undefined && storageCost <= 0);
 
-  if (storageType === "permanent" && wantsPermanentQuota && tier !== "pro" && tier !== "vip" && tier !== "god") {
+  if (storageType === "permanent" && wantsPermanentQuota && tier !== "vip" && tier !== "god") {
     const { data: consumed } = await privilegedDb()
       .from("profiles")
       .update({ permanent_quota: profile.permanent_quota - 1 })
@@ -269,23 +271,27 @@ export async function computeAndApplyCharges(
       permanentQuotaConsumed = true;
     } else effectiveStorageCost = 25;
   } else if (storageType === "permanent") {
-    // Cash intent for permanent storage (or pro/vip/god bundling).
-    effectiveStorageCost = tier === "pro" || tier === "vip" || tier === "god" ? 0 : 25;
+    // God and VIP tiers include unlimited permanent storage; otherwise single upgrade is 25 THB.
+    effectiveStorageCost = tier === "vip" || tier === "god" ? 0 : 25;
   } else {
     effectiveStorageCost = storageCost;
   }
 
-  if (input.customSlugInput && tier !== "pro" && tier !== "vip" && tier !== "god") {
-    const { data: consumed } = await privilegedDb()
-      .from("profiles")
-      .update({ custom_url_quota: profile.custom_url_quota - 1 })
-      .eq("id", user.id)
-      .gt("custom_url_quota", 0)
-      .select("id")
-      .maybeSingle();
-    if (consumed) effectiveCustomUrlCost = 0;
-  } else if (input.customSlugInput) {
-    effectiveCustomUrlCost = 0;
+  // Custom URL: Included with permanent storage / Single Upgrade (25 THB) or unlimited on god/vip!
+  if (input.customSlugInput) {
+    if (tier === "god" || tier === "vip" || storageType === "permanent") {
+      effectiveCustomUrlCost = 0;
+    } else {
+      const { data: consumed } = await privilegedDb()
+        .from("profiles")
+        .update({ custom_url_quota: profile.custom_url_quota - 1 })
+        .eq("id", user.id)
+        .gt("custom_url_quota", 0)
+        .select("id")
+        .maybeSingle();
+      if (consumed) effectiveCustomUrlCost = 0;
+      else effectiveCustomUrlCost = 0;
+    }
   }
 
   if (!isDraft) {
@@ -445,9 +451,6 @@ export async function createCardCore(
     const validation = validateCustomSlug(input.customSlugInput);
     if (validation.error) return { error: validation.error };
   }
-  if (resolvedAudioType && !canUseAudio(tier, resolvedAudioType)) {
-    return { error: "This audio type is not available for your tier." };
-  }
 
   const template = await resolveTemplate(supabase, input.templateId);
   if (!template) return { error: "Template not found or no templates available." };
@@ -456,6 +459,16 @@ export async function createCardCore(
   }
   if (storageType === "permanent" && tier === "guest") {
     return { error: "Permanent storage is not available for guest accounts." };
+  }
+
+  const isPaidOrPremiumTemplate = Boolean(
+    template.is_premium ||
+    (template.price !== undefined && template.price > 0) ||
+    (input.templateCost !== undefined && input.templateCost > 0)
+  );
+
+  if (resolvedAudioType && !canUseAudio(tier, resolvedAudioType, { isPaidTemplate: isPaidOrPremiumTemplate })) {
+    return { error: "This audio type is not available for your tier." };
   }
 
   const rateLimitErr = await checkFreeDailyLimit(supabase, user.id, tier);
@@ -523,7 +536,7 @@ export async function createCardCore(
   const { data: cardData, error: insertError } = await supabase
     .from("cards")
     .insert(coreInsert)
-    .select("id, hash_id")
+    .select("id, hash_id, custom_slug")
     .single();
   if (insertError || !cardData) {
     await refundCredits(supabase, user.id, isDraft ? 0 : totalCost);
@@ -533,8 +546,18 @@ export async function createCardCore(
   let imageUrl: string | null = null;
   let audioUrl: string | null = null;
 
+  // Validate total media quota for the template/card
+  const totalMediaBytes = (input.imageFile?.size ?? 0) + (input.audioFile?.size ?? 0);
+  const totalMediaLimitMB = getTotalMediaLimit(mediaTier, { isPaidTemplate: isPaidOrPremiumTemplate });
+  if (totalMediaBytes > totalMediaLimitMB * 1024 * 1024) {
+    await rollback(cardData.id);
+    return {
+      error: `ขนาดไฟล์สื่อทั้งหมดรวมกัน (${(totalMediaBytes / (1024 * 1024)).toFixed(1)} MB) เกินโควตารวมของเทมเพลต (${totalMediaLimitMB} MB)`,
+    };
+  }
+
   if (input.imageFile && input.imageFile.size > 0) {
-    const imageLimitMB = getMediaLimit(mediaTier, "image");
+    const imageLimitMB = getMediaLimit(mediaTier, "image", { isPaidTemplate: isPaidOrPremiumTemplate });
     if (input.imageFile.size > imageLimitMB * 1024 * 1024) {
       await rollback(cardData.id);
       return {
@@ -558,7 +581,7 @@ export async function createCardCore(
     // "video" audio type, so they must be validated against the video limit.
     const mediaKind: MediaKind =
       resolvedAudioType === "video" ? "video" : "audio";
-    const mediaLimitMB = getMediaLimit(mediaTier, mediaKind);
+    const mediaLimitMB = getMediaLimit(mediaTier, mediaKind, { isPaidTemplate: isPaidOrPremiumTemplate });
     if (input.audioFile.size > mediaLimitMB * 1024 * 1024) {
       await rollback(cardData.id);
       return {
@@ -623,13 +646,16 @@ export async function createCardCore(
   const remainingCredits =
     (profile.credits ?? 0) - (isDraft ? 0 : totalCost);
 
+  const effectiveSlug = cardData.custom_slug || hashId;
+
   return {
     success: true,
     cardId: cardData.id,
     hashId,
+    customSlug: cardData.custom_slug,
     remainingCredits,
     status,
-    redirectUrl: `/c/${hashId}`,
-    qrData: `/c/${hashId}`,
+    redirectUrl: `/c/${effectiveSlug}`,
+    qrData: `/c/${effectiveSlug}`,
   };
 }

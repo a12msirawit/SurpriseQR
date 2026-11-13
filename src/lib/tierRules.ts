@@ -5,11 +5,11 @@ export type QuotaName = "custom_url_quota" | "premium_quota" | "permanent_quota"
 export type MediaKind = "image" | "audio" | "video";
 
 export const TIER_RULES = {
-  guest: { regularCards: 2, permanentCards: 0, premiumCards: 0, customUrls: 0, audio: ["youtube"] },
-  free: { regularCards: 5, permanentCards: 0, premiumCards: 0, customUrls: 0, audio: ["youtube", "mp3"] },
-  starter: { regularCards: Infinity, permanentCards: 2, premiumCards: 1, customUrls: 2, audio: ["youtube", "mp3"] },
-  value: { regularCards: Infinity, permanentCards: 6, premiumCards: 3, customUrls: 6, audio: ["youtube", "mp3"] },
-  pro: { regularCards: Infinity, permanentCards: 8, premiumCards: 6, customUrls: 8, audio: ["youtube", "mp3"] },
+  guest: { regularCards: 2, permanentCards: 0, premiumCards: 0, customUrls: 0, audio: ["youtube", "mp3"] },
+  free: { regularCards: 5, permanentCards: 0, premiumCards: 0, customUrls: 0, audio: ["youtube", "mp3", "video"] },
+  starter: { regularCards: Infinity, permanentCards: 2, premiumCards: 1, customUrls: 2, audio: ["youtube", "mp3", "video"] },
+  value: { regularCards: Infinity, permanentCards: 6, premiumCards: 3, customUrls: 6, audio: ["youtube", "mp3", "video"] },
+  pro: { regularCards: Infinity, permanentCards: 8, premiumCards: 6, customUrls: 8, audio: ["youtube", "mp3", "video"] },
   god: { regularCards: Infinity, permanentCards: Infinity, premiumCards: 10, customUrls: Infinity, audio: ["youtube", "mp3", "video"] },
   vip: { regularCards: Infinity, permanentCards: Infinity, premiumCards: Infinity, customUrls: Infinity, audio: ["youtube", "mp3", "video"] },
 } as const;
@@ -24,14 +24,27 @@ export const TIER_RANK: Record<UserTier, number> = {
   vip: 5,
 };
 
-export const MEDIA_LIMITS: Record<UserTier, { image: number; audio: number; video: number; priority: boolean }> = {
-  guest: { image: 5, audio: 5, video: 10, priority: false },
-  free: { image: 5, audio: 5, video: 10, priority: false },
-  starter: { image: 5, audio: 5, video: 10, priority: false },
-  value: { image: 10, audio: 10, video: 35, priority: false },
-  pro: { image: 10, audio: 20, video: 50, priority: true },
-  god: { image: 15, audio: 25, video: 100, priority: true },
-  vip: { image: 15, audio: 25, video: 100, priority: true },
+export const MEDIA_LIMITS: Record<UserTier, { image: number; audio: number; video: number; priority: boolean; total: number }> = {
+  guest: { image: 150, audio: 150, video: 150, priority: false, total: 150 },
+  free: { image: 150, audio: 150, video: 150, priority: false, total: 150 },
+  starter: { image: 200, audio: 200, video: 200, priority: false, total: 200 },
+  value: { image: 300, audio: 300, video: 300, priority: false, total: 300 },
+  pro: { image: 500, audio: 500, video: 500, priority: true, total: 500 },
+  god: { image: 1024, audio: 1024, video: 1024, priority: true, total: 1024 },
+  vip: { image: 1024, audio: 1024, video: 1024, priority: true, total: 1024 },
+};
+
+/**
+ * Entitlements for cards using a paid or premium template (Pay-as-you-go / Quota).
+ * Automatically boosts upload allowances even on Free/Starter tiers:
+ * - Combined media quota up to 300 MB per template
+ */
+export const PAID_TEMPLATE_MEDIA_LIMITS: { image: number; audio: number; video: number; priority: boolean; total: number } = {
+  image: 300,
+  audio: 300,
+  video: 300,
+  priority: false,
+  total: 300,
 };
 
 const RESERVED_SLUGS = new Set(["admin", "login", "register", "api", "s", "payments"]);
@@ -44,9 +57,33 @@ export function getTierRank(tier: UserTier): number {
   return TIER_RANK[tier] ?? 0;
 }
 
-export function getMediaLimit(tier: UserTier, kind: MediaKind): number {
+export function getMediaLimit(
+  tier: UserTier,
+  kind: MediaKind,
+  options?: { isPaidTemplate?: boolean; isPremiumTemplate?: boolean }
+): number {
+  const isPaidOrPremium = options?.isPaidTemplate ?? options?.isPremiumTemplate ?? false;
+  if (isPaidOrPremium) {
+    const tierLimit = MEDIA_LIMITS[tier]?.[kind] ?? MEDIA_LIMITS.free[kind];
+    const paidTemplateLimit = PAID_TEMPLATE_MEDIA_LIMITS[kind];
+    return Math.max(tierLimit, paidTemplateLimit);
+  }
   const limits = MEDIA_LIMITS[tier] ?? MEDIA_LIMITS.free;
   return limits[kind];
+}
+
+export function getTotalMediaLimit(
+  tier: UserTier,
+  options?: { isPaidTemplate?: boolean; isPremiumTemplate?: boolean }
+): number {
+  const isPaidOrPremium = options?.isPaidTemplate ?? options?.isPremiumTemplate ?? false;
+  if (isPaidOrPremium) {
+    const tierLimit = MEDIA_LIMITS[tier]?.total ?? MEDIA_LIMITS.free.total;
+    const paidTemplateLimit = PAID_TEMPLATE_MEDIA_LIMITS.total;
+    return Math.max(tierLimit, paidTemplateLimit);
+  }
+  const limits = MEDIA_LIMITS[tier] ?? MEDIA_LIMITS.free;
+  return limits.total;
 }
 
 export function hasPriorityProcessing(tier: UserTier): boolean {
@@ -129,7 +166,13 @@ export function canUsePermanentStorage(tier: UserTier, permanentUsed: number) {
   return permanentUsed < getTierRules(tier).permanentCards;
 }
 
-export function canUseAudio(tier: UserTier, audioType: AudioType) {
+export function canUseAudio(
+  tier: UserTier,
+  audioType: AudioType,
+  options?: { isPaidTemplate?: boolean; isPremiumTemplate?: boolean }
+) {
+  const isPaidOrPremium = options?.isPaidTemplate ?? options?.isPremiumTemplate ?? false;
+  if (isPaidOrPremium && audioType === "video") return true;
   return (getTierRules(tier).audio as readonly string[]).includes(audioType);
 }
 

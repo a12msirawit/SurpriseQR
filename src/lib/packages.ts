@@ -35,6 +35,15 @@ export const PACKAGE_TIER_RANK: Record<PricingPackage["tierKey"], number> = {
   god: 4,
 };
 
+export const SINGLE_UPGRADE = {
+  price: 25,
+  name: "อัปเกรดรายใบ (Single Upgrade)",
+  features: [
+    "สิทธิ์จัดเก็บถาวร 1 ใบ",
+    "ตั้งชื่อ Custom URL ได้ 1 ใบ",
+  ],
+};
+
 export const PRICING_PACKAGES: readonly PricingPackage[] = [
   {
     id: "starter_69",
@@ -43,9 +52,10 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
     price: 69,
     badge: "เริ่มต้น",
     features: [
-      "จัดเก็บถาวร + Custom URL 2 สิทธิ์",
-      "เทมเพลตพรีเมียม 1 เทมเพลต",
-      "รูปภาพ 5 MB | MP3 5 MB | วิดีโอ 10 MB ต่อไฟล์",
+      "สิทธิ์จัดเก็บถาวร และ ตั้งชื่อ Custom URL + 2 สิทธิ์",
+      "สิทธิ์ปลดล็อกใช้งานเทมเพลตพรีเมียม (แบบเสียเงิน) ฟรี 1 เทมเพลต",
+      "โควตาและสิทธิ์ไม่มีวันหมดอายุ เก็บไว้ใช้ได้ตลอด",
+      "โควตาสื่อ: รวมสูงสุด 200 MB ต่อเทมเพลต (ใช้ตามอายุการ์ด)",
     ],
   },
   {
@@ -55,9 +65,10 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
     price: 119,
     badge: "ยอดนิยม",
     features: [
-      "จัดเก็บถาวร + Custom URL 6 สิทธิ์",
-      "เทมเพลตพรีเมียม 3 เทมเพลต",
-      "รูปภาพ 10 MB | MP3 10 MB | วิดีโอ 35 MB ต่อไฟล์",
+      "สิทธิ์จัดเก็บถาวร และ Custom URL + 6 สิทธิ์",
+      "สิทธิ์ปลดล็อกใช้งานเทมเพลตพรีเมียม (แบบเสียเงิน) ฟรี 3 เทมเพลต",
+      "โควตาและสิทธิ์ไม่มีวันหมดอายุ ใช้ไม่หมดเก็บไว้ใช้ต่อได้",
+      "โควตาสื่อ: รวมสูงสุด 300 MB ต่อเทมเพลต (ใช้ตามอายุการ์ด)",
     ],
   },
   {
@@ -67,10 +78,10 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
     price: 199,
     badge: "แนะนำ",
     features: [
-      "จัดเก็บถาวร + Custom URL 8 สิทธิ์",
-      "เทมเพลตพรีเมียม 6 เทมเพลต",
-      "สิทธิ์ประมวลผลและอัปโหลด Priority",
-      "รูปภาพ 10 MB | MP3 20 MB | วิดีโอ 50 MB ต่อไฟล์",
+      "สิทธิ์จัดเก็บถาวร และ ตั้งชื่อ Custom URL + 8 สิทธิ์",
+      "สิทธิ์ปลดล็อกใช้งานเทมเพลตพรีเมียม (แบบเสียเงิน) ฟรี 6 เทมเพลต",
+      "ได้รับสิทธิ์ประมวลผลและอัปโหลดสื่อความเร็วสูง (Priority)",
+      "โควตาสื่อ: รวมสูงสุด 500 MB ต่อเทมเพลต (ใช้ตามอายุการ์ด)",
     ],
   },
   {
@@ -78,37 +89,52 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
     tierKey: "god",
     name: "God Pack",
     price: 269,
-    badge: "คุ้มค่าที่สุด",
+    badge: "เหมาจ่ายคุ้มที่สุด",
     highlighted: true,
     features: [
-      "จัดเก็บถาวร + Custom URL 10 สิทธิ์",
-      "เทมเพลตพรีเมียม 10 เทมเพลต",
-      "สิทธิ์ประมวลผลและอัปโหลด Priority",
-      "รูปภาพ 15 MB | MP3 25 MB | วิดีโอ 100 MB ต่อไฟล์",
+      "สิทธิ์จัดเก็บถาวร ไม่จำกัดจำนวนการ์ด",
+      "ตั้งชื่อ Custom URL ได้ ไม่อั้นทุกใบ",
+      "สิทธิ์ปลดล็อกใช้งานเทมเพลตพรีเมียม (แบบเสียเงิน) ฟรี 10 เทมเพลต",
+      "ได้รับสิทธิ์ประมวลผลและอัปโหลดสื่อความเร็วสูง (Priority)",
+      "โควตาสื่อ: รวมสูงสุด 1 GB ต่อเทมเพลต (ใช้ตามอายุการ์ด)",
     ],
   },
 ];
 
 /**
- * Every package starts a fresh 30-day subscription period.
+ * Free Tier specifications
  */
-export const RENEWAL_FEATURE = "ใช้งาน 30 วัน (ไม่ทบวัน)";
+export const FREE_TIER_SPECS = {
+  freeTemplate: {
+    storage: "เก็บฟรี 14 วัน ไม่มีค่าใช้จ่าย (จ่ายเก็บถาวร 25 บาท + ตั้ง URL)",
+    mediaLimitMB: 150,
+    mediaDescription: "อัปโหลดรูป, เพลง MP3 และวิดีโอ รวมสูงสุด 150 MB ต่อเทมเพลต",
+  },
+  premiumTemplate: {
+    storage: "เก็บฟรี 14 วัน ไม่มีค่าใช้จ่าย (จ่ายเก็บถาวร 25 บาท + ตั้ง URL)",
+    mediaLimitMB: 300,
+    mediaDescription: "อัปโหลดรูป, เพลง MP3 และวิดีโอ รวมสูงสุด 300 MB ต่อเทมเพลต",
+  },
+};
 
 /**
- * Kept as a named export for older callers; every package now has the same term.
+ * Default term notice
+ */
+export const RENEWAL_FEATURE = "โควตาและสิทธิ์ไม่มีวันหมดอายุ เก็บไว้ใช้ได้ตลอด";
+
+/**
+ * Kept as a named export for older callers
  */
 export const GOD_STARTER_FEATURE = RENEWAL_FEATURE;
 
 /** Footnote rendered beneath the package grid. */
 export const STACKING_FOOTNOTE =
-  "อัปเกรดเป็นแพ็กที่สูงกว่าได้ทันทีและเริ่มรอบ 30 วันใหม่ ต่อแพ็กเดิมได้เมื่อเหลือไม่เกิน 7 วัน ส่วนการลดแพ็กทำได้หลังแพ็กปัจจุบันหมดอายุ โดยสิทธิ์คงเหลืออยู่ต่อได้อีก 7 วัน";
+  "โควตาและสิทธิ์ทั้งหมดไม่มีวันหมดอายุ สามารถสะสมและเก็บไว้ใช้ต่อได้ตลอด | โควตาสื่อจะใช้งานได้ตามอายุของการ์ดใบนั้นๆ | อัปเกรดรายใบ (Single Upgrade 25 บาท): สิทธิ์จัดเก็บถาวร 1 ใบ + ตั้งชื่อ Custom URL 1 ใบ";
 
 /**
  * Tier-aware feature lines for a package card.
- *
- * Every package has the same fresh 30-day term, regardless of the current plan.
  */
 export function getPackageFeatures(pkg: PricingPackage, currentTier?: UserTier | null): string[] {
   void currentTier;
-  return [RENEWAL_FEATURE, ...pkg.features];
+  return pkg.features;
 }
