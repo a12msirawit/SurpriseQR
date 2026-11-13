@@ -101,6 +101,10 @@ export default function CosmicBackground() {
     };
 
     const animate = (time: number) => {
+      if (document.hidden) {
+        starFrameRef.current = null;
+        return;
+      }
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
       for (const star of stars) {
         const twinkle = star.alpha * (0.78 + Math.sin(time * star.speed) * 0.22);
@@ -114,13 +118,31 @@ export default function CosmicBackground() {
       starFrameRef.current = window.requestAnimationFrame(animate);
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (starFrameRef.current !== null) {
+          window.cancelAnimationFrame(starFrameRef.current);
+          starFrameRef.current = null;
+        }
+      } else if (starFrameRef.current === null) {
+        starFrameRef.current = window.requestAnimationFrame(animate);
+      }
+    };
+
     resize();
     window.addEventListener("resize", resize);
-    starFrameRef.current = window.requestAnimationFrame(animate);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    if (!document.hidden) {
+      starFrameRef.current = window.requestAnimationFrame(animate);
+    }
 
     return () => {
       window.removeEventListener("resize", resize);
-      if (starFrameRef.current !== null) window.cancelAnimationFrame(starFrameRef.current);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (starFrameRef.current !== null) {
+        window.cancelAnimationFrame(starFrameRef.current);
+        starFrameRef.current = null;
+      }
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
     };
   }, []);
@@ -145,6 +167,10 @@ export default function CosmicBackground() {
       }
     };
     const animate = () => {
+      if (document.hidden) {
+        particleFrameRef.current = null;
+        return;
+      }
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
       particlesRef.current = particlesRef.current.filter((particle) => {
         particle.update();
@@ -154,15 +180,33 @@ export default function CosmicBackground() {
       particleFrameRef.current = window.requestAnimationFrame(animate);
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (particleFrameRef.current !== null) {
+          window.cancelAnimationFrame(particleFrameRef.current);
+          particleFrameRef.current = null;
+        }
+      } else if (particleFrameRef.current === null) {
+        particleFrameRef.current = window.requestAnimationFrame(animate);
+      }
+    };
+
     resize();
     window.addEventListener("resize", resize);
     window.addEventListener("click", handleClick);
-    particleFrameRef.current = window.requestAnimationFrame(animate);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    if (!document.hidden) {
+      particleFrameRef.current = window.requestAnimationFrame(animate);
+    }
 
     return () => {
       window.removeEventListener("resize", resize);
       window.removeEventListener("click", handleClick);
-      if (particleFrameRef.current !== null) window.cancelAnimationFrame(particleFrameRef.current);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (particleFrameRef.current !== null) {
+        window.cancelAnimationFrame(particleFrameRef.current);
+        particleFrameRef.current = null;
+      }
       particlesRef.current = [];
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
     };

@@ -1,13 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Sparkles, Gift, AlertCircle, Music, Clock, Heart, ThumbsUp, Smile, ArrowLeft, ArrowRight, Check, Play, Pause } from "lucide-react";
-import confetti from "canvas-confetti";
 import type { Card, UserTier, ReactionType, DatabaseSceneType } from "@/types/database";
 import { verifyCardPin, incrementCardViewCount, submitCardReaction } from "@/app/c/[hash_id]/actions";
-import BackgroundAudioPlayer from "@/components/audio/BackgroundAudioPlayer";
 import { isYouTubeUrl } from "@/lib/audio-helper";
+
+const BackgroundAudioPlayer = dynamic(() => import("@/components/audio/BackgroundAudioPlayer"), {
+  ssr: false,
+});
+
+async function fireConfetti(options?: Parameters<typeof import("canvas-confetti")>[0]) {
+  const { default: confetti } = await import("canvas-confetti");
+  return confetti(options);
+}
 
 import { getTemplateComponent, TemplateNotFoundFallback } from "@/lib/template-components";
 import {
@@ -378,7 +386,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
 
     if (result.success) {
       setReactionSubmitted(true);
-      confetti({
+      void fireConfetti({
         particleCount: 50,
         spread: 60,
         origin: { y: 0.7 },
@@ -397,7 +405,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
       setIsAudioPlaying(true);
     }
 
-    confetti({
+    void fireConfetti({
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
@@ -420,7 +428,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
   function toggleGiftBox() {
     setGiftBoxOpened(!giftBoxOpened);
     if (!giftBoxOpened) {
-      confetti({
+      void fireConfetti({
         particleCount: 100,
         spread: 60,
         origin: { y: 0.6 },
@@ -430,7 +438,7 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
 
   function revealScratch() {
     setScratchRevealed(true);
-    confetti({
+    void fireConfetti({
       particleCount: 80,
       spread: 50,
       origin: { y: 0.6 },

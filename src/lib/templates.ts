@@ -1,6 +1,7 @@
+import { unstable_cache } from "next/cache";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { getTemplateById as getStaticTemplateById, templateCatalog, type TemplateDefinition } from "@/data/templates";
 import type { Template } from "@/types/database";
-import { createClient } from "@/lib/supabase/server";
 
 export interface UnifiedTemplate extends Template {
   systemDefinition?: TemplateDefinition;
@@ -31,28 +32,48 @@ function toUnifiedDatabaseTemplate(template: Template): UnifiedTemplate {
  * Toggling a template's `is_published` flag in Admin is immediately reflected
  * here (hidden templates disappear, published templates appear).
  */
-export async function getAllTemplates(): Promise<UnifiedTemplate[]> {
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("templates")
-      .select("id, title, category, is_premium, preview_url, preview_video_url, demo_video_links, is_published, price, created_at")
-      .eq("is_published", true)
-      .order("category", { ascending: true })
-      .order("created_at", { ascending: false });
+function createPublicTemplatesClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) return null;
 
-    if (error) {
+  return createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+const getCachedPublishedTemplates = unstable_cache(
+  async (): Promise<UnifiedTemplate[]> => {
+    try {
+      const supabase = createPublicTemplatesClient();
+      if (!supabase) return [];
+
+      const { data, error } = await supabase
+        .from("templates")
+        .select("id, title, category, is_premium, preview_url, preview_video_url, demo_video_links, is_published, price, created_at")
+        .eq("is_published", true)
+        .order("category", { ascending: true })
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Failed to load published templates from Supabase:", error);
+        return [];
+      }
+
+      return ((data as Template[] | null) || [])
+        .map(toUnifiedDatabaseTemplate)
+        .filter((template) => template.is_published !== false);
+    } catch (error) {
       console.error("Failed to load published templates from Supabase:", error);
       return [];
     }
+  },
+  ["published-templates"],
+  { revalidate: 300, tags: ["templates"] },
+);
 
-    return ((data as Template[] | null) || [])
-      .map(toUnifiedDatabaseTemplate)
-      .filter((template) => template.is_published !== false);
-  } catch (error) {
-    console.error("Failed to load published templates from Supabase:", error);
-    return [];
-  }
+export async function getAllTemplates(): Promise<UnifiedTemplate[]> {
+  return getCachedPublishedTemplates();
 }
 
 export async function getTemplateById(id?: string): Promise<UnifiedTemplate | undefined> {

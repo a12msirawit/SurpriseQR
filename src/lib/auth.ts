@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
@@ -5,32 +6,49 @@ import type { Profile } from "@/types/database";
 
 export { getExpirationLabel, getCardSharePath } from "@/lib/card-utils";
 
-export async function getAuthUser() {
+export const getAuthUser = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
-export async function getProfile(): Promise<Profile | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const getProfile = cache(async (): Promise<Profile | null> => {
+  const user = await getAuthUser();
   if (!user) return null;
 
-  // Apply the 7-day post-expiry cleanup before server actions use this profile.
-  await supabase.rpc("expire_my_package_entitlements");
-
+  const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
 
+  if (!data) return null;
+
+  const now = Date.now();
+  const hasExpiredPackage =
+    data.package_tier != null &&
+    data.package_expires_at != null &&
+    new Date(data.package_expires_at).getTime() <= now;
+  const hasExpiredQuota =
+    data.quota_expires_at != null &&
+    new Date(data.quota_expires_at).getTime() <= now;
+
+  if (hasExpiredPackage || hasExpiredQuota) {
+    // Apply the 7-day post-expiry cleanup only when an entitlement has actually reached expiry.
+    await supabase.rpc("expire_my_package_entitlements");
+    const { data: refreshedProfile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    return refreshedProfile ?? data;
+  }
+
   return data;
-}
+});
 
 export async function requireAuth() {
   const user = await getAuthUser();

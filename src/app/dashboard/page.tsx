@@ -18,7 +18,12 @@ export default async function DashboardPage() {
 
   const [{ data: cards }, allTemplates] = await Promise.all([
     user
-      ? supabase.from("cards").select("*").eq("user_id", user.id).neq("status", "draft").order("created_at", { ascending: false })
+      ? supabase
+          .from("cards")
+          .select("id, template_id, hash_id, custom_slug, recipient_name, status, view_count, created_at, draft_expires_at, expires_at, expiry_date, is_permanent, pin_code")
+          .eq("user_id", user.id)
+          .neq("status", "draft")
+          .order("created_at", { ascending: false })
       : Promise.resolve({ data: [] as Card[] }),
     getAllTemplates(),
   ]);
@@ -32,7 +37,7 @@ export default async function DashboardPage() {
   const isAdmin = profile?.role === "admin";
   const displayName = user?.email?.split("@")[0] ?? "ผู้เยี่ยมชม";
 
-  const showcaseTemplates: Template[] = allTemplates.slice(0, 6).map((t: UnifiedTemplate) => ({
+  const showcaseTemplates: Template[] = allTemplates.map((t: UnifiedTemplate) => ({
     id: t.id,
     title: t.title,
     category: t.category,
@@ -60,7 +65,7 @@ export default async function DashboardPage() {
             <Link href="/topup" className="btn-gradient inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-space-accent sm:w-auto md:px-5 md:text-base"><CreditCard className="h-4 w-4" />+ เติมเงิน<ArrowRight className="h-4 w-4" /></Link>
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+          <div className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             <MotionDiv initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.05 }} className="rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-space-accent"><TierStatusCard tier={tier} permanentQuota={profile?.permanent_quota ?? 0} premiumQuota={profile?.premium_quota ?? 0} usedPermanentQuota={(cards as Card[] | null)?.filter((card) => card.is_permanent).length ?? 0} quotaExpiresAt={profile?.quota_expires_at ?? null} /></MotionDiv>
 
             <MotionDiv initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.1 }} className="glass-panel w-full rounded-2xl border border-purple-900/40 bg-[#120a21]/90 p-5 shadow-xl backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
