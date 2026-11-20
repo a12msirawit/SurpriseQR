@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { getTemplateById as getStaticTemplateById, templateCatalog, type TemplateDefinition } from "@/data/templates";
+import { getTemplateById as getStaticTemplateById, type TemplateDefinition } from "@/data/templates";
 import type { Template } from "@/types/database";
 
 export interface UnifiedTemplate extends Template {
@@ -12,12 +12,15 @@ function toUnifiedDatabaseTemplate(template: Template): UnifiedTemplate {
   // hardcoded fallback (e.g. 19) here — whatever the admin set in Supabase is
   // what gets surfaced to the Dashboard, gallery and listing.
   const price = Number(template.price ?? 0);
+  const rawOriginal = template.original_price != null ? Number(template.original_price) : null;
+  const original_price = rawOriginal !== null && Number.isFinite(rawOriginal) && rawOriginal > price ? rawOriginal : null;
   const systemDefinition = getStaticTemplateById(template.id, template.title);
   return {
     ...template,
     title: template.title || "Template",
     is_premium: template.is_premium || price > 0,
     price,
+    original_price,
     preview_url: template.preview_url || systemDefinition?.image || "/templates/surprise-qr.svg",
     systemDefinition,
   };
@@ -39,6 +42,9 @@ function createPublicTemplatesClient() {
 
   return createSupabaseClient(supabaseUrl, supabaseAnonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }
 
@@ -48,12 +54,23 @@ const getCachedPublishedTemplates = unstable_cache(
       const supabase = createPublicTemplatesClient();
       if (!supabase) return [];
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("templates")
-        .select("id, title, category, is_premium, preview_url, preview_video_url, demo_video_links, is_published, price, created_at")
+        .select("id, title, category, is_premium, preview_url, preview_video_url, demo_video_links, is_published, admin_preview_visible, price, original_price, created_at")
         .eq("is_published", true)
-        .order("category", { ascending: true })
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .order("category", { ascending: true });
+
+      if (error) {
+        const fallback = await supabase
+          .from("templates")
+          .select("id, title, category, is_premium, preview_url, preview_video_url, demo_video_links, is_published, price, created_at")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false })
+          .order("category", { ascending: true });
+        data = fallback.data as typeof data;
+        error = fallback.error;
+      }
 
       if (error) {
         console.error("Failed to load published templates from Supabase:", error);
@@ -68,11 +85,49 @@ const getCachedPublishedTemplates = unstable_cache(
       return [];
     }
   },
-  ["published-templates"],
-  { revalidate: 300, tags: ["templates"] },
+  ["published-templates-v2"],
+  { revalidate: 30, tags: ["templates"] },
 );
 
-export async function getAllTemplates(): Promise<UnifiedTemplate[]> {
+async function getAdminDashboardTemplates(): Promise<UnifiedTemplate[]> {
+  try {
+    const supabase = createPublicTemplatesClient();
+    if (!supabase) return [];
+
+    let { data, error } = await supabase
+      .from("templates")
+      .select("id, title, category, is_premium, preview_url, preview_video_url, demo_video_links, is_published, admin_preview_visible, price, original_price, created_at")
+      .order("created_at", { ascending: false })
+      .order("category", { ascending: true });
+
+    if (error) {
+      const fallback = await supabase
+        .from("templates")
+        .select("id, title, category, is_premium, preview_url, preview_video_url, demo_video_links, is_published, price, original_price, created_at")
+        .order("created_at", { ascending: false })
+        .order("category", { ascending: true });
+      data = fallback.data as typeof data;
+      error = fallback.error;
+    }
+
+    if (error) {
+      console.error("Failed to load admin templates from Supabase:", error);
+      return [];
+    }
+
+    return ((data as Template[] | null) || [])
+      .map(toUnifiedDatabaseTemplate)
+      .filter((template) => template.is_published !== false || template.admin_preview_visible !== false);
+  } catch (error) {
+    console.error("Failed to load admin templates from Supabase:", error);
+    return [];
+  }
+}
+
+export async function getAllTemplates(options?: { includeAdminHidden?: boolean }): Promise<UnifiedTemplate[]> {
+  if (options?.includeAdminHidden) {
+    return getAdminDashboardTemplates();
+  }
   return getCachedPublishedTemplates();
 }
 

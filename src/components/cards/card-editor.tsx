@@ -344,6 +344,40 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
     );
   }
 
+  const handleSelectPreviewField = (tabIndex: number, fieldId?: string) => {
+    let targetId = "message";
+    if (fieldId) {
+      if (fieldId.includes("recipient") || fieldId.includes("name")) targetId = "recipient";
+      else if (fieldId.includes("sender") || fieldId.includes("signature")) targetId = "sender";
+      else if (fieldId.includes("title") || fieldId.includes("year") || fieldId.includes("movie")) targetId = "title";
+      else if (fieldId.includes("pin") || fieldId.includes("passcode")) targetId = "pin";
+      else if (
+        fieldId.includes("photo") ||
+        fieldId.includes("bgm") ||
+        fieldId.includes("song") ||
+        fieldId.includes("soundtrack") ||
+        fieldId.includes("video") ||
+        fieldId.includes("audio") ||
+        fieldId.includes("seal")
+      ) {
+        targetId = "editor-media-section";
+      }
+    } else if (tabIndex === 1) {
+      targetId = "recipient";
+    } else if (tabIndex === 2 || tabIndex === 4 || tabIndex === 5) {
+      targetId = "editor-media-section";
+    }
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      const input =
+        el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement
+          ? el
+          : el.querySelector<HTMLElement>("input, textarea, select");
+      input?.focus();
+    }
+  };
+
   return (
     <form id="card-edit-form" onSubmit={handleSubmit} className="space-y-6">
       {/* Sticky top action header — keeps Save always reachable without scrolling */}
@@ -509,7 +543,7 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
 
 
           {/* Media Uploads */}
-          <section className="space-y-4 rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">
+          <section id="editor-media-section" className="space-y-4 rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">
             <h2 className="text-lg font-bold text-white">รูปภาพและเสียง</h2>
             <MediaUploader
               tier={tier}
@@ -589,7 +623,12 @@ export default function CardEditor({ card, templates, isPremium, userId, tier }:
           <div
             className={`mx-auto w-full overflow-hidden transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px] aspect-[9/19.5] rounded-[40px] border-4 border-neutral-700 shadow-2xl overflow-y-auto" : "max-w-full aspect-[16/9] rounded-2xl border border-neutral-700 shadow-xl overflow-y-auto"}`}
           >
-            <CardPreview card={previewCard} template={selectedTemplate} darkMode={darkMode} />
+            <CardPreview
+              card={previewCard}
+              template={selectedTemplate}
+              darkMode={darkMode}
+              onSelectField={handleSelectPreviewField}
+            />
           </div>
 
           <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5 shadow-xl">

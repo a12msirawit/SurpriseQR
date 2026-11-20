@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#3b0764"/>
+      <stop offset="55%" stop-color="#140724"/>
+      <stop offset="100%" stop-color="#05020a"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="55%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0.1"/>
+    </radialGradient>
+    <linearGradient id="pump" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="400" cy="185" r="115" fill="url(#moon)" opacity="0.88"/>
+  <!-- Spider web corner -->
+  <g stroke="#e9d5ff" stroke-opacity="0.24" stroke-width="1.4" fill="none">
+    <path d="M0,0 L190,45 M0,0 L150,115 M0,0 L90,175 M0,0 L25,205"/>
+    <path d="M40,12 Q55,35 28,55 Q12,68 4,82"/>
+    <path d="M88,24 Q102,65 55,105 Q32,125 12,145"/>
+    <path d="M140,36 Q155,95 85,155 Q52,182 20,198"/>
+  </g>
+  <!-- Bats -->
+  <path d="M235 120 Q255 102 270 118 Q285 102 305 120 Q285 126 270 132 Q255 126 235 120 Z" fill="#09040f"/>
+  <path d="M510 95 Q526 80 538 94 Q550 80 566 95 Q550 100 538 106 Q526 100 510 95 Z" fill="#09040f"/>
+  <!-- Jack-o-Lantern Center -->
+  <g transform="translate(400 280)">
+    <path d="M-8 -56 C-8 -72 8 -74 12 -62 L6 -48 H-8 Z" fill="#65a30d"/>
+    <ellipse cx="-26" cy="0" rx="28" ry="44" fill="#c2410c"/>
+    <ellipse cx="26" cy="0" rx="28" ry="44" fill="#c2410c"/>
+    <ellipse cx="0" cy="2" rx="30" ry="46" fill="url(#pump)"/>
+    <polygon points="-24,-10 -10,-18 -8,-4" fill="#fef08a"/>
+    <polygon points="24,-10 10,-18 8,-4" fill="#fef08a"/>
+    <polygon points="0,-2 -6,7 6,7" fill="#fef08a"/>
+    <path d="M-24 14 L-15 24 L-7 16 L0 26 L7 16 L15 24 L24 14 C16 32 -16 32 -24 14 Z" fill="#fde047"/>
+  </g>
+  <!-- Cute floating ghost -->
+  <g transform="translate(550 250)">
+    <path d="M0 16 C0 -14 48 -14 48 16 L50 56 C40 62 34 52 25 58 C18 64 10 52 0 56 Z" fill="#f3e8ff" opacity="0.92"/>
+    <circle cx="17" cy="18" r="4" fill="#1e1b4b"/>
+    <circle cx="31" cy="18" r="4" fill="#1e1b4b"/>
+  </g>
+  <text x="400" y="405" text-anchor="middle" fill="#fde68a" font-family="Georgia, serif" font-size="30" font-weight="700" letter-spacing="3">MIDNIGHT HAUNTED ABYSS</text>
+  <text x="400" y="438" text-anchor="middle" fill="#c4b5fd" font-family="sans-serif" font-size="14" letter-spacing="4">INTERACTIVE HALLOWEEN SCROLL EXPEDITION</text>
+</svg>
+

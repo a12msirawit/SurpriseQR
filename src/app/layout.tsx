@@ -6,21 +6,21 @@ import SiteTracker from "@/components/analytics/SiteTracker";
 
 const prompt = Prompt({
   subsets: ["thai", "latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-prompt",
   display: "swap",
 });
 
 const kanit = Kanit({
   subsets: ["thai", "latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700"],
   variable: "--font-kanit",
   display: "swap",
 });
 
 const sarabun = Sarabun({
   subsets: ["thai", "latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-sarabun",
   display: "swap",
 });

@@ -7,14 +7,20 @@ import CardList from "@/components/dashboard/card-list";
 import TemplateShowcase from "@/components/dashboard/template-showcase";
 import TierStatusCard from "@/components/dashboard/tier-status-card";
 import Navbar from "@/components/dashboard/navbar";
+import DashboardContactFooter from "@/components/dashboard/DashboardContactFooter";
 import { MotionDiv, MotionSection } from "@/components/dashboard/motion-wrapper";
 import { getAllTemplates, type UnifiedTemplate } from "@/lib/templates";
 import type { Card, Template } from "@/types/database";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
-  const user = await getAuthUser();
-  const profile = await getProfile();
-  const supabase = await createClient();
+  const [user, profile, supabase] = await Promise.all([
+    getAuthUser(),
+    getProfile(),
+    createClient(),
+  ]);
+  const isAdmin = profile?.role === "admin";
 
   const [{ data: cards }, allTemplates] = await Promise.all([
     user
@@ -25,7 +31,7 @@ export default async function DashboardPage() {
           .neq("status", "draft")
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [] as Card[] }),
-    getAllTemplates(),
+    getAllTemplates({ includeAdminHidden: isAdmin }),
   ]);
 
   const headersList = await headers();
@@ -34,7 +40,6 @@ export default async function DashboardPage() {
   const baseUrl = `${protocol}://${host}`;
 
   const tier = profile?.tier ?? "free";
-  const isAdmin = profile?.role === "admin";
   const displayName = user?.email?.split("@")[0] ?? "ผู้เยี่ยมชม";
 
   const showcaseTemplates: Template[] = allTemplates.map((t: UnifiedTemplate) => ({
@@ -42,7 +47,10 @@ export default async function DashboardPage() {
     title: t.title,
     category: t.category,
     is_premium: t.is_premium,
+    is_published: t.is_published,
+    admin_preview_visible: t.admin_preview_visible,
     price: t.price,
+    original_price: t.original_price ?? null,
     preview_url: t.preview_url,
     preview_video_url: t.preview_video_url ?? null,
     demo_video_links: t.demo_video_links ?? null,
@@ -100,6 +108,7 @@ export default async function DashboardPage() {
         <CardList cards={(cards as Card[]) ?? []} templates={allTemplates} tier={tier} baseUrl={baseUrl} isGuest={!user} />
         </MotionSection>
 
+        <DashboardContactFooter />
       </main>
     </div>
   );

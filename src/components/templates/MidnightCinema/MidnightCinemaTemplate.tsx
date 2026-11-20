@@ -273,8 +273,14 @@ export default function MidnightCinemaTemplate({
           >
             {/* Screenplay Document */}
             <div
-              onClick={() => onSelectField?.(2, "field-cinema-screenplay")}
-              className="relative mx-auto w-full max-w-2xl rounded-2xl border border-neutral-800 bg-[#0c0d14]/95 p-6 sm:p-10 shadow-2xl backdrop-blur-md cursor-pointer group"
+              data-editable-field={onSelectField ? "field-cinema-screenplay" : undefined}
+              data-edit-label={onSelectField ? "บทภาพยนตร์" : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectField?.(2, "field-cinema-screenplay");
+              }}
+              title={onSelectField ? "คลิกเพื่อแก้ไขบทภาพยนตร์" : undefined}
+              className={`relative mx-auto w-full max-w-2xl rounded-2xl border border-neutral-800 bg-[#0c0d14]/95 p-6 sm:p-10 shadow-2xl backdrop-blur-md group transition-all ${onSelectField ? "cursor-pointer hover:ring-2 hover:ring-amber-400/70" : ""}`}
             >
               {/* Typewriter Top Bar */}
               <div className="flex items-center justify-between border-b border-neutral-800 pb-4 text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
@@ -327,8 +333,14 @@ export default function MidnightCinemaTemplate({
 
             {/* Finale Message & Replay Button */}
             <div
-              onClick={() => onSelectField?.(4, "field-cinema-finale")}
-              className="text-center pt-6 space-y-5 cursor-pointer group"
+              data-editable-field={onSelectField ? "field-cinema-finale" : undefined}
+              data-edit-label={onSelectField ? "ข้อความฉากจบ Finale" : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectField?.(4, "field-cinema-finale");
+              }}
+              title={onSelectField ? "คลิกเพื่อแก้ไขข้อความฉากจบ Finale" : undefined}
+              className={`text-center pt-6 pb-4 px-4 rounded-2xl space-y-5 group transition-all ${onSelectField ? "cursor-pointer hover:ring-2 hover:ring-amber-400/70" : ""}`}
             >
               <h3 className="font-serif text-xl sm:text-2xl font-black text-amber-200 uppercase tracking-widest">
                 {finaleMainText}
@@ -340,7 +352,10 @@ export default function MidnightCinemaTemplate({
               <div className="pt-4 flex justify-center">
                 <button
                   type="button"
-                  onClick={handleReplay}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReplay();
+                  }}
                   className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900/90 px-8 py-3 font-serif text-xs font-bold tracking-widest text-neutral-200 shadow-xl transition-all hover:border-amber-400 hover:text-white"
                 >
                   <span>ชมอีกครั้ง</span>

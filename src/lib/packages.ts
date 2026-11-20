@@ -49,7 +49,7 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
     id: "starter_69",
     tierKey: "starter",
     name: "Starter Pack",
-    price: 69,
+    price: 99,
     badge: "เริ่มต้น",
     features: [
       "สิทธิ์จัดเก็บถาวร และ ตั้งชื่อ Custom URL + 2 สิทธิ์",
@@ -62,7 +62,7 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
     id: "value_119",
     tierKey: "value",
     name: "Value Pack",
-    price: 119,
+    price: 199,
     badge: "ยอดนิยม",
     features: [
       "สิทธิ์จัดเก็บถาวร และ Custom URL + 6 สิทธิ์",
@@ -75,7 +75,7 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
     id: "pro_199",
     tierKey: "pro",
     name: "Pro Pack",
-    price: 199,
+    price: 269,
     badge: "แนะนำ",
     features: [
       "สิทธิ์จัดเก็บถาวร และ ตั้งชื่อ Custom URL + 8 สิทธิ์",
@@ -88,7 +88,7 @@ export const PRICING_PACKAGES: readonly PricingPackage[] = [
     id: "god_269",
     tierKey: "god",
     name: "God Pack",
-    price: 269,
+    price: 399,
     badge: "เหมาจ่ายคุ้มที่สุด",
     highlighted: true,
     features: [

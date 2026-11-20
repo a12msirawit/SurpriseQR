@@ -4,7 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { TemplateCategory, TemplateDemoLinks } from "@/types/database";
+import type { Template, TemplateCategory, TemplateDemoLinks } from "@/types/database";
 import { normalizeAdminCategory } from "@/constants/template-categories";
 import { reassignCardsAndDeleteTemplate } from "@/lib/admin/template-delete";
 
@@ -97,6 +97,15 @@ export async function createTemplate(formData: FormData) {
   const previewVideoUrl = String(formData.get("preview_video_url") ?? "").trim();
   const demoLinks = parseTemplateDemoLinks(formData);
   const price = Number(formData.get("price")) || 0;
+  const rawOriginalPrice = formData.get("original_price");
+  const parsedOriginalPrice =
+    rawOriginalPrice !== null && String(rawOriginalPrice).trim() !== ""
+      ? Number(rawOriginalPrice)
+      : null;
+  const originalPrice =
+    parsedOriginalPrice !== null && Number.isFinite(parsedOriginalPrice) && parsedOriginalPrice > price
+      ? parsedOriginalPrice
+      : null;
   const isPremium = formData.get("is_premium") === "on";
   // explicit publish flag; default to true so newly-created templates appear
   // immediately in the gallery, dashboard, and create flow. Admins can
@@ -110,16 +119,40 @@ export async function createTemplate(formData: FormData) {
     return { error: "Title, category, preview URL, and valid price are required." };
   }
 
-  const { error } = await supabase.from("templates").insert({
-    title,
-    category,
-    preview_url: previewUrl,
-    preview_video_url: previewVideoUrl || null,
-    demo_video_links: demoLinks,
-    price,
-    is_premium: isPremium || price > 0,
-    is_published: isPublished,
-  });
+  let { data, error } = await supabase
+    .from("templates")
+    .insert({
+      title,
+      category,
+      preview_url: previewUrl,
+      preview_video_url: previewVideoUrl || null,
+      demo_video_links: demoLinks,
+      price,
+      original_price: originalPrice,
+      is_premium: isPremium || price > 0,
+      is_published: isPublished,
+    })
+    .select("*")
+    .single();
+
+  if (error && error.message.includes("original_price")) {
+    const fallback = await supabase
+      .from("templates")
+      .insert({
+        title,
+        category,
+        preview_url: previewUrl,
+        preview_video_url: previewVideoUrl || null,
+        demo_video_links: demoLinks,
+        price,
+        is_premium: isPremium || price > 0,
+        is_published: isPublished,
+      })
+      .select("*")
+      .single();
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     return { error: error.message };
@@ -131,7 +164,7 @@ export async function createTemplate(formData: FormData) {
   revalidatePath("/dashboard/create");
   revalidatePath("/templates");
   revalidateTag("templates");
-  return { success: true };
+  return { success: true, template: data as Template };
 }
 
 export async function updateTemplate(formData: FormData) {
@@ -145,6 +178,15 @@ export async function updateTemplate(formData: FormData) {
   const previewVideoUrl = String(formData.get("preview_video_url") ?? "").trim();
   const demoLinks = parseTemplateDemoLinks(formData);
   const price = Number(formData.get("price")) || 0;
+  const rawOriginalPrice = formData.get("original_price");
+  const parsedOriginalPrice =
+    rawOriginalPrice !== null && String(rawOriginalPrice).trim() !== ""
+      ? Number(rawOriginalPrice)
+      : null;
+  const originalPrice =
+    parsedOriginalPrice !== null && Number.isFinite(parsedOriginalPrice) && parsedOriginalPrice > price
+      ? parsedOriginalPrice
+      : null;
   const isPremium = formData.get("is_premium") === "on";
 
   if (!id || !title || !category || !previewUrl || !Number.isFinite(price) || price < 0) {
@@ -161,6 +203,7 @@ export async function updateTemplate(formData: FormData) {
     preview_video_url: previewVideoUrl || null,
     demo_video_links: demoLinks,
     price,
+    original_price: originalPrice,
     is_premium: isPremium || price > 0,
   };
   const activeRaw = formData.get("is_published");
@@ -168,10 +211,25 @@ export async function updateTemplate(formData: FormData) {
     updates.is_published = activeRaw === "on" || activeRaw === "true" || activeRaw === "1";
   }
 
-  const { error } = await supabase
+  let { data, error } = await supabase
     .from("templates")
     .update(updates)
-    .eq("id", id);
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error && error.message.includes("original_price")) {
+    const { original_price: _ignored, ...updatesWithoutOriginal } = updates;
+    void _ignored;
+    const fallback = await supabase
+      .from("templates")
+      .update(updatesWithoutOriginal)
+      .eq("id", id)
+      .select("*")
+      .single();
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     return { error: error.message };
@@ -183,7 +241,7 @@ export async function updateTemplate(formData: FormData) {
   revalidatePath("/dashboard/create");
   revalidatePath("/templates");
   revalidateTag("templates");
-  return { success: true };
+  return { success: true, template: data as Template };
 }
 
 export async function deleteTemplate(templateId: string) {

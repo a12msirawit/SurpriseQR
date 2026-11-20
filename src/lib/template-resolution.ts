@@ -59,6 +59,61 @@ const VELVET_CANDLE_TEMPLATE_IDS = new Set([
   "10000000-0000-4000-8000-000000000013",
 ]);
 
+const GRAND_NEW_YEAR_TEMPLATE_IDS = new Set([
+  "new-year-grand-celebration",
+  "grand-new-year",
+  "new-year",
+  "10000000-0000-4000-8000-000000000014",
+]);
+
+const SONGKRAN_SPLENDOR_TEMPLATE_IDS = new Set([
+  "songkran-splendor",
+  "songkran",
+  "สงกรานต์",
+  "10000000-0000-4000-8000-000000000015",
+]);
+
+const HALLOWEEN_HAUNTED_TEMPLATE_IDS = new Set([
+  "halloween-haunted-scroll",
+  "halloween-haunted",
+  "halloween",
+  "ฮาโลวีน",
+  "10000000-0000-4000-8000-000000000016",
+]);
+
+const LOVE_OS_TEMPLATE_IDS = new Set([
+  "love-os",
+  "loveos",
+  "desktop-confession",
+  "10000000-0000-4000-8000-000000000017",
+]);
+
+const PIXEL_GACHA_TEMPLATE_IDS = new Set([
+  "pixel-gacha",
+  "gacha",
+  "pixel",
+  "กาชา",
+  "10000000-0000-4000-8000-000000000018",
+]);
+
+const LUNAR_3D_TEMPLATE_IDS = new Set([
+  "lunar-3d",
+  "lunar",
+  "moon",
+  "moon-3d",
+  "ดวงจันทร์",
+  "10000000-0000-4000-8000-000000000019",
+]);
+
+const ORBIT_OF_US_TEMPLATE_IDS = new Set([
+  "orbit-of-us",
+  "orbit",
+  "galaxy-3d",
+  "orbit-3d",
+  "กาแล็กซี",
+  "10000000-0000-4000-8000-000000000020",
+]);
+
 export type TemplateRenderStrategy =
   | "anniversary-surprise"
   | "candles"
@@ -68,6 +123,13 @@ export type TemplateRenderStrategy =
   | "midnight-cinema"
   | "starlight-memories"
   | "velvet-candle"
+  | "new-year-grand-celebration"
+  | "songkran-splendor"
+  | "halloween-haunted-scroll"
+  | "love-os"
+  | "pixel-gacha"
+  | "lunar-3d"
+  | "orbit-of-us"
   | "generic";
 
 function hasAnyKey(value: unknown, keys: string[]): boolean {
@@ -125,6 +187,13 @@ export function resolveTemplateRenderStrategy(
   if (MIDNIGHT_CINEMA_TEMPLATE_IDS.has(requestedTemplateId)) return "midnight-cinema";
   if (STARLIGHT_MEMORIES_TEMPLATE_IDS.has(requestedTemplateId)) return "starlight-memories";
   if (VELVET_CANDLE_TEMPLATE_IDS.has(requestedTemplateId)) return "velvet-candle";
+  if (GRAND_NEW_YEAR_TEMPLATE_IDS.has(requestedTemplateId)) return "new-year-grand-celebration";
+  if (SONGKRAN_SPLENDOR_TEMPLATE_IDS.has(requestedTemplateId)) return "songkran-splendor";
+  if (HALLOWEEN_HAUNTED_TEMPLATE_IDS.has(requestedTemplateId)) return "halloween-haunted-scroll";
+  if (LOVE_OS_TEMPLATE_IDS.has(requestedTemplateId)) return "love-os";
+  if (PIXEL_GACHA_TEMPLATE_IDS.has(requestedTemplateId)) return "pixel-gacha";
+  if (LUNAR_3D_TEMPLATE_IDS.has(requestedTemplateId)) return "lunar-3d";
+  if (ORBIT_OF_US_TEMPLATE_IDS.has(requestedTemplateId)) return "orbit-of-us";
   if (looksLikeSurpriseQRData(embeddedContent)) return "anniversary-surprise";
   return "generic";
 }

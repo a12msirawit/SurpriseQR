@@ -41,8 +41,14 @@ export default function ProjectorPlayer({
 
   return (
     <div
-      onClick={() => onSelectField?.(5, "field-cinema-soundtrack")}
-      className="relative mx-auto w-full max-w-xl rounded-2xl border border-neutral-800 bg-[#07080d]/90 p-5 shadow-2xl backdrop-blur-md cursor-pointer group"
+      data-editable-field={onSelectField ? "field-cinema-soundtrack" : undefined}
+      data-edit-label={onSelectField ? "เพลงประกอบ" : undefined}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelectField?.(5, "field-cinema-soundtrack");
+      }}
+      title={onSelectField ? "คลิกเพื่อแก้ไขเพลงประกอบ" : undefined}
+      className={`relative mx-auto w-full max-w-xl rounded-2xl border border-neutral-800 bg-[#07080d]/90 p-5 shadow-2xl backdrop-blur-md group transition-all ${onSelectField ? "cursor-pointer hover:ring-2 hover:ring-amber-400/70" : ""}`}
     >
       {audioSrc && (
         <BackgroundAudioPlayer

@@ -4,7 +4,7 @@ export interface StorylineModel {
     title: string;
     themeColor: string;
     bgMusicUrl: string;
-    bgMusicType: "synth" | "mp3";
+    bgMusicType: "synth" | "mp3" | "youtube";
   };
   recipient: { name: string; coverMessage: string; passcode: string };
   storyScenes: [
@@ -28,7 +28,7 @@ export const defaultStorylineModel: StorylineModel = {
   meta: {
     title: "Our Little Forever",
     themeColor: "#E8A598",
-    bgMusicUrl: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
+    bgMusicUrl: "",
     bgMusicType: "synth",
   },
   recipient: {

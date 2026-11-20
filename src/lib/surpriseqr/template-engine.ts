@@ -28,7 +28,7 @@ export const SURPRISE_QR_ENGINE_HTML = `<!DOCTYPE html>
 <title>Surprise QR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Kanit:wght@300;400;500;600;700;800&family=Mitr:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600;700&family=Charm:wght@400;700&family=Charmonman:wght@400;700&family=Itim&family=Pridi:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=Noto+Serif+Thai:wght@400;600;700&family=Prompt:wght@300;400;500;600;700;800&family=Dancing+Script:wght@400;600;700&family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -54,7 +54,7 @@ tailwind.config = {
 }
 html,body{ margin:0; padding:0; height:100%; }
 body{
-  font-family:'Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,sans-serif;
+  font-family:'Plus Jakarta Sans','Noto Sans Thai','Prompt',system-ui,-apple-system,sans-serif;
   color:#fdf2f8;
   background:
     radial-gradient(1200px 700px at 70% -10%, rgba(236,72,153,.28), transparent 60%),
@@ -63,28 +63,67 @@ body{
   background-attachment: fixed;
   overflow:hidden;
 }
-.font-script{ font-family:'Great Vibes','Dancing Script','Charm','Charmonman','Itim','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,cursive,sans-serif; }
-.font-serif{ font-family:'Playfair Display','Pridi','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,serif; }
+.font-script{ font-family:'Great Vibes','Dancing Script','Plus Jakarta Sans','Noto Sans Thai','Prompt',sans-serif; }
+.font-serif{ font-family:'Playfair Display','Noto Serif Thai','Noto Sans Thai','Prompt',serif; }
 .sq-screen{
-  position:fixed; inset:0; display:none; overflow:auto;
+  position:fixed; inset:0; display:none; overflow:auto; z-index:2;
   -webkit-overflow-scrolling:touch; background:transparent;
 }
-.sq-screen.sq-active{ display:block; animation: sqFadeIn .5s ease-out; }
-@keyframes sqFadeIn{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
-.sq-scroll{ max-width:920px; margin:0 auto; padding:96px 18px 60px; }
-.sq-topbar{
-  position:fixed; top:0; left:0; right:0; z-index:40;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px; pointer-events:none;
+.sq-screen.sq-active{ display:block; animation: sqScreenIn 1.35s cubic-bezier(.16,1,.3,1) both; }
+@keyframes sqScreenIn{ from{ opacity:0; transform:translateY(14px) scale(.988); filter:blur(2px); } to{ opacity:1; transform:none; filter:blur(0); } }
+@keyframes sqFadeIn{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:none;} }
+@keyframes sqRiseSoft{
+  0%{ opacity:0; transform:translateY(22px) scale(.975); filter:blur(2px); }
+  100%{ opacity:1; transform:none; filter:blur(0); }
 }
-.sq-topbar > *{ pointer-events:auto; }
-.sq-back{
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
-  color:#fbcfe8; border-radius:999px; padding:8px 16px; font-size:14px;
-  font-weight:600; cursor:pointer; backdrop-filter:blur(8px);
-  transition:all .2s ease; display:inline-flex; align-items:center; gap:8px;
+@keyframes sqPolPop{
+  0%{ opacity:0; transform:translateY(24px) scale(.93) rotate(0deg); }
+  100%{ opacity:1; transform:rotate(var(--rot,0deg)); }
 }
-.sq-back:hover{ background:rgba(236,72,153,.35); }
+@keyframes sqModalBloom{
+  0%{ opacity:0; transform:translateY(20px) scale(.94); }
+  100%{ opacity:1; transform:none; }
+}
+.sq-aurora{
+  position:fixed; inset:-22%; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(520px 380px at 24% 26%, rgba(244,114,182,.22), transparent 68%),
+    radial-gradient(580px 440px at 78% 68%, rgba(168,85,247,.16), transparent 70%),
+    radial-gradient(460px 360px at 54% 18%, rgba(251,207,232,.13), transparent 68%);
+  filter:blur(42px);
+  animation:sqAuroraDrift 28s ease-in-out infinite alternate;
+}
+@keyframes sqAuroraDrift{
+  0%{ transform:translate3d(-3%, -2%, 0) scale(1); opacity:.82; }
+  50%{ transform:translate3d(2%, 3%, 0) scale(1.06); opacity:1; }
+  100%{ transform:translate3d(4%, -3%, 0) scale(1.02); opacity:.86; }
+}
+.sq-scroll{ max-width:920px; margin:0 auto; padding:64px 18px 72px; }
+.sq-screen-actions{
+  display:flex; align-items:center; justify-content:center; gap:14px; margin-top:28px;
+}
+.sq-icon-action{
+  width:52px; height:52px; padding:0; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.1); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(251,207,232,.28); color:#fbcfe8; cursor:pointer;
+  box-shadow:0 10px 26px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.18);
+  transition:transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.sq-icon-action:hover{
+  transform:translateY(-3px) scale(1.06); color:#fff;
+  border-color:rgba(249,168,212,.75); background:rgba(236,72,153,.32);
+  box-shadow:0 14px 32px rgba(236,72,153,.38);
+}
+.sq-icon-action:active{ transform:scale(.94); }
+.sq-screen.gingham .sq-icon-action{
+  background:rgba(255,255,255,.1); border-color:rgba(251,191,36,.36); color:#fde68a;
+  box-shadow:0 10px 26px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.16);
+}
+.sq-screen.gingham .sq-icon-action:hover{
+  background:rgba(236,72,153,.32); border-color:rgba(251,191,36,.78); color:#fff;
+  box-shadow:0 14px 32px rgba(236,72,153,.38);
+}
 .sq-eyebrow{
   text-align:center; font-size:13px; letter-spacing:.35em; text-transform:uppercase;
   color:#f9a8d4; font-weight:600; margin:0 0 6px;
@@ -106,19 +145,28 @@ body{
   justify-content:center; gap:26px; padding:0 20px; text-align:center;
 }
 .sq-greeting{
-  font-family:'Great Vibes','Dancing Script','Charm','Charmonman','Itim','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,cursive,sans-serif;
+  font-family:'Great Vibes','Dancing Script','Plus Jakarta Sans','Noto Sans Thai','Prompt',sans-serif;
   font-size:clamp(30px,6vw,52px); color:#fbcfe8; margin:0;
-  text-shadow:0 2px 20px rgba(236,72,153,.5); line-height:1.2;
+  text-shadow:0 2px 24px rgba(236,72,153,.55); line-height:1.2;
 }
 .envelope-wrap{
   position:relative; width:min(350px,82vw); height:225px; background:transparent;
   border:none; padding:0; cursor:pointer; outline:none;
-  perspective:900px; animation:floatEnvelope 3.5s ease-in-out infinite alternate;
-  filter:drop-shadow(0 22px 34px rgba(0,0,0,.45));
+  perspective:1000px; animation:floatEnvelope 6.2s ease-in-out infinite alternate;
+  filter:drop-shadow(0 24px 38px rgba(0,0,0,.48));
 }
 @keyframes floatEnvelope{
-  0%{ transform:translateY(0) rotate(-1.5deg); }
-  100%{ transform:translateY(-12px) rotate(1.5deg); }
+  0%{ transform:translateY(0) rotate(-1.2deg); }
+  100%{ transform:translateY(-11px) rotate(1.2deg); }
+}
+.env-aura{
+  position:absolute; inset:-26px -28px; z-index:0; border-radius:36px; pointer-events:none;
+  background:radial-gradient(circle at 50% 52%, rgba(244,114,182,.36), rgba(236,72,153,.14) 55%, transparent 74%);
+  filter:blur(22px); animation:sqAuraPulse 5.4s ease-in-out infinite alternate;
+}
+@keyframes sqAuraPulse{
+  0%{ opacity:.62; transform:scale(.96); }
+  100%{ opacity:1; transform:scale(1.06); }
 }
 .env-back{
   position:absolute; inset:0; z-index:1; border-radius:14px;
@@ -126,15 +174,17 @@ body{
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.12), inset 0 10px 30px rgba(0,0,0,.22);
 }
 .env-letter{
-  position:absolute; left:7%; right:7%; bottom:8%; height:78%; z-index:2;
+  position:absolute; left:8%; right:8%; bottom:8%; height:56%; z-index:2;
   background:linear-gradient(#fffdf7,#ffeef4);
-  border-radius:10px; box-shadow:0 -6px 18px rgba(0,0,0,.28);
+  border-radius:10px; box-shadow:0 -6px 22px rgba(0,0,0,.3);
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
-  transition:transform 1.05s cubic-bezier(.25,1.4,.4,1) .15s;
+  opacity:0; pointer-events:none; transform:translateY(10%);
+  transition:transform 1.85s cubic-bezier(.16,1,.3,1) .32s, opacity .7s ease .22s;
 }
 .env-letter-icon{
-  font-size:34px; color:#ec4899; display:flex; align-items:center; justify-content:center;
-  width:62px; height:62px; border-radius:50%; background:#fbcfe8;
+  font-size:30px; color:#ec4899; display:flex; align-items:center; justify-content:center;
+  width:56px; height:56px; border-radius:50%; background:#fbcfe8;
+  box-shadow:inset 0 0 0 1px rgba(236,72,153,.2);
 }
 .env-letter-line{ display:block; width:65%; height:7px; border-radius:8px; background:#f9a8d4; }
 .env-letter-line.short{ width:42%; }
@@ -142,32 +192,45 @@ body{
   position:absolute; inset:0; z-index:3; border-radius:14px;
   background:linear-gradient(140deg, #b02f63 0%, #8c244c 55%, #6e1b3d 100%);
   clip-path:polygon(0 22%, 50% 55%, 100% 22%, 100% 100%, 0 100%);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14), inset 0 -16px 30px rgba(0,0,0,.22);
 }
 .env-lid{
-  position:absolute; top:0; left:0; right:0; height:52%; z-index:4;
-  background:linear-gradient(170deg, #bd3569 0%, #9c2853 70%, #7d2044 100%);
+  position:absolute; top:0; left:0; right:0; height:54%; z-index:4;
+  background:linear-gradient(170deg, #c2396d 0%, #9c2853 68%, #7d2044 100%);
   clip-path:polygon(0 0, 100% 0, 50% 100%);
   transform-origin:top center; transform:rotateX(0deg);
-  transition:transform .9s cubic-bezier(.45,.05,.35,1);
+  transition:transform 1.55s cubic-bezier(.22,1,.36,1);
   backface-visibility:hidden; border-radius:14px 14px 0 0;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.32));
 }
 .env-seal{
-  position:absolute; left:50%; top:calc(100% - 2px); transform:translate(-50%,-50%);
-  width:54px; height:54px; border-radius:50%;
-  background:radial-gradient(circle at 35% 30%, #f472b6, var(--pinkbright) 55%, #be185d);
+  position:absolute; left:50%; top:53%; transform:translate(-50%,-50%); z-index:6;
+  width:60px; height:60px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #f9a8d4, var(--pinkbright) 52%, #be185d);
   color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px;
-  border:2px solid rgba(255,255,255,.35); box-shadow:0 6px 16px rgba(0,0,0,.35);
+  border:2px solid rgba(255,255,255,.52);
+  box-shadow:0 10px 24px rgba(0,0,0,.44), 0 0 22px rgba(244,114,182,.42), inset 0 2px 6px rgba(255,255,255,.38);
+  transition:transform .55s cubic-bezier(.16,1,.3,1), box-shadow .55s ease, opacity .55s ease;
+  animation:sqSealPulse 3.6s ease-in-out infinite;
+}
+@keyframes sqSealPulse{
+  0%,100%{ box-shadow:0 10px 24px rgba(0,0,0,.42), 0 0 18px rgba(244,114,182,.35), inset 0 2px 6px rgba(255,255,255,.38); }
+  50%{ box-shadow:0 12px 28px rgba(0,0,0,.48), 0 0 30px rgba(244,114,182,.65), inset 0 2px 8px rgba(255,255,255,.48); }
+}
+.envelope-wrap:hover .env-seal{ transform:translate(-50%,-50%) scale(1.08); box-shadow:0 12px 28px rgba(236,72,153,.55), 0 0 30px rgba(244,114,182,.7); }
+.envelope-wrap.open .env-seal{
+  opacity:0; transform:translate(-50%,-95%) scale(1.22); pointer-events:none; animation:none;
+  transition:opacity .75s ease .12s, transform 1.2s cubic-bezier(.16,1,.3,1);
 }
 .envelope-wrap.open .env-lid{ transform:rotateX(180deg); z-index:0; }
-.envelope-wrap.open .env-letter{ transform:translateY(-135%); }
+.envelope-wrap.open .env-letter{ opacity:1; transform:translateY(-128%); }
 .envelope-wrap.open{ animation-play-state:paused; }
 .env-shine{
   position:absolute; inset:0; z-index:5; border-radius:14px; pointer-events:none;
   background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.22) 46%, transparent 58%);
-  background-size:220% 220%; animation:envShine 4.5s ease-in-out infinite;
+  background-size:220% 220%; animation:envShine 7.5s ease-in-out infinite;
 }
- @keyframes envShine{ 0%,60%{ background-position:130% 0;} 90%,100%{ background-position:-60% 0;} }
+ @keyframes envShine{ 0%,55%{ background-position:130% 0;} 88%,100%{ background-position:-60% 0;} }
 /* ============ Envelope style variants ============ */
 .env-style-1 .env-back{ background:linear-gradient(140deg, #a12d5c 0%, var(--pinkcard) 55%, #6e1b3d 100%); }
 .env-style-1 .env-front{ background:linear-gradient(140deg, #b02f63 0%, #8c244c 55%, #6e1b3d 100%); }
@@ -190,11 +253,18 @@ body{
 .env-style-3 .env-letter{ background:linear-gradient(#f5f3ff,#ede9fe); }
 .env-style-3 .env-letter-icon{ color:#7c3aed; background:#ede9fe; border:2px solid #a78bfa; }
 .env-style-3 .env-letter-line{ background:#a78bfa; }
+.env-style-4 .env-back{ background:linear-gradient(140deg, var(--env-c-light, #a12d5c) 0%, var(--env-c-mid, #8c244c) 55%, var(--env-c-dark, #6e1b3d) 100%); }
+.env-style-4 .env-front{ background:linear-gradient(140deg, var(--env-c-base, #b02f63) 0%, var(--env-c-mid, #8c244c) 55%, var(--env-c-dark, #6e1b3d) 100%); }
+.env-style-4 .env-lid{ background:linear-gradient(170deg, var(--env-c-lid, #bd3569) 0%, var(--env-c-mid, #9c2853) 70%, var(--env-c-dark, #7d2044) 100%); }
+.env-style-4 .env-seal{ background:radial-gradient(circle at 35% 30%, var(--env-c-seal1, #f472b6), var(--env-c-base, #ec4899) 55%, var(--env-c-dark, #be185d)); }
+.env-style-4 .env-letter{ background:linear-gradient(#fffdf7, var(--env-c-paper, #ffeef4)); }
+.env-style-4 .env-letter-icon{ color:var(--env-c-base, #ec4899); background:var(--env-c-paper, #fbcfe8); border:2px solid var(--env-c-seal1, #f9a8d4); }
+.env-style-4 .env-letter-line{ background:var(--env-c-seal1, #f9a8d4); }
 .sq-hint{
   color:#f9a8d4; font-size:15px; letter-spacing:.06em; font-weight:500;
-  margin:0; animation:sqPulse 2.6s ease-in-out infinite;
+  margin:0; animation:sqPulse 3.8s ease-in-out infinite;
 }
-@keyframes sqPulse{ 0%,100%{opacity:.55;} 50%{opacity:1;} }
+@keyframes sqPulse{ 0%,100%{opacity:.52;} 50%{opacity:1;} }
 /* ============ Gift menu ============ */
 .sq-menu{ text-align:center; }
 .sq-gifts{
@@ -204,22 +274,44 @@ body{
 .sq-gift{
   position:relative; background:linear-gradient(160deg, rgba(140,36,76,.9), rgba(74,17,39,.92));
   border:1px solid rgba(251,207,232,.25); border-radius:24px; padding:26px 14px 22px;
-  color:#fff; cursor:pointer; transition:transform .25s ease, box-shadow .25s ease;
+  color:#fff; cursor:pointer; transition:transform .5s cubic-bezier(.16,1,.3,1), box-shadow .5s ease, border-color .5s ease;
   display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
   box-shadow:0 14px 30px rgba(0,0,0,.28);
 }
 .sq-gift:hover{ transform:translateY(-6px) scale(1.03); border-color:rgba(236,72,153,.7); box-shadow:0 18px 40px rgba(236,72,153,.3); }
 .sq-gift:active{ transform:translateY(-2px) scale(.97); }
-.sq-gift.sq-slow-glow{ animation:slowGlow 3s ease-in-out infinite; border-color:rgba(236,72,153,.9); }
+.sq-gift.sq-slow-glow{ animation:slowGlow 4.2s ease-in-out infinite; border-color:rgba(236,72,153,.9); }
+.sq-gift.sq-picked{
+  animation:sqCardChosen 1.1s cubic-bezier(.16,1,.3,1) forwards !important;
+  border-color:rgba(251,207,232,.95);
+}
+.sq-gift.sq-picked::after{
+  content:''; position:absolute; inset:-4px; border-radius:28px; pointer-events:none;
+  border:2px solid rgba(244,114,182,.88);
+  animation:sqCardRing 1s cubic-bezier(.16,1,.3,1) forwards;
+}
+.sq-gifts.sq-picking .sq-gift:not(.sq-picked){
+  opacity:.32; transform:scale(.93); filter:blur(1.5px); pointer-events:none;
+  transition:opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1), filter .7s ease;
+}
+@keyframes sqCardChosen{
+  0%{ transform:scale(1); box-shadow:0 0 12px rgba(236,72,153,.3); }
+  45%{ transform:translateY(-10px) scale(1.07); box-shadow:0 0 48px 14px rgba(244,114,182,.72); }
+  100%{ transform:translateY(-6px) scale(1.04); box-shadow:0 0 36px 8px rgba(236,72,153,.55); }
+}
+@keyframes sqCardRing{
+  0%{ opacity:.95; transform:scale(1); }
+  100%{ opacity:0; transform:scale(1.22); }
+}
 @keyframes slowGlow{
-  0%,100%{ box-shadow:0 0 6px rgba(236,72,153,.25); }
-  50%{ box-shadow:0 0 42px 10px rgba(236,72,153,.65); }
+  0%,100%{ box-shadow:0 0 8px rgba(236,72,153,.28); }
+  50%{ box-shadow:0 0 46px 12px rgba(236,72,153,.68); }
 }
 .sq-gift-emoji{
   width:92px; height:92px; border-radius:50%; display:flex; align-items:center; justify-content:center;
   font-size:52px; line-height:1; background:radial-gradient(circle at 35% 30%, rgba(244,114,182,.35), rgba(190,24,93,.2));
   box-shadow:0 8px 20px rgba(0,0,0,.3), inset 0 0 0 2px rgba(251,207,232,.28);
-  animation:sqPulse 2.6s ease-in-out infinite;
+  animation:sqPulse 4s ease-in-out infinite;
 }
 .sq-gift-title{ font-size:18px; font-weight:800; letter-spacing:.02em; }
 .sq-gift-sub{ font-size:13px; color:#f9a8d4; line-height:1.55; font-weight:400; }
@@ -267,89 +359,470 @@ body{
   content:''; position:absolute; inset:10px; border:1px dashed rgba(219,39,119,.35); border-radius:14px;
 }
 .sq-letter-title{
-  font-family:'Great Vibes','Dancing Script','Charm','Charmonman','Itim','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,cursive,sans-serif;
+  font-family:'Great Vibes','Dancing Script','Plus Jakarta Sans','Noto Sans Thai','Prompt',sans-serif;
   font-size:clamp(26px,5vw,38px); color:#be185d; margin:0 0 12px; text-align:center;
 }
 .sq-letter-body p{
-  font-family:'Sarabun','Prompt','Kanit','Leelawadee UI',Tahoma,sans-serif; font-size:17px; line-height:2.05;
+  font-family:'Plus Jakarta Sans','Noto Sans Thai','Prompt',sans-serif; font-size:17px; line-height:2.05;
   margin:0 0 14px; white-space:pre-line;
 }
-/* ============ Memories ============ */
+/* ============ Memories (moving filmstrip & polaroid slideshow) ============ */
 .sq-filmstrip{
   background:#17121a; border-radius:16px; padding:16px; margin:10px 0 30px;
-  box-shadow:0 16px 34px rgba(0,0,0,.4); position:relative;
+  box-shadow:0 16px 34px rgba(0,0,0,.45), inset 0 0 0 1px rgba(251,207,232,.12); position:relative;
 }
 .sq-film-holes{
   display:block; height:16px; margin-bottom:12px;
   background-image:repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 20px, rgba(255,255,255,.85) 20px 30px);
 }
 .sq-film-holes:last-child{ margin:12px 0 0; }
+.sq-film-viewport{
+  overflow:hidden; border-radius:10px; position:relative;
+  mask-image:linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
 .sq-film-frames{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px;
+  display:flex; align-items:stretch; gap:16px; width:max-content;
+  animation:sqFilmMarquee 24s linear infinite; will-change:transform;
+}
+.sq-filmstrip:hover .sq-film-frames,
+html.sq-studio .sq-film-frames{ animation-play-state:paused; }
+@keyframes sqFilmMarquee{
+  0%{ transform:translateX(0); }
+  100%{ transform:translateX(calc(-50% - 8px)); }
 }
 .sq-film-frame{
   position:relative; overflow:hidden; border-radius:8px; transform:rotate(var(--rot,0deg));
-  box-shadow:0 8px 18px rgba(0,0,0,.45);
+  flex:0 0 220px; width:220px; box-shadow:0 8px 18px rgba(0,0,0,.45); margin:4px 0;
 }
 .sq-film-frame img{ display:block; width:100%; aspect-ratio:1/1; object-fit:cover; }
-.sq-polgrid{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:22px; margin:8px 0 10px;
+.sq-pol-carousel{ position:relative; margin:8px 0 12px; }
+.sq-pol-viewport{
+  overflow:hidden; padding:26px 10px 30px; margin:-16px -10px;
 }
-/* ============ Flowers / gift card ============ */
-.gingham{
-  background-color:#fff0f5;
+.sq-polgrid{
+  display:flex; align-items:center; gap:24px; margin:0; padding:0 8px;
+  transition:transform 1.25s cubic-bezier(.16,1,.3,1); will-change:transform;
+}
+.sq-polgrid .sq-polaroid{
+  flex:0 0 230px; width:230px; max-width:74vw;
+  transition:box-shadow .6s ease, filter .6s ease, opacity .6s ease;
+}
+.sq-polgrid .sq-polaroid:not(.is-slide-active){ opacity:.82; filter:saturate(.92); }
+.sq-polgrid .sq-polaroid.is-slide-active{
+  box-shadow:0 18px 42px rgba(236,72,153,.42), 0 0 0 2px rgba(249,168,212,.5);
+  opacity:1; filter:saturate(1.06);
+}
+.sq-pol-nav{
+  display:flex; align-items:center; justify-content:center; gap:14px; margin-top:8px;
+}
+.sq-pol-arrow{
+  width:36px; height:36px; border-radius:50%; padding:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.1); border:1px solid rgba(251,207,232,.28); color:#fbcfe8;
+  cursor:pointer; transition:transform .2s ease, background .2s ease, color .2s ease;
+  backdrop-filter:blur(8px);
+}
+.sq-pol-arrow:hover{ background:rgba(236,72,153,.35); color:#fff; transform:scale(1.08); }
+.sq-pol-dots{ display:flex; align-items:center; gap:8px; }
+.sq-pol-dot{
+  width:8px; height:8px; border-radius:999px; border:none; padding:0;
+  background:rgba(251,207,232,.32); cursor:pointer;
+  transition:width .35s cubic-bezier(.16,1,.3,1), background .35s ease;
+}
+.sq-pol-dot.on{ width:24px; background:#f472b6; box-shadow:0 0 10px rgba(244,114,182,.7); }
+@media (max-width:520px){
+  .sq-film-frame{ flex:0 0 165px; width:165px; }
+  .sq-polgrid .sq-polaroid{ flex:0 0 200px; width:200px; }
+}
+/* ============ Gradual character text reveal (Thai-safe inline) ============ */
+.sq-ch{
+  position:relative; top:6px; opacity:0; filter:blur(2px);
+  transition:top .65s cubic-bezier(.16,1,.3,1), opacity .6s ease, filter .6s ease;
+}
+.sq-ch.sq-ch-on{
+  top:0; opacity:1; filter:blur(0);
+}
+/* ============ Flowers / Conservatory & Turntable Showcase ============ */
+.gingham,
+.sq-screen.gingham{
+  background-color:#2d0818;
   background-image:
-    linear-gradient(45deg, rgba(219,39,119,.09) 25%, transparent 25%, transparent 75%, rgba(219,39,119,.09) 75%),
-    linear-gradient(45deg, rgba(219,39,119,.09) 25%, transparent 25%, transparent 75%, rgba(219,39,119,.09) 75%);
-  background-size:34px 34px; background-position:0 0, 17px 17px;
+    radial-gradient(900px 540px at 50% 0%, rgba(236,72,153,.28), transparent 65%),
+    radial-gradient(800px 500px at 85% 90%, rgba(245,158,11,.14), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(251,207,232,.045) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(-45deg, rgba(251,207,232,.045) 0 1px, transparent 1px 28px),
+    linear-gradient(165deg, #2d0818 0%, #430f25 48%, #1f0511 100%);
+  background-attachment:fixed;
+}
+.sq-screen.gingham .sq-scroll{ max-width:920px; }
+.sq-flowers-header{ text-align:center; margin-bottom:20px; position:relative; z-index:2; }
+.sq-flowers-header .sq-eyebrow{ color:#f9a8d4; margin-bottom:8px; }
+.sq-flowers-header .sq-title{
+  color:#fff; margin-bottom:12px;
+  text-shadow:0 4px 24px rgba(236,72,153,.48), 0 0 18px rgba(251,191,36,.18);
+}
+.sq-ornament{
+  display:flex; align-items:center; justify-content:center; gap:12px;
+  max-width:260px; margin:0 auto;
+}
+.sq-ornament-line{
+  flex:1; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(251,191,36,.65), transparent);
+}
+.sq-ornament-gem{
+  color:#fde68a; display:inline-flex; align-items:center; justify-content:center;
+  filter:drop-shadow(0 0 8px rgba(251,191,36,.6));
 }
 .sq-flowers-panel{
-  background:linear-gradient(165deg, rgba(255,240,245,.96), rgba(251,207,232,.94));
-  border:2px solid rgba(219,39,119,.35); border-radius:26px; padding:34px 22px 40px;
-  box-shadow:0 18px 40px rgba(74,17,39,.35); text-align:center;
+  max-width:820px; margin:0 auto; position:relative; overflow:hidden;
+  background:linear-gradient(160deg, rgba(88,18,48,.78) 0%, rgba(46,9,27,.88) 55%, rgba(28,5,17,.94) 100%);
+  border:1px solid rgba(251,207,232,.28); border-radius:32px;
+  padding:clamp(24px, 4vw, 40px); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 28px 68px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 1px rgba(251,191,36,.12);
+  text-align:center;
 }
-.sq-bouquet{ font-size:clamp(40px,9vw,66px); color:#be185d; text-shadow:0 4px 14px rgba(219,39,119,.4); }
-.sq-flowers-msg{ color:#4a1127; font-weight:500; }
-.sq-vinyl-zone{ margin-top:34px; text-align:center; }
-.sq-vinyl-hint{ color:#6e1b3d; font-weight:600; margin-bottom:16px; }
+.sq-flowers-panel::before{
+  content:''; position:absolute; inset:10px; border-radius:24px; pointer-events:none;
+  border:1px solid rgba(251,191,36,.14);
+}
+.sq-flowers-panel::after{
+  content:''; position:absolute; top:-90px; left:50%; transform:translateX(-50%);
+  width:72%; height:180px; pointer-events:none;
+  background:radial-gradient(ellipse at center, rgba(244,114,182,.22), transparent 72%);
+  filter:blur(20px);
+}
+.sq-petal-stage{
+  position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:8; border-radius:inherit;
+}
+.sq-petal-item{
+  position:absolute; top:-22px; pointer-events:none; opacity:0;
+  animation:sqPetalFall var(--dur, 3.6s) cubic-bezier(.25,.6,.35,1) forwards;
+}
+@keyframes sqPetalFall{
+  0%{ opacity:0; transform:translate3d(0, 0, 0) rotate(0deg) scale(.6); }
+  12%{ opacity:.95; }
+  82%{ opacity:.85; }
+  100%{ opacity:0; transform:translate3d(var(--dx, 30px), var(--dy, 420px), 0) rotate(var(--rot, 240deg)) scale(var(--sc, 1)); }
+}
+.sq-flowers-grid{
+  display:grid; grid-template-columns:1.12fr 0.88fr; gap:28px;
+  align-items:stretch; position:relative; z-index:2;
+}
+@media (max-width:720px){
+  .sq-flowers-grid{ grid-template-columns:1fr; gap:22px; }
+}
+.sq-bouquet-showcase{
+  display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+  gap:16px; position:relative; z-index:2;
+}
+.sq-bouquet-stage{
+  position:relative; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; width:100%; padding:10px 0 4px;
+}
+.sq-bouquet-halo{
+  position:absolute; width:220px; height:220px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(244,114,182,.34) 0%, rgba(251,191,36,.14) 48%, transparent 72%);
+  filter:blur(16px); animation:sqAuraPulse 5s ease-in-out infinite alternate;
+}
+.sq-screen .sq-bouquet,
+.sq-bouquet{
+  position:relative; width:188px; height:188px; margin:0 auto; border-radius:50%;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 38% 30%, rgba(255,241,245,.22), rgba(236,72,153,.24) 48%, rgba(88,18,48,.82) 85%, rgba(28,5,17,.96) 100%);
+  border:1.5px solid rgba(251,191,36,.42);
+  box-shadow:0 18px 42px rgba(0,0,0,.48), 0 0 36px rgba(236,72,153,.28), inset 0 2px 14px rgba(255,255,255,.28), inset 0 -10px 24px rgba(74,17,39,.7);
+  transition:transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s ease, border-color .35s ease;
+  outline:none; color:#fbcfe8;
+}
+.sq-bouquet::before{
+  content:''; position:absolute; inset:-11px; border-radius:50%; pointer-events:none;
+  border:1.5px dashed rgba(251,191,36,.45);
+  animation:sqSpin 28s linear infinite;
+}
+.sq-bouquet:hover{
+  transform:translateY(-4px) scale(1.03); border-color:rgba(251,191,36,.78);
+  box-shadow:0 24px 52px rgba(0,0,0,.55), 0 0 46px rgba(244,114,182,.45), inset 0 2px 16px rgba(255,255,255,.35);
+}
+.sq-bouquet:active{ transform:scale(.97); }
+.sq-bouquet.is-blooming{ animation:sqBouquetBloom .85s cubic-bezier(.16,1,.3,1); }
+@keyframes sqBouquetBloom{
+  0%{ transform:scale(1); box-shadow:0 18px 42px rgba(0,0,0,.48), 0 0 36px rgba(236,72,153,.28); }
+  38%{ transform:scale(1.1); border-color:rgba(253,230,138,.95); box-shadow:0 24px 56px rgba(0,0,0,.55), 0 0 60px rgba(244,114,182,.75), 0 0 30px rgba(251,191,36,.5); }
+  100%{ transform:scale(1); }
+}
+.sq-bouquet-svg{
+  width:148px; height:148px; position:relative; z-index:2;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.42));
+}
+.sq-bouquet-actions{
+  display:flex; align-items:center; justify-content:center; gap:14px;
+}
+.sq-bouquet-icon-btn{
+  width:46px; height:46px; border-radius:50%; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg, rgba(251,191,36,.16), rgba(236,72,153,.24));
+  border:1px solid rgba(251,191,36,.48); color:#fef3c7;
+  box-shadow:0 8px 20px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.2);
+  transition:transform .25s ease, background .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.sq-bouquet-icon-btn:hover{
+  transform:translateY(-2px) scale(1.06); border-color:rgba(253,230,138,.88);
+  background:linear-gradient(135deg, rgba(251,191,36,.3), rgba(236,72,153,.38));
+  box-shadow:0 12px 26px rgba(236,72,153,.35); color:#fff;
+}
+.sq-bouquet-icon-btn:active{ transform:scale(.94); }
+.sq-bouquet-icon-btn.is-wish{
+  background:linear-gradient(135deg, rgba(245,158,11,.22), rgba(219,39,119,.28));
+  border-color:rgba(253,230,138,.55); color:#fde68a;
+}
+.sq-wish-box{
+  display:none; width:100%; max-width:340px; padding:12px 16px; border-radius:16px;
+  background:linear-gradient(135deg, rgba(251,191,36,.14), rgba(236,72,153,.18));
+  border:1px solid rgba(253,230,138,.45);
+  box-shadow:0 10px 26px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.14);
+  text-align:center;
+}
+.sq-wish-box.is-on{
+  display:block;
+  animation:sqRevealItem .7s cubic-bezier(.16,1,.3,1) both;
+}
+.sq-wish-text{
+  margin:0; font-size:13.5px; line-height:1.7; color:#fef3c7; font-weight:600;
+}
+.sq-floral-note{
+  width:100%; background:rgba(18,3,11,.48);
+  border:1px solid rgba(251,207,232,.18); border-radius:20px;
+  padding:18px 18px 20px; text-align:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+.sq-floral-note .sq-flowers-msg{
+  margin:0 auto; color:#fdf2f8; font-size:15.5px; line-height:1.85; font-weight:400;
+}
+.sq-floral-note .sq-highlight{
+  margin:14px auto 0; max-width:100%;
+  background:linear-gradient(135deg, rgba(244,114,182,.22), rgba(251,191,36,.16));
+  border:1px solid rgba(251,191,36,.42); color:#fef3c7;
+  font-size:15px; font-weight:700; line-height:1.7;
+  border-radius:16px; padding:12px 18px;
+  box-shadow:0 10px 26px rgba(0,0,0,.28);
+}
+.sq-vinyl-zone{
+  margin-top:0;
+  background:linear-gradient(165deg, rgba(34,7,20,.88), rgba(18,3,11,.94));
+  border:1px solid rgba(249,168,212,.24); border-radius:24px;
+  padding:22px 18px; display:flex; flex-direction:column;
+  align-items:center; justify-content:space-between; gap:16px;
+  position:relative; z-index:2; text-align:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 16px 36px rgba(0,0,0,.4);
+}
+.sq-deck-header{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding-bottom:12px; border-bottom:1px dashed rgba(251,207,232,.15);
+}
+.sq-deck-status{
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  color:#fde68a;
+}
+.sq-deck-led{
+  width:7px; height:7px; border-radius:50%; background:#4ade80;
+  box-shadow:0 0 10px rgba(74,222,128,.9);
+  animation:sqSoundDot 1.8s ease-in-out infinite;
+}
+.sq-eq-bars{ display:inline-flex; align-items:flex-end; gap:3px; height:14px; }
+.sq-eq-bar{
+  width:3px; border-radius:999px;
+  background:linear-gradient(180deg, #fde68a, #ec4899);
+  animation:sqEqPulse 1.1s ease-in-out infinite alternate;
+}
+.sq-eq-bar:nth-child(1){ height:55%; animation-delay:0s; }
+.sq-eq-bar:nth-child(2){ height:100%; animation-delay:.22s; }
+.sq-eq-bar:nth-child(3){ height:40%; animation-delay:.44s; }
+.sq-eq-bar:nth-child(4){ height:80%; animation-delay:.14s; }
+@keyframes sqEqPulse{
+  0%{ transform:scaleY(.38); opacity:.72; }
+  100%{ transform:scaleY(1); opacity:1; }
+}
+.sq-platter-wrap{
+  position:relative; display:flex; align-items:center; justify-content:center;
+  padding:8px 14px;
+}
+.sq-tonearm{
+  position:absolute; top:-2px; right:-8px; width:56px; height:96px;
+  pointer-events:none; z-index:4;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.55));
+}
 .sq-vinyl{
-  width:min(230px,72vw); height:min(230px,72vw); border-radius:50%;
-  border:none; cursor:pointer; padding:0; position:relative; display:inline-flex;
-  align-items:center; justify-content:center;
+  width:min(196px, 62vw); height:min(196px, 62vw); border-radius:50%;
+  border:2px solid rgba(251,191,36,.35); cursor:pointer; padding:0;
+  position:relative; display:inline-flex; align-items:center; justify-content:center;
   background:
-    radial-gradient(circle at 50% 50%, #8c244c 0 12%, #2b2b2b 13% 16%, #17131a 17% 74%, #000 75% 78%, #232029 79% 100%);
-  box-shadow:0 14px 34px rgba(0,0,0,.45), inset 0 0 0 4px rgba(255,255,255,.05),
-    inset 0 0 44px rgba(0,0,0,.6);
-  outline:none;
+    conic-gradient(from 40deg, rgba(255,255,255,.07) 0deg, transparent 32deg, rgba(255,255,255,.05) 140deg, transparent 190deg, rgba(255,255,255,.07) 260deg, transparent 310deg),
+    radial-gradient(circle at 50% 50%, #430f25 0 10%, #2a1824 11% 14%, #110b13 15% 74%, #060308 75% 79%, #1f1722 80% 100%);
+  box-shadow:0 18px 40px rgba(0,0,0,.62), 0 0 28px rgba(236,72,153,.22), inset 0 0 0 4px rgba(255,255,255,.06), inset 0 0 40px rgba(0,0,0,.72);
+  outline:none; transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease;
 }
 .sq-vinyl::before{
   content:''; position:absolute; inset:0; border-radius:50%;
-  background:repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.055) 0 1px, transparent 1px 4px);
+  background:repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.065) 0 1px, transparent 1px 4px);
+}
+.sq-vinyl::after{
+  content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:14px; height:14px; border-radius:50%; z-index:3; pointer-events:none;
+  background:radial-gradient(circle, #1f0511 42%, #fde68a 46%, #d97706 100%);
+  box-shadow:0 0 8px rgba(0,0,0,.65);
+}
+.sq-vinyl:hover{
+  border-color:rgba(251,191,36,.75);
+  box-shadow:0 22px 48px rgba(0,0,0,.68), 0 0 38px rgba(244,114,182,.42), inset 0 0 0 4px rgba(251,191,36,.22);
 }
 .sq-vinyl-label{
-  position:relative; width:62%; height:62%; border-radius:50%;
-  background:radial-gradient(circle at 35% 30%, #f472b6, #be185d);
-  color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  font-size:14px; font-weight:700; padding:0 8px; text-align:center;
-  box-shadow:0 4px 14px rgba(0,0,0,.4), inset 0 0 0 3px rgba(255,255,255,.25);
+  position:relative; width:56%; height:56%; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #f472b6, #be185d 68%, #831843);
+  color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  font-size:12.5px; font-weight:700; padding:26px 10px 14px; text-align:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.5), inset 0 0 0 2.5px rgba(251,191,36,.58);
+  line-height:1.28; word-break:break-word;
 }
-.sq-spin{ animation:sqSpin 6s linear infinite; }
+.sq-spin{ animation:sqSpin 11s linear infinite; }
 @keyframes sqSpin{ to{ transform:rotate(360deg); } }
-/* ============ Song / media ============ */
-.sq-media-box{
-  background:#170b14; border-radius:22px; padding:16px; border:1px solid rgba(251,207,232,.18);
-  box-shadow:0 18px 40px rgba(0,0,0,.4);
+.sq-vinyl-cta{
+  width:52px; height:52px; display:inline-flex; align-items:center; justify-content:center;
+  padding:0; border-radius:50%; cursor:pointer;
+  background:linear-gradient(135deg, rgba(236,72,153,.36), rgba(190,24,93,.58));
+  border:1px solid rgba(251,191,36,.52); color:#fff1f5;
+  box-shadow:0 10px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.22);
+  transition:transform .25s ease, background .25s ease, box-shadow .25s ease, border-color .25s ease;
 }
-.sq-cover{ display:block; width:100%; max-height:420px; object-fit:cover; border-radius:16px; }
-.sq-video{ display:block; width:100%; border-radius:16px; background:#000; aspect-ratio:16/9; }
-.sq-audio{ width:100%; margin-top:14px; border-radius:10px; }
-.sq-yt{ width:100%; border:0; border-radius:16px; aspect-ratio:16/9; background:#000; }
-.sq-artist{ margin:-4px 0 12px; color:#fbcfe8; opacity:.85; font-size:15px; letter-spacing:.04em; }
+.sq-vinyl-cta:hover{
+  transform:translateY(-2px) scale(1.06); border-color:rgba(253,230,138,.9);
+  background:linear-gradient(135deg, rgba(236,72,153,.56), rgba(190,24,93,.76));
+  box-shadow:0 14px 30px rgba(236,72,153,.42); color:#fff;
+}
+.sq-vinyl-cta:active{ transform:scale(.94); }
+/* ============ Song / Private Royal Cinema Stage ============ */
+#sq-screen-6 .sq-scroll{ max-width:980px; }
+.sq-cinema-header{ text-align:center; margin-bottom:20px; position:relative; z-index:2; }
+.sq-cinema-header .sq-eyebrow{
+  color:#fde68a; letter-spacing:.32em; font-size:clamp(13px,2.2vw,16px); margin-bottom:6px;
+}
+.sq-cinema-header .sq-title{
+  margin-bottom:8px; color:#fff;
+  text-shadow:0 4px 24px rgba(236,72,153,.52), 0 0 18px rgba(251,191,36,.2);
+}
+.sq-artist{
+  margin:0 auto 14px; display:inline-flex; align-items:center; gap:7px;
+  padding:5px 14px; border-radius:999px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(251,207,232,.24);
+  color:#fbcfe8; font-size:13.5px; letter-spacing:.04em; font-weight:500;
+}
 .sq-artist:empty{ display:none; }
-.sq-media-row{ display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap; }
-.sq-media-row .sq-media-box{ flex:1 1 300px; min-width:270px; max-width:520px; }
-.sq-polaroid.sq-accent{ width:130px; flex:0 0 auto; margin:0; }
-@media (max-width:640px){ .sq-polaroid.sq-accent{ width:92px; } }
+.sq-cinema-stage{
+  position:relative; margin:0 auto; overflow:hidden;
+  background:linear-gradient(160deg, rgba(84,18,46,.76) 0%, rgba(42,8,25,.9) 55%, rgba(22,4,14,.96) 100%);
+  border:1px solid rgba(251,207,232,.26); border-radius:30px;
+  padding:clamp(18px,3.2vw,30px); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 28px 68px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 1px rgba(251,191,36,.14);
+}
+.sq-cinema-stage::before{
+  content:''; position:absolute; inset:10px; border-radius:22px; pointer-events:none;
+  border:1px solid rgba(251,191,36,.14);
+}
+.sq-cinema-stage::after{
+  content:''; position:absolute; top:-90px; left:50%; transform:translateX(-50%);
+  width:75%; height:190px; pointer-events:none;
+  background:radial-gradient(ellipse at center, rgba(244,114,182,.24), transparent 72%);
+  filter:blur(22px);
+}
+.sq-cinema-bar{
+  position:relative; z-index:2;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding-bottom:14px; margin-bottom:20px;
+  border-bottom:1px dashed rgba(251,207,232,.18);
+}
+.sq-cinema-badge{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+  color:#fde68a;
+}
+.sq-cinema-meta{
+  display:inline-flex; align-items:center; gap:10px;
+}
+.sq-cinema-pill{
+  font-size:10.5px; font-weight:700; letter-spacing:.12em;
+  padding:3px 9px; border-radius:999px;
+  color:#fbcfe8; background:rgba(236,72,153,.2); border:1px solid rgba(244,114,182,.35);
+}
+.sq-media-row{
+  position:relative; z-index:2;
+  display:flex; align-items:center; justify-content:center; gap:22px; flex-wrap:wrap;
+}
+.sq-media-box{
+  position:relative;
+  background:linear-gradient(170deg, #1b0915 0%, #0e040b 100%);
+  border-radius:22px; padding:12px;
+  border:1.5px solid rgba(251,191,36,.32);
+  box-shadow:0 22px 48px rgba(0,0,0,.62), 0 0 34px rgba(236,72,153,.2), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.sq-media-row .sq-media-box{ flex:1 1 360px; min-width:280px; max-width:560px; }
+.sq-cover{ display:block; width:100%; max-height:420px; object-fit:cover; border-radius:14px; }
+.sq-video{ display:block; width:100%; border-radius:14px; background:#000; aspect-ratio:16/9; }
+.sq-audio{ width:100%; margin-top:12px; border-radius:10px; }
+.sq-yt{ width:100%; border:0; border-radius:14px; aspect-ratio:16/9; background:#000; }
+.sq-cinema-placeholder{
+  position:relative; width:100%; aspect-ratio:16/9; min-height:210px; border-radius:14px;
+  overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; padding:20px; text-align:center;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(236,72,153,.26), transparent 62%),
+    radial-gradient(circle at 20% 85%, rgba(251,191,36,.12), transparent 55%),
+    linear-gradient(155deg, #2b0b1d 0%, #14050e 65%, #0c0308 100%);
+  border:1px solid rgba(251,207,232,.16);
+}
+.sq-cinema-placeholder::before{
+  content:''; position:absolute; inset:10px; border-radius:10px; pointer-events:none;
+  border:1px dashed rgba(251,191,36,.24);
+}
+.sq-cinema-play-orb{
+  position:relative; width:68px; height:68px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 35% 30%, rgba(244,114,182,.42), rgba(190,24,93,.55));
+  border:1.5px solid rgba(253,230,138,.62); color:#fff;
+  box-shadow:0 0 32px rgba(236,72,153,.45), inset 0 1px 6px rgba(255,255,255,.35);
+}
+.sq-cinema-play-orb::before{
+  content:''; position:absolute; inset:-8px; border-radius:50%;
+  border:1px dashed rgba(251,191,36,.45);
+  animation:sqSpin 18s linear infinite;
+}
+.sq-cinema-ph-title{
+  margin:0; font-size:15px; font-weight:700; color:#fdf2f8; letter-spacing:.02em;
+}
+.sq-cinema-ph-sub{
+  margin:0; font-size:12px; color:#f9a8d4; opacity:.85; max-width:300px; line-height:1.55;
+}
+.sq-polaroid.sq-accent{
+  width:154px; flex:0 0 auto; margin:0; padding:9px 9px 12px; border-radius:10px;
+  background:linear-gradient(180deg, #fffdf9, #fdf2f8);
+  border:1px solid rgba(251,191,36,.35);
+  box-shadow:0 16px 34px rgba(0,0,0,.48), 0 0 22px rgba(236,72,153,.18);
+  transition:transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s ease;
+}
+.sq-polaroid.sq-accent:nth-child(1){ --rot:-6deg; }
+.sq-polaroid.sq-accent:nth-child(3){ --rot:6deg; }
+.sq-polaroid.sq-accent:hover{
+  box-shadow:0 22px 44px rgba(0,0,0,.58), 0 0 30px rgba(244,114,182,.4);
+}
+.sq-polaroid.sq-accent .sq-pol-caption{
+  font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#831843; padding-top:7px;
+}
+@media (max-width:780px){
+  .sq-media-row{ gap:16px; }
+  .sq-media-row .sq-media-box{ flex:1 1 100%; max-width:100%; order:-1; }
+  .sq-polaroid.sq-accent{ width:126px; }
+}
+@media (max-width:480px){ .sq-polaroid.sq-accent{ width:108px; } }
 .sq-cta{
   margin:28px auto 0; display:flex; align-items:center; gap:10px;
   background:linear-gradient(90deg, #ec4899, #be185d); color:#fff; font-weight:800;
@@ -363,17 +836,29 @@ body{
   position:absolute; inset:0; z-index:1;
   background:linear-gradient(180deg, rgba(20,5,12,.4), rgba(45,8,26,.78) 60%, rgba(30,5,16,.92));
 }
+.sq-finale-stars{
+  position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden;
+}
+.sq-fstar{
+  position:absolute; color:#fde68a; opacity:.2;
+  filter:drop-shadow(0 0 6px rgba(251,191,36,.85)) drop-shadow(0 0 12px rgba(253,230,138,.45));
+  animation:sqGoldTwinkle var(--d, 4s) ease-in-out var(--dl, 0s) infinite;
+}
+@keyframes sqGoldTwinkle{
+  0%,100%{ opacity:.16; transform:scale(.72) rotate(0deg); }
+  50%{ opacity:.96; transform:scale(1.18) rotate(14deg); }
+}
 .sq-scroll.sq-finale{ position:relative; z-index:2; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:14px; }
 .sq-hero-kicker{ font-size:40px; margin:0; }
 .sq-finale-main{
-  font-family:'Playfair Display','Pridi','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,serif;
+  font-family:'Playfair Display','Noto Serif Thai','Noto Sans Thai','Prompt',serif;
   font-size:clamp(38px,9vw,88px); font-weight:900; letter-spacing:.06em; line-height:1.05;
   margin:0; color:#fff;
   background:linear-gradient(120deg, #fdf2f8 20%, #f9a8d4 45%, #fecdd3 70%, #fdf2f8 90%);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   filter:drop-shadow(0 6px 22px rgba(236,72,153,.45));
 }
-.sq-finale-sub{ font-family:'Great Vibes','Dancing Script','Charm','Charmonman','Itim','Prompt','Kanit','Sarabun','Leelawadee UI',Tahoma,cursive,sans-serif; font-size:clamp(24px,5vw,40px); color:#fbcfe8; margin:0; }
+.sq-finale-sub{ font-family:'Great Vibes','Dancing Script','Plus Jakarta Sans','Noto Sans Thai','Prompt',sans-serif; font-size:clamp(24px,5vw,40px); color:#fbcfe8; margin:0; }
 .sq-finale-actions{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:22px; }
 .sq-btn{
   background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.35); color:#fff;
@@ -388,12 +873,18 @@ body{
   background:rgba(38,8,22,.72); backdrop-filter:blur(8px); padding:20px;
 }
 .sq-overlay.on{ display:flex; }
+.sq-overlay.on .sq-modal{ animation:sqModalBloom .75s cubic-bezier(.16,1,.3,1) both; }
+.sq-overlay.on .sq-modal-lock{ animation:sqRiseSoft 1s cubic-bezier(.16,1,.3,1) .12s both; }
+.sq-overlay.on .sq-modal-title{ animation:sqRiseSoft 1s cubic-bezier(.16,1,.3,1) .24s both; }
+.sq-overlay.on .sq-modal-sub{ animation:sqRiseSoft 1s cubic-bezier(.16,1,.3,1) .36s both; }
+.sq-overlay.on .sq-dots{ animation:sqRiseSoft 1s cubic-bezier(.16,1,.3,1) .48s both; }
+.sq-overlay.on .sq-keypad{ animation:sqRiseSoft 1.05s cubic-bezier(.16,1,.3,1) .6s both; }
 .sq-modal{
   width:100%; max-width:360px; background:linear-gradient(165deg, #9c2853, #6e1b3d 70%);
   border:1px solid rgba(251,207,232,.3); border-radius:26px; padding:28px 22px 24px;
   box-shadow:0 26px 60px rgba(0,0,0,.55); text-align:center; color:#fff;
 }
-.sq-modal.sq-shake{ animation:sqShake .45s ease; }
+.sq-modal.sq-shake{ animation:sqShake .55s ease !important; }
 @keyframes sqShake{
   0%,100%{ transform:translateX(0); }
   20%{ transform:translateX(-10px); }
@@ -431,47 +922,136 @@ body{
 /* ============ Warp overlay ============ */
 #sq-warp{
   position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
-  background:radial-gradient(circle at 50% 50%, rgba(74,17,39,.88), rgba(20,4,12,.96));
-  opacity:0; pointer-events:none; transition:opacity .45s ease; overflow:hidden;
+  background:radial-gradient(circle at 50% 50%, rgba(74,17,39,.9), rgba(18,4,12,.97));
+  opacity:0; pointer-events:none; transition:opacity .95s cubic-bezier(.22,1,.36,1); overflow:hidden;
 }
 #sq-warp.sq-on{ opacity:1; pointer-events:auto; }
-.warp-rings{ position:relative; width:220px; height:220px; display:flex; align-items:center; justify-content:center; }
+.warp-rings{ position:relative; width:240px; height:240px; display:flex; align-items:center; justify-content:center; }
+.warp-halo{
+  position:absolute; inset:-45px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(244,114,182,.32), rgba(168,85,247,.16) 50%, transparent 72%);
+  filter:blur(20px); animation:sqAuraPulse 2.8s ease-in-out infinite alternate;
+}
 .warp-ring{
   position:absolute; inset:0; border-radius:50%;
-  border:2px solid rgba(236,72,153,.85); box-shadow:0 0 22px rgba(236,72,153,.5);
-  animation:warpRing 1.1s ease-out infinite;
+  border:2px solid rgba(244,114,182,.78); box-shadow:0 0 28px rgba(236,72,153,.52);
+  animation:warpRing 2.4s cubic-bezier(.16,1,.3,1) infinite;
 }
-.warp-ring:nth-child(2){ animation-delay:.36s; }
-.warp-ring:nth-child(3){ animation-delay:.72s; }
+.warp-ring:nth-child(2){ animation-delay:.6s; }
+.warp-ring:nth-child(3){ animation-delay:1.2s; }
+.warp-ring:nth-child(4){ animation-delay:1.8s; border-color:rgba(251,207,232,.55); }
 @keyframes warpRing{
-  0%{ transform:scale(.15); opacity:1; }
-  100%{ transform:scale(2.4); opacity:0; }
+  0%{ transform:scale(.15); opacity:.95; }
+  100%{ transform:scale(2.8); opacity:0; }
 }
-.warp-icon{ font-size:46px; color:#fbcfe8; animation:sqPulse 0.7s ease-in-out infinite; text-shadow:0 0 26px rgba(236,72,153,.9); }
- /* ============ Music toggle ============ */
+.warp-icon{ position:relative; z-index:2; font-size:46px; color:#fbcfe8; animation:sqPulse 1.6s ease-in-out infinite; text-shadow:0 0 30px rgba(236,72,153,.9); }
+ /* ============ Music / Sound toggle (Top-right icon) & aesthetic upgrades ============ */
 #sq-music-toggle{
-  position:fixed; right:20px; bottom:20px; z-index:70; height:52px; padding:0 18px; border-radius:999px;
-  background:rgba(255,255,255,.12); backdrop-filter:blur(14px); color:#fff; font-size:14px; font-weight:700;
-  border:1px solid rgba(255,255,255,.22); cursor:pointer;
-  box-shadow:0 10px 24px rgba(0,0,0,.35); transition:all .25s ease;
-  display:inline-flex; align-items:center; gap:8px;
+  position:fixed; top:16px; right:16px; z-index:72;
+  width:44px; height:44px; padding:0; border-radius:50%;
+  background:rgba(20,8,20,.65); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  color:#fbcfe8; font-size:0; cursor:pointer;
+  border:1px solid rgba(251,207,232,.26);
+  box-shadow:0 10px 26px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.15);
+  transition:transform .22s ease, background .22s ease, color .22s ease, border-color .22s ease, box-shadow .22s ease;
+  display:inline-flex; align-items:center; justify-content:center;
 }
-#sq-music-toggle:hover{ transform:translateY(-2px); background:rgba(255,255,255,.18); }
-#sq-music-toggle.sq-on{ background:rgba(236,72,153,.35); border-color:rgba(236,72,153,.6); }
-#sq-music-toggle.sq-on .sq-music-dot{ animation:sqPulse 1.4s ease-in-out infinite; }
-.sq-music-dot{ width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,.6); }
-/* ============ Heart particles ============ */
+#sq-music-toggle:hover{
+  transform:translateY(-2px) scale(1.05); color:#fff;
+  background:rgba(236,72,153,.32); border-color:rgba(249,168,212,.68);
+  box-shadow:0 12px 28px rgba(236,72,153,.4);
+}
+#sq-music-toggle:active{ transform:scale(.94); }
+#sq-music-toggle.sq-on{
+  background:linear-gradient(135deg, rgba(236,72,153,.34), rgba(131,24,67,.56));
+  border-color:rgba(249,168,212,.58); color:#fff;
+  box-shadow:0 10px 24px rgba(236,72,153,.32), inset 0 1px 0 rgba(255,255,255,.22);
+}
+#sq-music-toggle .sq-music-dot{
+  position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%;
+  background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,.85);
+  opacity:0; transition:opacity .2s ease;
+}
+#sq-music-toggle.sq-on .sq-music-dot{ opacity:1; animation:sqSoundDot 1.6s ease-in-out infinite; }
+#sq-music-toggle .sq-music-glyph{ display:inline-flex; align-items:center; justify-content:center; }
+@keyframes sqSoundDot{ 0%,100%{transform:scale(1);opacity:.9;} 50%{transform:scale(1.35);opacity:1;} }
+
+/* Gift cards, bouquet, circular icon buttons & screen polish */
+.sq-gifts .sq-gift{
+  background:linear-gradient(165deg, rgba(160,38,88,.86) 0%, rgba(92,20,52,.92) 55%, rgba(56,12,32,.96) 100%);
+  border:1px solid rgba(251,207,232,.26);
+  box-shadow:0 18px 40px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.18);
+  padding:28px 16px 24px; border-radius:26px; backdrop-filter:blur(12px);
+}
+.sq-gifts .sq-gift:hover{
+  transform:translateY(-7px) scale(1.025); border-color:rgba(249,168,212,.75);
+  box-shadow:0 24px 48px rgba(236,72,153,.34), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.sq-gifts .sq-gift-emoji{
+  width:72px; height:72px; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.22), rgba(236,72,153,.24) 65%, rgba(131,24,67,.35));
+  border:1px solid rgba(251,207,232,.36); color:#fff1f6;
+  box-shadow:0 10px 24px rgba(0,0,0,.28), inset 0 1px 4px rgba(255,255,255,.25);
+  overflow:hidden; font-size:28px; line-height:1;
+}
+.sq-gifts .sq-gift-emoji svg{ width:30px; height:30px; filter:drop-shadow(0 2px 6px rgba(236,72,153,.45)); }
+.sq-gifts .sq-gift-title{ font-size:17px; font-weight:700; color:#fff; letter-spacing:.01em; margin-top:4px; }
+.sq-gifts .sq-gift-sub{ font-size:13px; color:#f9a8d4; opacity:.9; line-height:1.45; }
+
+.sq-screen .sq-letter{
+  border:1px solid rgba(244,114,182,.25);
+  box-shadow:0 22px 54px rgba(0,0,0,.38), inset 0 0 0 8px rgba(255,255,255,.65), inset 0 0 0 9px rgba(236,72,153,.14);
+}
+.sq-screen .sq-cta{
+  width:56px; height:56px; padding:0; border-radius:50%; margin:0;
+  display:inline-flex; align-items:center; justify-content:center; gap:0; font-size:0;
+  background:linear-gradient(135deg, #f472b6, #ec4899 55%, #be185d);
+  border:1px solid rgba(255,255,255,.4);
+  box-shadow:0 12px 30px rgba(236,72,153,.45), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.sq-screen .sq-cta:hover{ transform:translateY(-3px) scale(1.06); box-shadow:0 16px 36px rgba(236,72,153,.6); }
+.sq-screen .sq-finale-actions{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:26px; }
+.sq-screen .sq-finale-actions .sq-btn{
+  width:52px; height:52px; padding:0; border-radius:50%; font-size:0; gap:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.1); backdrop-filter:blur(12px);
+  border:1px solid rgba(251,207,232,.28); color:#fbcfe8;
+  box-shadow:0 10px 26px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.18);
+}
+.sq-screen .sq-finale-actions .sq-btn:hover{ transform:translateY(-3px) scale(1.06); color:#fff; border-color:rgba(249,168,212,.75); background:rgba(236,72,153,.32); }
+.sq-screen .sq-finale-actions .sq-btn-primary{
+  background:linear-gradient(135deg, #f472b6, #ec4899 55%, #be185d); color:#fff;
+  border-color:rgba(255,255,255,.38); box-shadow:0 12px 28px rgba(236,72,153,.45);
+}
+.sq-overlay .sq-modal{
+  background:linear-gradient(170deg, rgba(46,12,28,.96), rgba(24,6,16,.98));
+  border:1px solid rgba(249,168,212,.28);
+  box-shadow:0 28px 64px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.sq-modal-lock{
+  width:48px; height:48px; margin:0 auto 10px; border-radius:50%;
+  background:rgba(236,72,153,.16); border:1px solid rgba(249,168,212,.35);
+  color:#f9a8d4; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 20px rgba(236,72,153,.22);
+}
+/* ============ Heart particles & ambient bokeh ============ */
 #sq-hearts{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
 .sq-particle{
   position:absolute; bottom:-60px; opacity:0; user-select:none;
   animation:floatUp linear infinite;
 }
 .sq-particle svg{ display:block; }
+.sq-bokeh{
+  position:absolute; bottom:-80px; border-radius:50%; opacity:0; pointer-events:none;
+  background:radial-gradient(circle, rgba(251,207,232,.48), rgba(244,114,182,.16) 58%, transparent 72%);
+  filter:blur(3px); animation:floatUp linear infinite;
+}
 @keyframes floatUp{
-  0%{ transform:translateY(0) translateX(0) rotate(0deg); opacity:0; }
-  10%{ opacity:.7; }
-  90%{ opacity:.35; }
- 100%{ transform:translateY(-110vh) translateX(40px) rotate(360deg); opacity:0; }
+  0%{ transform:translateY(0) translateX(0) rotate(0deg) scale(.92); opacity:0; }
+  12%{ opacity:.65; }
+  88%{ opacity:.32; }
+ 100%{ transform:translateY(-112vh) translateX(36px) rotate(220deg) scale(1.06); opacity:0; }
 }
 /* ============ Admin panel ============ */
 #sq-edit-fab{
@@ -556,6 +1136,182 @@ textarea.sq-fi{ min-height:120px; resize:vertical; line-height:1.7; }
   display:block; object-fit:contain; padding:8px; box-sizing:border-box;
 }
 .sq-pay-emoji{ font-size:46px; margin:4px 0; }
+/* ============ Slow gentle detail reveals & ambient effects ============ */
+.sq-bouquet-svg{ animation:sqBouquetFloat 5.5s ease-in-out infinite; }
+@keyframes sqBouquetFloat{
+  0%,100%{ transform:translateY(0) scale(1); }
+  50%{ transform:translateY(-6px) scale(1.03); }
+}
+#sq-screen-7.sq-active #finale-hero{ animation:sqHeroZoom 22s ease-in-out infinite alternate; }
+@keyframes sqHeroZoom{
+  0%{ transform:scale(1); }
+  100%{ transform:scale(1.09); }
+}
+@keyframes sqRevealItem{
+  0%{ opacity:0; transform:translateY(28px) scale(.95); filter:blur(4px); }
+  100%{ opacity:1; transform:none; filter:blur(0); }
+}
+@keyframes sqRevealPhoto{
+  0%{ opacity:0; transform:translateY(34px) scale(.88) rotate(0deg); filter:blur(5px); }
+  65%{ opacity:1; transform:translateY(-4px) scale(1.015) rotate(var(--rot,0deg)); filter:blur(0); }
+  100%{ opacity:1; transform:rotate(var(--rot,0deg)); filter:blur(0); }
+}
+@keyframes sqSlideFromLeft{
+  0%{ opacity:0; transform:translateX(-72px) translateY(20px) scale(.88) rotate(-16deg); filter:blur(4px); }
+  70%{ opacity:1; transform:translateX(4px) translateY(-3px) scale(1.02) rotate(var(--rot,-7deg)); filter:blur(0); }
+  100%{ opacity:1; transform:rotate(var(--rot,-7deg)); filter:blur(0); }
+}
+@keyframes sqSlideFromRight{
+  0%{ opacity:0; transform:translateX(72px) translateY(20px) scale(.88) rotate(16deg); filter:blur(4px); }
+  70%{ opacity:1; transform:translateX(-4px) translateY(-3px) scale(1.02) rotate(var(--rot,6deg)); filter:blur(0); }
+  100%{ opacity:1; transform:rotate(var(--rot,6deg)); filter:blur(0); }
+}
+@keyframes sqRevealLetter{
+  0%{ opacity:0; transform:translateY(38px) scale(.95); filter:blur(4px); }
+  100%{ opacity:1; transform:none; filter:blur(0); }
+}
+@keyframes sqPhotoImgGlow{
+  0%{ opacity:0; transform:scale(1.12); filter:blur(6px) brightness(.88); }
+  100%{ opacity:1; transform:scale(1); filter:blur(0) brightness(1); }
+}
+@keyframes sqFloatSway{
+  0%,100%{ transform:rotate(var(--rot,0deg)) translateY(0px); }
+  50%{ transform:rotate(var(--rot,0deg)) translateY(-6px); }
+}
+.sq-screen.sq-active.sq-staged .sq-eyebrow,
+.sq-screen.sq-active.sq-staged .sq-title,
+.sq-screen.sq-active.sq-staged .sq-gift,
+.sq-screen.sq-active.sq-staged .sq-polaroid,
+.sq-screen.sq-active.sq-staged .sq-letter,
+.sq-screen.sq-active.sq-staged #msg-title,
+.sq-screen.sq-active.sq-staged #msg-paras p,
+.sq-screen.sq-active.sq-staged .sq-filmstrip,
+.sq-screen.sq-active.sq-staged .sq-pol-carousel,
+.sq-screen.sq-active.sq-staged .sq-desc,
+.sq-screen.sq-active.sq-staged .sq-flowers-panel,
+.sq-screen.sq-active.sq-staged .sq-bouquet,
+.sq-screen.sq-active.sq-staged .sq-bouquet-actions,
+.sq-screen.sq-active.sq-staged .sq-wish-box,
+.sq-screen.sq-active.sq-staged .sq-floral-note,
+.sq-screen.sq-active.sq-staged .sq-highlight,
+.sq-screen.sq-active.sq-staged .sq-vinyl-zone,
+.sq-screen.sq-active.sq-staged .sq-cinema-stage,
+.sq-screen.sq-active.sq-staged .sq-media-box,
+.sq-screen.sq-active.sq-staged .sq-artist,
+.sq-screen.sq-active.sq-staged .sq-hero-kicker,
+.sq-screen.sq-active.sq-staged .sq-finale-main,
+.sq-screen.sq-active.sq-staged .sq-finale-sub,
+.sq-screen.sq-active.sq-staged .sq-finale-actions,
+.sq-screen.sq-active.sq-staged .sq-screen-actions{
+  opacity:0 !important;
+  transform:translateY(28px) scale(.95);
+  filter:blur(4px);
+  animation:none !important;
+}
+#sq-screen-1.sq-active.sq-revealed .sq-landing{ animation:sqFadeIn 1.45s cubic-bezier(.16,1,.3,1) both; }
+#sq-screen-1.sq-active.sq-revealed #sq-greeting{ animation:sqRevealItem 1.5s cubic-bezier(.16,1,.3,1) .2s both; }
+#sq-screen-2.sq-active.sq-revealed .sq-eyebrow{ animation:sqRevealItem 1.3s cubic-bezier(.16,1,.3,1) .12s both; }
+#sq-screen-2.sq-active.sq-revealed .sq-title{ animation:sqRevealItem 1.4s cubic-bezier(.16,1,.3,1) .38s both; }
+#sq-screen-2.sq-active.sq-revealed .sq-gift:nth-child(1){ animation:sqRevealItem 1.45s cubic-bezier(.16,1,.3,1) .68s both; }
+#sq-screen-2.sq-active.sq-revealed .sq-gift:nth-child(2){ animation:sqRevealItem 1.45s cubic-bezier(.16,1,.3,1) .98s both; }
+#sq-screen-2.sq-active.sq-revealed .sq-gift:nth-child(3){ animation:sqRevealItem 1.45s cubic-bezier(.16,1,.3,1) 1.28s both; }
+#sq-screen-3.sq-active.sq-revealed .sq-eyebrow{ animation:sqRevealItem 1.25s cubic-bezier(.16,1,.3,1) .1s both; }
+#sq-screen-3.sq-active.sq-revealed .sq-title{ animation:sqRevealItem 1.35s cubic-bezier(.16,1,.3,1) .35s both; }
+#sq-screen-3.sq-active.sq-revealed .sq-polaroids .sq-polaroid:nth-child(1){ animation:sqSlideFromLeft 1.65s cubic-bezier(.16,1,.3,1) .65s both, sqFloatSway 5.8s ease-in-out 2.35s infinite; }
+#sq-screen-3.sq-active.sq-revealed .sq-polaroids .sq-polaroid:nth-child(1) img{ animation:sqPhotoImgGlow 1.7s cubic-bezier(.16,1,.3,1) .7s both; }
+#sq-screen-3.sq-active.sq-revealed .sq-polaroids .sq-polaroid:nth-child(2){ animation:sqSlideFromRight 1.65s cubic-bezier(.16,1,.3,1) 1.05s both, sqFloatSway 6.2s ease-in-out 2.75s infinite; }
+#sq-screen-3.sq-active.sq-revealed .sq-polaroids .sq-polaroid:nth-child(2) img{ animation:sqPhotoImgGlow 1.7s cubic-bezier(.16,1,.3,1) 1.1s both; }
+#sq-screen-3.sq-active.sq-revealed .sq-letter{ animation:sqRevealLetter 1.45s cubic-bezier(.16,1,.3,1) 1.35s both; }
+#sq-screen-3.sq-active.sq-revealed .sq-screen-actions{ animation:sqRevealItem 1.25s cubic-bezier(.16,1,.3,1) 2.95s both; }
+#sq-screen-4.sq-active.sq-revealed .sq-eyebrow{ animation:sqRevealItem 1.25s cubic-bezier(.16,1,.3,1) .1s both; }
+#sq-screen-4.sq-active.sq-revealed #mem-title{ animation:sqRevealItem 1.35s cubic-bezier(.16,1,.3,1) .36s both; }
+#sq-screen-4.sq-active.sq-revealed .sq-filmstrip{ animation:sqRevealLetter 1.45s cubic-bezier(.16,1,.3,1) .72s both; }
+#sq-screen-4.sq-active.sq-revealed .sq-pol-carousel{ animation:sqRevealItem 1.5s cubic-bezier(.16,1,.3,1) 1.2s both; }
+#sq-screen-4.sq-active.sq-revealed #mem-desc{ animation:sqRevealItem 1.2s cubic-bezier(.16,1,.3,1) 1.7s both; }
+#sq-screen-4.sq-active.sq-revealed .sq-screen-actions{ animation:sqRevealItem 1.25s cubic-bezier(.16,1,.3,1) 2.2s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-eyebrow{ animation:sqRevealItem 1.6s cubic-bezier(.16,1,.3,1) .15s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-title{ animation:sqRevealItem 1.65s cubic-bezier(.16,1,.3,1) .45s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-flowers-panel{ animation:sqRevealLetter 1.8s cubic-bezier(.16,1,.3,1) .72s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-bouquet{ animation:sqRevealItem 1.75s cubic-bezier(.16,1,.3,1) 1.05s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-bouquet-actions{ animation:sqRevealItem 1.55s cubic-bezier(.16,1,.3,1) 1.38s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-wish-box{ animation:sqRevealItem 1.55s cubic-bezier(.16,1,.3,1) 1.55s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-floral-note{ animation:sqRevealItem 1.65s cubic-bezier(.16,1,.3,1) 1.68s both; }
+#sq-screen-5.sq-active.sq-revealed #flw-msg{ animation:sqRevealItem 1.6s cubic-bezier(.16,1,.3,1) 1.8s both; }
+#sq-screen-5.sq-active.sq-revealed #flw-hl{ animation:sqRevealItem 1.65s cubic-bezier(.16,1,.3,1) 2.2s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-vinyl-zone{ animation:sqRevealItem 1.85s cubic-bezier(.16,1,.3,1) 2.55s both; }
+#sq-screen-5.sq-active.sq-revealed .sq-screen-actions{ animation:sqRevealItem 1.55s cubic-bezier(.16,1,.3,1) 2.95s both; }
+
+/* ============ Pure photo lightbox ============ */
+#sq-screen-3 .sq-polaroid img,
+#sq-screen-4 .sq-film-frame img,
+#sq-screen-4 .sq-polaroid img,
+#sq-screen-6 .sq-polaroid img,
+#song-media-box img.sq-cover,
+#sq-screen-3 .sq-letter,
+#sq-screen-4 #mem-desc,
+#sq-screen-5 .sq-floral-note{
+  cursor:zoom-in;
+}
+.sq-lightbox{
+  position:fixed; inset:0; z-index:95;
+  display:none; align-items:center; justify-content:center; padding:24px;
+  background:rgba(9,4,15,.88); backdrop-filter:blur(14px);
+}
+.sq-lightbox.on{ display:flex; animation:sqLbFade .28s ease both; }
+.sq-lb-card{
+  position:relative; max-width:min(92vw,780px); max-height:86vh;
+  display:flex; align-items:center; justify-content:center;
+  animation:sqLbZoom .34s cubic-bezier(.16,1,.3,1) both;
+}
+.sq-lb-img{
+  max-width:100%; max-height:86vh; width:auto; height:auto;
+  border-radius:16px; object-fit:contain;
+  box-shadow:0 26px 70px rgba(0,0,0,.78), 0 0 0 1px rgba(255,255,255,.16);
+  background:#14081e;
+}
+.sq-lb-letter{
+  display:none; width:min(90vw,640px); max-height:82vh; overflow-y:auto;
+  background:#fffaf7; color:#3d1a2c;
+  border-radius:20px; padding:38px 34px 34px; box-sizing:border-box;
+  border:2px solid rgba(236,72,153,.24);
+  box-shadow:0 26px 70px rgba(0,0,0,.78), inset 0 0 0 6px #fffaf7, inset 0 0 0 7px rgba(236,72,153,.14);
+}
+.sq-lightbox.is-text .sq-lb-img{ display:none; }
+.sq-lightbox.is-text .sq-lb-letter{ display:block; }
+.sq-lb-letter-title{
+  margin:0 0 18px; text-align:center;
+  font-family:'Great Vibes','Dancing Script','Plus Jakarta Sans','Noto Sans Thai','Prompt',sans-serif;
+  font-size:clamp(30px,5vw,42px); font-weight:400; color:#9d174d; line-height:1.25;
+}
+.sq-lb-letter-body{
+  font-size:clamp(17px,2.4vw,20px); line-height:1.95; color:#4a1d32;
+}
+.sq-lb-letter-body p{ margin:0 0 14px; }
+.sq-lb-letter-body p:last-child{ margin-bottom:0; }
+.sq-lb-close{
+  position:absolute; top:-14px; right:-14px;
+  width:38px; height:38px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.28);
+  background:rgba(24,10,36,.92); color:#fff;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,.45);
+  transition:transform .2s ease, background .2s ease;
+}
+.sq-lb-close:hover{ transform:scale(1.08); background:#be185d; }
+@keyframes sqLbFade{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes sqLbZoom{ from{ opacity:0; transform:scale(.92); } to{ opacity:1; transform:scale(1); } }
+#sq-screen-6.sq-active.sq-revealed #song-eyebrow{ animation:sqRevealItem 1.25s cubic-bezier(.16,1,.3,1) .1s both; }
+#sq-screen-6.sq-active.sq-revealed #song-title{ animation:sqRevealItem 1.35s cubic-bezier(.16,1,.3,1) .36s both; }
+#sq-screen-6.sq-active.sq-revealed #song-artist{ animation:sqRevealItem 1.25s cubic-bezier(.16,1,.3,1) .62s both; }
+#sq-screen-6.sq-active.sq-revealed .sq-cinema-stage{ animation:sqRevealLetter 1.4s cubic-bezier(.16,1,.3,1) .75s both; }
+#sq-screen-6.sq-active.sq-revealed .sq-media-row .sq-polaroid:nth-child(1){ animation:sqSlideFromLeft 1.5s cubic-bezier(.16,1,.3,1) 1.05s both, sqFloatSway 5.8s ease-in-out 2.6s infinite; }
+#sq-screen-6.sq-active.sq-revealed #song-media-box{ animation:sqRevealLetter 1.5s cubic-bezier(.16,1,.3,1) 1.32s both; }
+#sq-screen-6.sq-active.sq-revealed .sq-media-row .sq-polaroid:nth-child(3){ animation:sqSlideFromRight 1.5s cubic-bezier(.16,1,.3,1) 1.66s both, sqFloatSway 6.2s ease-in-out 3.25s infinite; }
+#sq-screen-6.sq-active.sq-revealed .sq-screen-actions{ animation:sqRevealItem 1.25s cubic-bezier(.16,1,.3,1) 2.05s both; }
+#sq-screen-7.sq-active.sq-revealed .sq-hero-kicker{ animation:sqRevealItem 1.25s cubic-bezier(.16,1,.3,1) .15s both; }
+#sq-screen-7.sq-active.sq-revealed #finale-main{ animation:sqRevealItem 1.75s cubic-bezier(.16,1,.3,1) .45s both; }
+#sq-screen-7.sq-active.sq-revealed #finale-sub{ animation:sqRevealItem 1.65s cubic-bezier(.16,1,.3,1) 1s both; }
+#sq-screen-7.sq-active.sq-revealed .sq-finale-actions{ animation:sqRevealItem 1.4s cubic-bezier(.16,1,.3,1) 1.5s both; }
 /* ============ Responsive ============ */
 @media (max-width:520px){
   .sq-gifts{ grid-template-columns:1fr; }
@@ -564,7 +1320,8 @@ textarea.sq-fi{ min-height:120px; resize:vertical; line-height:1.7; }
   .sq-finale-main{ letter-spacing:.02em; }
 }
 @media (prefers-reduced-motion: reduce){
-  .envelope-wrap, .sq-spin, #sq-warp, .heart-particle{ animation-duration:0.001s !important; animation-iteration-count:1 !important; }
+  .envelope-wrap, .env-aura, .env-seal, .sq-aurora, .warp-halo, .sq-spin, #sq-warp, .sq-bouquet-svg, #finale-hero, .sq-film-frames, .sq-screen.sq-active, .sq-screen.sq-active *, .sq-overlay.on, .sq-overlay.on *{ animation-duration:0.001s !important; animation-delay:0s !important; animation-iteration-count:1 !important; }
+  .sq-screen.sq-active.sq-staged *, .sq-ch{ opacity:1 !important; top:0 !important; transform:none !important; filter:none !important; }
 }
 </style>
 <script>
@@ -592,39 +1349,41 @@ function sqImgFallback(img){
 // (background-image) attributes whose values are "content.<path>" keys.
 // ===========================================================================
 export const SURPRISE_QR_BODY: string = `
+<div class="sq-aurora" aria-hidden="true"></div>
 <!-- Screen 1: Landing envelope -->
 <section id="sq-screen-1" class="sq-screen sq-active" data-screen="1">
   <div class="sq-landing">
     <p id="sq-greeting" data-f="content.title" class="sq-greeting"></p>
      <button id="sq-envelope" class="envelope-wrap env-style-1" type="button" aria-label="เปิดซองจดหมาย" data-act="open-envelope">
+       <span class="env-aura" aria-hidden="true"></span>
        <span class="env-shine"></span>
        <span class="env-back"></span>
-       <span class="env-letter"><span class="env-letter-icon"><i class="fa-solid fa-heart" aria-hidden="true"></i></span><span class="env-letter-line"></span><span class="env-letter-line short"></span></span>
+       <span class="env-letter"><span class="env-letter-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg></span><span class="env-letter-line"></span><span class="env-letter-line short"></span></span>
        <span class="env-front"></span>
-       <span class="env-lid"><span class="env-seal"><i class="fa-solid fa-heart" aria-hidden="true"></i></span></span>
+       <span class="env-lid"></span>
+       <span class="env-seal"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg></span>
      </button>
    </div>
 </section>
 
-<!-- Screen 2: Gift menu (3 emoji choices) -->
+<!-- Screen 2: Gift menu -->
 <section id="sq-screen-2" class="sq-screen" data-screen="2">
-  <div class="sq-topbar"></div>
   <div class="sq-scroll sq-menu">
     <p class="sq-eyebrow" data-f="content.menu.subTitle">ของขวัญที่รออยู่</p>
     <h2 class="sq-title" data-f="content.menu.title">เลือกของขวัญสักชิ้นสิ</h2>
     <div class="sq-gifts">
       <button type="button" class="sq-gift" data-gift="3" data-target="3">
-        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card1Icon"><i class="fa-solid fa-envelope"></i></span>
+        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card1Icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
         <span class="sq-gift-title" data-f="content.menu.card1Title">ข้อความจากหัวใจ</span>
         <span class="sq-gift-sub" data-f="content.menu.card1Desc">จดหมายรักที่เขียนด้วยใจถึงเธอ</span>
       </button>
       <button type="button" class="sq-gift" data-gift="4" data-target="4">
-        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card2Icon"><i class="fa-solid fa-camera"></i></span>
+        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card2Icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></span>
         <span class="sq-gift-title" data-f="content.menu.card2Title">ความทรงจำ</span>
         <span class="sq-gift-sub" data-f="content.menu.card2Desc">ภาพช่วงเวลาแสนดีของเรา</span>
       </button>
       <button type="button" class="sq-gift" data-gift="5" data-target="5">
-        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card3Icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+        <span class="sq-gift-emoji" aria-hidden="true" data-f="content.menu.card3Icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 0 4.5 4.5M7.5 12H9m7.5 0a4.5 4.5 0 1 1-4.5 4.5m4.5-4.5H15m-3 4.5V15"/><circle cx="12" cy="12" r="2"/></svg></span>
         <span class="sq-gift-title" data-f="content.menu.card3Title">ดอกไม้</span>
         <span class="sq-gift-sub" data-f="content.menu.card3Desc">ช่อดอกไม้เสมือนจริงจากใจ</span>
       </button>
@@ -633,7 +1392,6 @@ export const SURPRISE_QR_BODY: string = `
 </section>
 <!-- Screen 3: Heartfelt message -->
 <section id="sq-screen-3" class="sq-screen" data-screen="3">
-  <div class="sq-topbar"><button type="button" class="sq-back" data-act="menu"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> เมนู</button></div>
   <div class="sq-scroll">
     <p class="sq-eyebrow">จดหมายจากหัวใจ</p>
     <h2 class="sq-title">MY LOVE LETTER</h2>
@@ -645,66 +1403,174 @@ export const SURPRISE_QR_BODY: string = `
       <h3 id="msg-title" class="sq-letter-title" data-f="content.letter.title"></h3>
       <div id="msg-paras" class="sq-letter-body"></div>
     </article>
+    <div class="sq-screen-actions">
+      <button type="button" class="sq-icon-action" data-act="menu" aria-label="กลับเมนูของขวัญ" title="กลับเมนูของขวัญ"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></button>
+    </div>
   </div>
 </section>
 
 <!-- Screen 4: Memories -->
 <section id="sq-screen-4" class="sq-screen" data-screen="4">
-  <div class="sq-topbar"><button type="button" class="sq-back" data-act="menu"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> เมนู</button></div>
   <div class="sq-scroll">
     <p class="sq-eyebrow">ความทรงจำของเรา</p>
     <h2 id="mem-title" class="sq-title" data-f="content.memories.sectionTitle">Memories Made With You</h2>
     <div class="sq-filmstrip">
       <span class="sq-film-holes"></span>
-      <div class="sq-film-frames">
-        <figure class="sq-film-frame"><img id="mem-film-0" data-media="content.memories.filmstripImages.0.src" alt="ภาพฟิล์ม 1"></figure>
-        <figure class="sq-film-frame" style="--rot:-2deg"><img id="mem-film-1" data-media="content.memories.filmstripImages.1.src" alt="ภาพฟิล์ม 2"></figure>
-        <figure class="sq-film-frame" style="--rot:2deg"><img id="mem-film-2" data-media="content.memories.filmstripImages.2.src" alt="ภาพฟิล์ม 3"></figure>
+      <div class="sq-film-viewport">
+        <div class="sq-film-frames" id="mem-film-track">
+          <figure class="sq-film-frame"><img id="mem-film-0" data-media="content.memories.filmstripImages.0.src" alt="ภาพฟิล์ม 1"></figure>
+          <figure class="sq-film-frame" style="--rot:-2deg"><img id="mem-film-1" data-media="content.memories.filmstripImages.1.src" alt="ภาพฟิล์ม 2"></figure>
+          <figure class="sq-film-frame" style="--rot:2deg"><img id="mem-film-2" data-media="content.memories.filmstripImages.2.src" alt="ภาพฟิล์ม 3"></figure>
+        </div>
       </div>
       <span class="sq-film-holes"></span>
     </div>
-    <div class="sq-polgrid">
-      <figure class="sq-polaroid" style="--rot:-5deg"><img id="mem-pol-0" class="sq-media-img" data-media="content.memories.polaroidImages.0.src" alt="โพลารอยด์ 1"><figcaption class="sq-pol-caption"></figcaption></figure>
-      <figure class="sq-polaroid" style="--rot:0deg"><img id="mem-pol-1" class="sq-media-img" data-media="content.memories.polaroidImages.1.src" alt="โพลารอยด์ 2"><figcaption class="sq-pol-caption"></figcaption></figure>
-      <figure class="sq-polaroid" style="--rot:5deg"><img id="mem-pol-2" class="sq-media-img" data-media="content.memories.polaroidImages.2.src" alt="โพลารอยด์ 3"><figcaption class="sq-pol-caption"></figcaption></figure>
-      <figure class="sq-polaroid" style="--rot:-4deg"><img id="mem-pol-3" class="sq-media-img" data-media="content.memories.polaroidImages.3.src" alt="โพลารอยด์ 4"><figcaption class="sq-pol-caption"></figcaption></figure>
-      <figure class="sq-polaroid" style="--rot:4deg"><img id="mem-pol-4" class="sq-media-img" data-media="content.memories.polaroidImages.4.src" alt="โพลารอยด์ 5"><figcaption class="sq-pol-caption"></figcaption></figure>
+    <div class="sq-pol-carousel" id="mem-pol-carousel">
+      <div class="sq-pol-viewport" id="mem-pol-viewport">
+        <div class="sq-polgrid" id="mem-pol-track">
+          <figure class="sq-polaroid is-slide-active" style="--rot:-5deg"><img id="mem-pol-0" class="sq-media-img" data-media="content.memories.polaroidImages.0.src" alt="โพลารอยด์ 1"><figcaption class="sq-pol-caption"></figcaption></figure>
+          <figure class="sq-polaroid" style="--rot:0deg"><img id="mem-pol-1" class="sq-media-img" data-media="content.memories.polaroidImages.1.src" alt="โพลารอยด์ 2"><figcaption class="sq-pol-caption"></figcaption></figure>
+          <figure class="sq-polaroid" style="--rot:5deg"><img id="mem-pol-2" class="sq-media-img" data-media="content.memories.polaroidImages.2.src" alt="โพลารอยด์ 3"><figcaption class="sq-pol-caption"></figcaption></figure>
+          <figure class="sq-polaroid" style="--rot:-4deg"><img id="mem-pol-3" class="sq-media-img" data-media="content.memories.polaroidImages.3.src" alt="โพลารอยด์ 4"><figcaption class="sq-pol-caption"></figcaption></figure>
+          <figure class="sq-polaroid" style="--rot:4deg"><img id="mem-pol-4" class="sq-media-img" data-media="content.memories.polaroidImages.4.src" alt="โพลารอยด์ 5"><figcaption class="sq-pol-caption"></figcaption></figure>
+        </div>
+      </div>
+      <div class="sq-pol-nav" aria-label="ควบคุมสไลด์รูปภาพ">
+        <button type="button" class="sq-pol-arrow" data-act="pol-prev" aria-label="รูปก่อนหน้า" title="รูปก่อนหน้า"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <div class="sq-pol-dots" id="mem-pol-dots">
+          <button type="button" class="sq-pol-dot on" data-act="pol-dot" data-idx="0" aria-label="ภาพที่ 1"></button>
+          <button type="button" class="sq-pol-dot" data-act="pol-dot" data-idx="1" aria-label="ภาพที่ 2"></button>
+          <button type="button" class="sq-pol-dot" data-act="pol-dot" data-idx="2" aria-label="ภาพที่ 3"></button>
+          <button type="button" class="sq-pol-dot" data-act="pol-dot" data-idx="3" aria-label="ภาพที่ 4"></button>
+          <button type="button" class="sq-pol-dot" data-act="pol-dot" data-idx="4" aria-label="ภาพที่ 5"></button>
+        </div>
+        <button type="button" class="sq-pol-arrow" data-act="pol-next" aria-label="รูปถัดไป" title="รูปถัดไป"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
     </div>
     <p id="mem-desc" class="sq-desc" data-f="content.memories.description"></p>
+    <div class="sq-screen-actions">
+      <button type="button" class="sq-icon-action" data-act="menu" aria-label="กลับเมนูของขวัญ" title="กลับเมนูของขวัญ"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></button>
+    </div>
   </div>
 </section>
 
 <!-- Screen 5: Flowers & gift card -->
 <section id="sq-screen-5" class="sq-screen gingham" data-screen="5">
-  <div class="sq-topbar"><button type="button" class="sq-back" data-act="menu"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> เมนู</button></div>
   <div class="sq-scroll">
-    <p class="sq-eyebrow" style="color:#6e1b3d" data-f="content.flowers.subTitle">ข้อความ...</p>
+    <div class="sq-flowers-header">
+      <p class="sq-eyebrow" data-f="content.flowers.subTitle">ช่อดอกไม้จากใจ</p>
+      <h2 class="sq-title" data-f="content.flowers.title">ช่อดอกไม้แห่งความรัก</h2>
+      <div class="sq-ornament" aria-hidden="true">
+        <span class="sq-ornament-line"></span>
+        <span class="sq-ornament-gem"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span>
+        <span class="sq-ornament-line"></span>
+      </div>
+    </div>
     <div class="sq-flowers-panel">
-      <div class="sq-bouquet"><i class="fa-solid fa-heart" style="color:#ec4899;font-size:32px;"></i></div>
-      <h2 class="sq-title" style="color:#4a1127" data-f="content.flowers.title">หัวข้อ...</h2>
-      <p id="flw-msg" class="sq-desc sq-flowers-msg" data-f="content.flowers.message"></p>
-      <p id="flw-hl" class="sq-highlight" data-f="content.flowers.highlightText"></p>
-      <div class="sq-vinyl-zone">
-        <button id="sq-vinyl" type="button" class="sq-vinyl sq-spin" data-act="vinyl" aria-label="เปิดเพลง">
-          <span class="sq-vinyl-label" id="vinyl-title" data-f="content.songMedia.songTitle"></span>
-        </button>
+      <div id="sq-petal-stage" class="sq-petal-stage" aria-hidden="true"></div>
+      <div class="sq-flowers-grid">
+        <div class="sq-bouquet-showcase">
+          <div class="sq-bouquet-stage">
+            <span class="sq-bouquet-halo" aria-hidden="true"></span>
+            <div class="sq-bouquet" data-act="bloom-bouquet" role="button" tabindex="0" aria-label="แตะช่อดอกไม้เพื่อโปรยกลีบกุหลาบ" title="แตะเพื่อโปรยกลีบกุหลาบ">
+              <svg class="sq-bouquet-svg" viewBox="0 0 140 140" fill="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="sqStem5" x1="70" y1="62" x2="70" y2="128" gradientUnits="userSpaceOnUse"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#14532d"/></linearGradient>
+                  <linearGradient id="sqWrap5" x1="42" y1="74" x2="98" y2="132" gradientUnits="userSpaceOnUse"><stop stop-color="#fff1f5"/><stop offset=".55" stop-color="#fbcfe8"/><stop offset="1" stop-color="#f472b6"/></linearGradient>
+                  <radialGradient id="sqRoseMain5" cx="0.38" cy="0.32" r="0.68"><stop stop-color="#ffe4e6"/><stop offset=".45" stop-color="#f43f5e"/><stop offset="1" stop-color="#881337"/></radialGradient>
+                  <radialGradient id="sqRoseSide5" cx="0.38" cy="0.32" r="0.68"><stop stop-color="#fbcfe8"/><stop offset=".52" stop-color="#ec4899"/><stop offset="1" stop-color="#9d174d"/></radialGradient>
+                  <radialGradient id="sqRoseDeep5" cx="0.38" cy="0.32" r="0.68"><stop stop-color="#fda4af"/><stop offset=".55" stop-color="#db2777"/><stop offset="1" stop-color="#701a3c"/></radialGradient>
+                </defs>
+                <path d="M40 72 C24 64, 18 48, 30 42 C42 42, 50 56, 46 70 Z" fill="#16a34a" opacity=".9"/>
+                <path d="M100 72 C116 64, 122 48, 110 42 C98 42, 90 56, 94 70 Z" fill="#16a34a" opacity=".9"/>
+                <path d="M52 54 C42 42, 42 26, 52 24 C60 28, 62 42, 56 54 Z" fill="#15803d" opacity=".88"/>
+                <path d="M88 54 C98 42, 98 26, 88 24 C80 28, 78 42, 84 54 Z" fill="#15803d" opacity=".88"/>
+                <path d="M50 76 L67 122 M90 76 L73 122 M70 64 L70 124" stroke="url(#sqStem5)" stroke-width="3.2" stroke-linecap="round"/>
+                <path d="M42 74 L98 74 L77 126 C74 131 66 131 63 126 Z" fill="url(#sqWrap5)" stroke="#fde68a" stroke-width="1.6"/>
+                <path d="M45 74 L70 88 L95 74" fill="rgba(255,255,255,.48)" stroke="#f9a8d4" stroke-width="1.2"/>
+                <circle cx="44" cy="56" r="14" fill="url(#sqRoseSide5)"/>
+                <path d="M37 54 C41 47 50 49 50 55 C50 61 40 62 40 56" stroke="#fff1f5" stroke-width="1.5" stroke-linecap="round" opacity=".75"/>
+                <circle cx="96" cy="56" r="14" fill="url(#sqRoseSide5)"/>
+                <path d="M89 54 C93 47 102 49 102 55 C102 61 92 62 92 56" stroke="#fff1f5" stroke-width="1.5" stroke-linecap="round" opacity=".75"/>
+                <circle cx="56" cy="40" r="13" fill="url(#sqRoseDeep5)"/>
+                <path d="M50 38 C53 33 61 34 61 39 C61 44 52 45 52 40" stroke="#ffe4e6" stroke-width="1.4" stroke-linecap="round" opacity=".75"/>
+                <circle cx="84" cy="40" r="13" fill="url(#sqRoseDeep5)"/>
+                <path d="M78 38 C81 33 89 34 89 39 C89 44 80 45 80 40" stroke="#ffe4e6" stroke-width="1.4" stroke-linecap="round" opacity=".75"/>
+                <circle cx="70" cy="49" r="18" fill="url(#sqRoseMain5)"/>
+                <path d="M59 46 C62 36 78 36 80 47 C82 56 64 59 64 49 C64 44 73 43 74 49" stroke="#ffe4e6" stroke-width="2" stroke-linecap="round" opacity=".88"/>
+                <circle cx="70" cy="49" r="3" fill="#fde68a"/>
+                <path d="M58 92 C64 96 76 96 82 92" stroke="#db2777" stroke-width="3.4" stroke-linecap="round"/>
+                <path d="M68 94 C60 99 56 108 61 112 M72 94 C80 99 84 108 79 112" stroke="#ec4899" stroke-width="2.4" stroke-linecap="round"/>
+                <circle cx="70" cy="94" r="3.4" fill="#fde68a"/>
+                <circle cx="30" cy="34" r="2.2" fill="#fde68a"/><circle cx="110" cy="34" r="2.2" fill="#fde68a"/><circle cx="70" cy="18" r="2.6" fill="#f9a8d4"/>
+                <circle cx="24" cy="54" r="1.8" fill="#fbcfe8"/><circle cx="116" cy="54" r="1.8" fill="#fbcfe8"/>
+              </svg>
+            </div>
+          </div>
+          <div class="sq-bouquet-actions" role="group" aria-label="ลูกเล่นช่อดอกไม้">
+            <button type="button" class="sq-bouquet-icon-btn is-wish" data-act="flower-wish" aria-label="สุ่มพรจากช่อดอกไม้" title="สุ่มพรจากช่อดอกไม้">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
+            </button>
+          </div>
+          <div id="sq-wish-box" class="sq-wish-box" aria-live="polite">
+            <p id="sq-wish-text" class="sq-wish-text"></p>
+          </div>
+          <div class="sq-floral-note">
+            <p id="flw-msg" class="sq-desc sq-flowers-msg" data-f="content.flowers.message"></p>
+            <p id="flw-hl" class="sq-highlight" data-f="content.flowers.highlightText"></p>
+          </div>
+        </div>
+        <div class="sq-vinyl-zone">
+          <div class="sq-deck-header">
+            <span class="sq-deck-status"><span class="sq-deck-led" aria-hidden="true"></span><span>ROYAL VINYL PLAYER</span></span>
+            <span class="sq-eq-bars" aria-hidden="true"><span class="sq-eq-bar"></span><span class="sq-eq-bar"></span><span class="sq-eq-bar"></span><span class="sq-eq-bar"></span></span>
+          </div>
+          <div class="sq-platter-wrap">
+            <button id="sq-vinyl" type="button" class="sq-vinyl sq-spin" data-act="vinyl" aria-label="เปิดเพลง">
+              <span class="sq-vinyl-label" id="vinyl-title" aria-hidden="true"></span>
+            </button>
+            <svg class="sq-tonearm" viewBox="0 0 60 110" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="sqArmGold5" x1="0" y1="0" x2="60" y2="110" gradientUnits="userSpaceOnUse"><stop stop-color="#fef3c7"/><stop offset=".5" stop-color="#fbbf24"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+              </defs>
+              <circle cx="44" cy="18" r="11" fill="#2a0d1d" stroke="url(#sqArmGold5)" stroke-width="2.5"/>
+              <circle cx="44" cy="18" r="4" fill="#fde68a"/>
+              <path d="M44 18 L40 62 L21 88" stroke="url(#sqArmGold5)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="13" y="84" width="12" height="16" rx="3" transform="rotate(28 19 92)" fill="#4a1127" stroke="#fde68a" stroke-width="1.5"/>
+              <circle cx="17" cy="96" r="2" fill="#f472b6"/>
+            </svg>
+          </div>
+          <button type="button" class="sq-vinyl-cta" data-act="vinyl" aria-label="เปิดฟังเพลงและวิดีโอความทรงจำ" title="เปิดฟังเพลงและวิดีโอความทรงจำ">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5" fill="currentColor"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </section>
 <!-- Screen 6: Song / video player -->
 <section id="sq-screen-6" class="sq-screen" data-screen="6">
-  <div class="sq-topbar"><button type="button" class="sq-back" data-act="menu"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> เมนู</button></div>
   <div class="sq-scroll">
-    <p id="song-eyebrow" class="sq-eyebrow" data-f="content.songMedia.sectionTitle" style="font-size:clamp(24px,5vw,34px)">ความทรงจำ</p>
-    <h2 id="song-title" class="sq-title font-script" data-f="content.songMedia.songTitle" style="font-size:clamp(30px,6vw,46px)"></h2>
-    <p id="song-artist" class="sq-artist" data-f="content.songMedia.songArtist"></p>
-    <div class="sq-media-row">
-      <figure class="sq-polaroid sq-accent"><span class="sq-tape"></span><img id="song-accent-0" class="sq-media-img" data-media="content.songMedia.accentImages.0.src" alt="ภาพประกอบ 1"></figure>
-      <div id="song-media-box" class="sq-media-box"></div>
-      <figure class="sq-polaroid sq-accent"><img id="song-accent-1" class="sq-media-img" data-media="content.songMedia.accentImages.1.src" alt="ภาพประกอบ 2"></figure>
+    <div class="sq-cinema-header">
+      <p id="song-eyebrow" class="sq-eyebrow" data-f="content.songMedia.sectionTitle">ความทรงจำ</p>
+      <h2 id="song-title" class="sq-title font-script" data-f="content.songMedia.songTitle" style="font-size:clamp(32px,6vw,48px)"></h2>
+      <p id="song-artist" class="sq-artist" data-f="content.songMedia.songArtist"></p>
+      <div class="sq-ornament" aria-hidden="true">
+        <span class="sq-ornament-line"></span>
+        <span class="sq-ornament-gem"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span>
+        <span class="sq-ornament-line"></span>
+      </div>
     </div>
-    <button type="button" class="sq-cta" data-act="next-finale"><i class="fa-solid fa-heart" aria-hidden="true"></i> ไปต่อกันเถอะ</button>
+    <div class="sq-cinema-stage">
+      <div class="sq-media-row">
+        <figure class="sq-polaroid sq-accent"><span class="sq-tape"></span><img id="song-accent-0" class="sq-media-img" data-media="content.songMedia.accentImages.0.src" alt="ภาพประกอบ 1"><figcaption class="sq-pol-caption">Memory I</figcaption></figure>
+        <div id="song-media-box" class="sq-media-box"></div>
+        <figure class="sq-polaroid sq-accent"><img id="song-accent-1" class="sq-media-img" data-media="content.songMedia.accentImages.1.src" alt="ภาพประกอบ 2"><figcaption class="sq-pol-caption">Memory II</figcaption></figure>
+      </div>
+    </div>
+    <div class="sq-screen-actions">
+      <button type="button" class="sq-cta" data-act="next-finale" aria-label="ไปฉากจบ Finale" title="ไปฉากจบ Finale"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+    </div>
   </div>
 </section>
 
@@ -712,45 +1578,72 @@ export const SURPRISE_QR_BODY: string = `
 <section id="sq-screen-7" class="sq-screen" data-screen="7">
   <div id="finale-hero" class="sq-hero" data-bg="content.finale.heroImage.src"></div>
   <div class="sq-hero-overlay"></div>
+  <div class="sq-finale-stars" aria-hidden="true">
+    <span class="sq-fstar" style="top:11%;left:14%;--d:3.6s;--dl:.2s"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:16%;left:78%;--d:4.4s;--dl:.9s"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:24%;left:26%;--d:4.8s;--dl:1.5s"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:22%;left:88%;--d:3.9s;--dl:2.1s"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:42%;left:9%;--d:4.6s;--dl:.6s"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:46%;left:90%;--d:4.1s;--dl:1.3s"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:68%;left:15%;--d:5.0s;--dl:.4s"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:72%;left:83%;--d:3.7s;--dl:1.8s"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:84%;left:28%;--d:4.3s;--dl:2.4s"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:86%;left:69%;--d:4.9s;--dl:1.1s"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:14%;left:52%;--d:4.5s;--dl:2.7s"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+    <span class="sq-fstar" style="top:88%;left:49%;--d:3.8s;--dl:.7s"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 7.9L22 12l-7.9 2.1L12 22l-2.1-7.9L2 12l7.9-2.1z"/></svg></span>
+  </div>
   <div class="sq-scroll sq-finale">
     <p class="sq-hero-kicker"></p>
     <h1 id="finale-main" class="sq-finale-main font-serif" data-f="content.finale.mainText"></h1>
     <p id="finale-sub" class="sq-finale-sub" data-f="content.finale.subText"></p>
     <div class="sq-finale-actions">
-      <button type="button" class="sq-btn" data-act="replay"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> เล่นใหม่</button>
-      <button type="button" class="sq-btn sq-btn-primary" data-act="menu"><i class="fa-solid fa-gift" aria-hidden="true"></i> เมนูของขวัญ</button>
+      <button type="button" class="sq-btn" data-act="replay" aria-label="เล่นใหม่ตั้งแต่ต้น" title="เล่นใหม่ตั้งแต่ต้น"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button type="button" class="sq-btn sq-btn-primary" data-act="menu" aria-label="กลับเมนูของขวัญ" title="กลับเมนูของขวัญ"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></button>
     </div>
   </div>
 </section>
 
 <!-- Warp overlay -->
 <div id="sq-warp" aria-hidden="true">
-  <div class="warp-rings"><span class="warp-ring"></span><span class="warp-ring"></span><span class="warp-ring"></span><span class="warp-icon"><i class="fa-solid fa-heart" aria-hidden="true"></i></span></div>
+  <div class="warp-rings"><span class="warp-halo"></span><span class="warp-ring"></span><span class="warp-ring"></span><span class="warp-ring"></span><span class="warp-ring"></span><span class="warp-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg></span></div>
 </div>
 
-<!-- Heart particles -->
+<!-- Heart particles & ambient bokeh -->
 <div id="sq-hearts" aria-hidden="true">
-  <svg class="sq-particle" style="left:8%;animation-duration:12s;animation-delay:0s" width="18" height="18" viewBox="0 0 24 24" fill="#ec4899"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
-  <svg class="sq-particle" style="left:22%;animation-duration:14s;animation-delay:1.2s" width="14" height="14" viewBox="0 0 24 24" fill="#f472b6"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
-  <svg class="sq-particle" style="left:35%;animation-duration:11s;animation-delay:2.5s" width="20" height="20" viewBox="0 0 24 24" fill="#be185d"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
-  <svg class="sq-particle" style="left:50%;animation-duration:13s;animation-delay:0.6s" width="16" height="16" viewBox="0 0 24 24" fill="#ec4899"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
-  <svg class="sq-particle" style="left:65%;animation-duration:15s;animation-delay:3.1s" width="18" height="18" viewBox="0 0 24 24" fill="#f9a8d4"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
-  <svg class="sq-particle" style="left:78%;animation-duration:12.5s;animation-delay:1.8s" width="14" height="14" viewBox="0 0 24 24" fill="#be185d"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
-  <svg class="sq-particle" style="left:90%;animation-duration:13.5s;animation-delay:2.9s" width="16" height="16" viewBox="0 0 24 24" fill="#ec4899"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
-  <svg class="sq-particle" style="left:15%;animation-duration:14.5s;animation-delay:0.4s" width="12" height="12" viewBox="0 0 24 24" fill="#f472b6"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#f472b6" stroke-width="2" fill="none"/></svg>
-  <svg class="sq-particle" style="left:45%;animation-duration:11.5s;animation-delay:3.5s" width="12" height="12" viewBox="0 0 24 24" fill="#f9a8d4"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#f9a8d4" stroke-width="2" fill="none"/></svg>
-  <svg class="sq-particle" style="left:72%;animation-duration:15.5s;animation-delay:1.1s" width="12" height="12" viewBox="0 0 24 24" fill="#fbcfe8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#fbcfe8" stroke-width="2" fill="none"/></svg>
-  <svg class="sq-particle" style="left:88%;animation-duration:12.8s;animation-delay:2.2s" width="12" height="12" viewBox="0 0 24 24" fill="#fde68a"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#fde68a" stroke-width="2" fill="none"/></svg>
+  <svg class="sq-particle" style="left:6%;animation-duration:22s;animation-delay:-2s" width="16" height="16" viewBox="0 0 24 24" fill="#ec4899"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <span class="sq-bokeh" style="left:12%;width:24px;height:24px;animation-duration:26s;animation-delay:-5s"></span>
+  <svg class="sq-particle" style="left:18%;animation-duration:24s;animation-delay:-9s" width="14" height="14" viewBox="0 0 24 24" fill="#f472b6"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <svg class="sq-particle" style="left:25%;animation-duration:20s;animation-delay:-14s" width="13" height="13" viewBox="0 0 24 24" fill="#f9a8d4"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <span class="sq-bokeh" style="left:31%;width:32px;height:32px;animation-duration:28s;animation-delay:-18s"></span>
+  <svg class="sq-particle" style="left:37%;animation-duration:21s;animation-delay:-4s" width="18" height="18" viewBox="0 0 24 24" fill="#be185d"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <svg class="sq-particle" style="left:44%;animation-duration:25s;animation-delay:-11s" width="15" height="15" viewBox="0 0 24 24" fill="#fb7185"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <span class="sq-bokeh" style="left:50%;width:20px;height:20px;animation-duration:25s;animation-delay:-7s"></span>
+  <svg class="sq-particle" style="left:55%;animation-duration:23s;animation-delay:-16s" width="16" height="16" viewBox="0 0 24 24" fill="#ec4899"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <svg class="sq-particle" style="left:62%;animation-duration:27s;animation-delay:-3s" width="14" height="14" viewBox="0 0 24 24" fill="#fbcfe8"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <span class="sq-bokeh" style="left:68%;width:28px;height:28px;animation-duration:24s;animation-delay:-12s"></span>
+  <svg class="sq-particle" style="left:73%;animation-duration:24s;animation-delay:-8s" width="17" height="17" viewBox="0 0 24 24" fill="#f9a8d4"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <svg class="sq-particle" style="left:79%;animation-duration:21s;animation-delay:-19s" width="13" height="13" viewBox="0 0 24 24" fill="#f472b6"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <span class="sq-bokeh" style="left:84%;width:22px;height:22px;animation-duration:27s;animation-delay:-6s"></span>
+  <svg class="sq-particle" style="left:89%;animation-duration:23s;animation-delay:-13s" width="15" height="15" viewBox="0 0 24 24" fill="#fda4af"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <svg class="sq-particle" style="left:94%;animation-duration:25s;animation-delay:-1s" width="16" height="16" viewBox="0 0 24 24" fill="#be185d"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <span class="sq-bokeh" style="left:21%;width:26px;height:26px;animation-duration:28s;animation-delay:-21s"></span>
+  <svg class="sq-particle" style="left:41%;animation-duration:23s;animation-delay:-15s" width="14" height="14" viewBox="0 0 24 24" fill="#f472b6"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
+  <span class="sq-bokeh" style="left:59%;width:30px;height:30px;animation-duration:26s;animation-delay:-10s"></span>
+  <svg class="sq-particle" style="left:86%;animation-duration:20s;animation-delay:-17s" width="13" height="13" viewBox="0 0 24 24" fill="#fbcfe8"><path d="M12 21s-6.5-4-9.5-8.5C0 7.5 2 4 5 4c2.5 0 4 2 7 5.5C15 6 17.5 4 20 4c3 0 5 3.5 2.5 8.5C18.5 17 12 21 12 21z"/></svg>
 </div>
 
- <!-- Background music -->
+ <!-- Background music & sound toggle (top-right) -->
  <audio id="sq-bg-audio" loop preload="none"></audio>
  <video id="sq-bg-video" loop preload="none" playsinline style="position:fixed;z:-1;left:-9999px;width:1px;height:1px;border:0;"></video>
-<button id="sq-music-toggle" type="button" aria-label="เปิด-ปิดเพลง"><span class="sq-music-dot"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
+ <button id="sq-music-toggle" class="sq-on" type="button" data-act="music" aria-label="เปิด/ปิดเสียงเพลงและเอฟเฟกต์" title="เปิด/ปิดเสียงเพลงและเอฟเฟกต์">
+   <span class="sq-music-dot" aria-hidden="true"></span>
+   <span class="sq-music-glyph" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>
+ </button>
 
 <!-- PIN keypad modal -->
 <div id="sq-pin-modal" class="sq-overlay" role="dialog" aria-modal="true" aria-label="ใส่รหัสลับ">
   <div id="sq-pin-modal-card" class="sq-modal">
+    <div class="sq-modal-lock" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
     <p class="sq-modal-title">ซองจดหมายถูกล็อก</p>
     <p class="sq-modal-sub">ใส่รหัส 4 หลักเพื่อเปิดซอง</p>
     <div class="sq-dots">
@@ -760,7 +1653,7 @@ export const SURPRISE_QR_BODY: string = `
       <button type="button" class="sq-key" data-key="1">1</button><button type="button" class="sq-key" data-key="2">2</button><button type="button" class="sq-key" data-key="3">3</button>
       <button type="button" class="sq-key" data-key="4">4</button><button type="button" class="sq-key" data-key="5">5</button><button type="button" class="sq-key" data-key="6">6</button>
       <button type="button" class="sq-key" data-key="7">7</button><button type="button" class="sq-key" data-key="8">8</button><button type="button" class="sq-key" data-key="9">9</button>
-      <button type="button" class="sq-key key-fn" data-act="pin-clear">C</button><button type="button" class="sq-key" data-key="0">0</button><button type="button" class="sq-key key-fn" data-act="pin-backspace"><i class="fa-solid fa-delete-left" aria-hidden="true"></i></button>
+      <button type="button" class="sq-key key-fn" data-act="pin-clear" aria-label="ล้างรหัส" title="ล้างรหัส"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button><button type="button" class="sq-key" data-key="0">0</button><button type="button" class="sq-key key-fn" data-act="pin-backspace" aria-label="ลบตัวเลข" title="ลบตัวเลข"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><path d="m12 9 6 6"/><path d="m18 9-6 6"/></svg></button>
     </div>
     <p id="sq-pin-status" class="sq-pin-status"></p>
   </div>
@@ -779,6 +1672,20 @@ export const SURPRISE_QR_BODY: string = `
       <button type="button" class="sq-key key-fn" data-act="pay-done">ฉันชำระแล้ว</button>
       <button type="button" class="sq-key key-fn" data-act="close-pay">ปิด</button>
     </div>
+  </div>
+</div>
+
+<!-- Pure photo & message lightbox -->
+<div id="sq-lightbox" class="sq-lightbox" role="dialog" aria-modal="true" aria-label="ดูภาพและข้อความขนาดใหญ่" data-act="lb-close">
+  <div class="sq-lb-card">
+    <img id="sq-lb-img" class="sq-lb-img" alt="ภาพความทรงจำ">
+    <div id="sq-lb-letter" class="sq-lb-letter">
+      <h3 id="sq-lb-title" class="sq-lb-letter-title"></h3>
+      <div id="sq-lb-body" class="sq-lb-letter-body"></div>
+    </div>
+    <button type="button" class="sq-lb-close" data-act="lb-close" aria-label="ปิด" title="ปิด">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
 </div>
 
@@ -808,15 +1715,29 @@ export const SURPRISE_QR_BODY: string = `
 export const SURPRISE_QR_ENGINE_JS: string = `(function(){
   var EngineEditMode = __SQ_EDIT__;
   var EngineShowAdmin = __SQ_ADMIN__;
+  var EngineStudioSelect = __SQ_STUDIO_SELECT__;
   var SQ = {
     config: null,
     edit: EngineEditMode,
+    sfxOn: true,
     screen: 1,
     pin: '',
     pinWrong: false,
     warpTimer: null,
+    revealTimer: null,
+    textTimers: [],
+    slideTimer: null,
+    slidePaused: false,
+    polIdx: 0,
+    picking: false,
+    lastWishIdx: -1,
     heartTimer: null,
     musicOn: false,
+    unlocked: false,
+    ambientTimer: null,
+    ambientStep: 0,
+    ambientOn: false,
+    pausedForMedia: false,
     paid: false,
     qr: '',
     amount: 0,
@@ -867,12 +1788,13 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
       settings: {
         enablePin: true,
         pinCode: '1234',
-        warpDurationEnvelopeMs: 4500,
-        warpDurationOptionMs: 3000,
+        warpDurationEnvelopeMs: 3600,
+        warpDurationOptionMs: 2800,
         isPaid: true,
         promptpayTarget: '',
         promptpayAmount: 0,
-        envelopeStyle: 1
+        envelopeStyle: 1,
+        envelopeColor: '#b02f63'
       },
       content: {
         title: 'Happy Anniversary, Love !',
@@ -895,7 +1817,17 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
           polaroidImages: [{ src: '' }, { src: '' }, { src: '' }, { src: '' }, { src: '' }],
           description: ''
         },
-        flowers: { subTitle: 'ช่อดอกไม้จากใจ', title: 'ช่อดอกไม้เสมือนจริง', message: '', highlightText: '' },
+        flowers: {
+          subTitle: 'ช่อดอกไม้จากใจ',
+          title: 'ช่อดอกไม้เสมือนจริง',
+          message: '',
+          highlightText: '',
+          wishes: [
+            'ขอให้ทุกวันของเธอเต็มไปด้วยรอยยิ้มและความสุขเสมอนะ',
+            'ขอให้เราจับมือกันผ่านทุกฤดูกาลแบบนี้ไปนานๆ',
+            'ขอบคุณที่เข้ามาเป็นความสบายใจที่สุดในชีวิตของฉัน'
+          ]
+        },
         songMedia: {
           mediaType: 'auto',
           src: '',
@@ -915,12 +1847,13 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     var s = cfg.settings;
     s.enablePin = !!s.enablePin;
     s.pinCode = normStr(s.pinCode, '1234');
-    s.warpDurationEnvelopeMs = Number(s.warpDurationEnvelopeMs) || 4500;
-    s.warpDurationOptionMs = Number(s.warpDurationOptionMs) || 3000;
+    s.warpDurationEnvelopeMs = Number(s.warpDurationEnvelopeMs) || 3600;
+    s.warpDurationOptionMs = Number(s.warpDurationOptionMs) || 2800;
     s.isPaid = !!s.isPaid;
     s.promptpayTarget = normStr(s.promptpayTarget, '');
     s.promptpayAmount = Number(s.promptpayAmount) || 0;
-    s.envelopeStyle = (/^[123]$/.test(String(s.envelopeStyle))) ? Number(s.envelopeStyle) : 1;
+    s.envelopeStyle = (/^[1234]$/.test(String(s.envelopeStyle))) ? Number(s.envelopeStyle) : 1;
+    s.envelopeColor = /^#[0-9a-fA-F]{6}$/.test(String(s.envelopeColor || '')) ? String(s.envelopeColor) : '#b02f63';
     cfg.content = cfg.content || {};
     var c = cfg.content;
     c.title = normStr(c.title, 'Happy Anniversary, Love !');
@@ -952,6 +1885,18 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     c.flowers.title = normStr(c.flowers.title, 'ช่อดอกไม้เสมือนจริง');
     c.flowers.message = normStr(c.flowers.message, '');
     c.flowers.highlightText = normStr(c.flowers.highlightText, '');
+    if (!Array.isArray(c.flowers.wishes) || !c.flowers.wishes.length){
+      c.flowers.wishes = [
+        'ขอให้ทุกวันของเธอเต็มไปด้วยรอยยิ้มและความสุขเสมอนะ',
+        'ขอให้เราจับมือกันผ่านทุกฤดูกาลแบบนี้ไปนานๆ',
+        'ขอบคุณที่เข้ามาเป็นความสบายใจที่สุดในชีวิตของฉัน'
+      ];
+    } else {
+      c.flowers.wishes = c.flowers.wishes.map(function(w){ return normStr(w, ''); }).filter(function(w){ return !!w; });
+      if (!c.flowers.wishes.length){
+        c.flowers.wishes = ['ขอให้ทุกวันของเธอเต็มไปด้วยรอยยิ้มและความสุขเสมอนะ'];
+      }
+    }
     c.songMedia = c.songMedia || {};
     c.songMedia.mediaType = (['auto','video','audio','youtube'].indexOf(c.songMedia.mediaType) !== -1) ? c.songMedia.mediaType : 'auto';
     c.songMedia.src = normStr(c.songMedia.src, '');
@@ -1001,11 +1946,24 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
   function renderParas(){
     var box = byId('msg-paras');
     if (!box) return;
-    box.innerHTML = '';
     var paras = (SQ.config.content.letter && SQ.config.content.letter.paragraphs) ? SQ.config.content.letter.paragraphs : [];
+    if (box.children.length === paras.length){
+      for (var k = 0; k < paras.length; k++){
+        var ch = box.children[k];
+        var next = String(paras[k] == null ? '' : paras[k]);
+        if (ch.getAttribute('data-sq-text') !== next){
+          ch.setAttribute('data-sq-text', next);
+          ch.textContent = next;
+        }
+      }
+      return;
+    }
+    box.innerHTML = '';
     for (var i = 0; i < paras.length; i++){
       var p = document.createElement('p');
-      p.textContent = paras[i];
+      var txt = String(paras[i] == null ? '' : paras[i]);
+      p.setAttribute('data-sq-text', txt);
+      p.textContent = txt;
       box.appendChild(p);
     }
   }
@@ -1061,9 +2019,8 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
       box.appendChild(img);
     } else {
       var ph = document.createElement('div');
-      ph.className = 'sq-cover';
-      ph.style.cssText = 'display:flex;align-items:center;justify-content:center;background:#2a0d1d;color:#f9a8d4;font-size:46px;';
-      ph.innerHTML = '<i class="fa-solid fa-music" aria-hidden="true"></i>';
+      ph.className = 'sq-cinema-placeholder';
+      ph.innerHTML = '<div class="sq-cinema-play-orb" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg></div>';
       box.appendChild(ph);
     }
     if (hasAudio){
@@ -1071,6 +2028,223 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
       a.className = 'sq-audio'; a.controls = true; a.loop = true; a.src = sm.audioSrc;
       box.appendChild(a);
     }
+  }
+  var SQSfx = { ctx: null };
+  function getAudioCtx(){
+    if (!SQ.sfxOn) return null;
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!SQSfx.ctx) SQSfx.ctx = new Ctx();
+      if (SQSfx.ctx.state === 'suspended'){
+        SQSfx.ctx.resume().catch(function(){});
+      }
+      return SQSfx.ctx;
+    } catch (e) { return null; }
+  }
+  function tone(freq, delay, dur, vol, type, endFreq, attack){
+    var ctx = getAudioCtx();
+    if (!ctx) return;
+    var now = ctx.currentTime + (delay || 0);
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+    if (endFreq && endFreq > 0){
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + dur);
+    }
+    var peak = (typeof vol === 'number') ? vol : 0.05;
+    var atk = (typeof attack === 'number' && attack > 0.005) ? attack : 0.035;
+    if (atk > dur * 0.45){ atk = dur * 0.45; }
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(peak, now + atk);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + dur + 0.05);
+  }
+  function shimmerNoise(delay, dur, vol, startHz, endHz){
+    var ctx = getAudioCtx();
+    if (!ctx) return;
+    try {
+      var sr = ctx.sampleRate;
+      var len = Math.max(1, Math.floor(sr * dur));
+      var buf = ctx.createBuffer(1, len, sr);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < len; i++){
+        data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      }
+      var src = ctx.createBufferSource();
+      src.buffer = buf;
+      var filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.Q.value = 1.6;
+      var now = ctx.currentTime + (delay || 0);
+      filter.frequency.setValueAtTime(startHz || 900, now);
+      filter.frequency.exponentialRampToValueAtTime(endHz || 2800, now + dur);
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(vol || 0.03, now + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(now);
+      src.stop(now + dur + 0.04);
+    } catch (e) { /* ignore */ }
+  }
+  var AMBIENT_NOTES = [
+    523.25, 659.25, 783.99, 987.77, 783.99, 659.25,
+    440.00, 523.25, 659.25, 783.99, 659.25, 523.25,
+    349.23, 440.00, 523.25, 659.25, 523.25, 440.00,
+    392.00, 493.88, 587.33, 783.99, 587.33, 493.88
+  ];
+  var AMBIENT_PADS = [
+    [261.63, 329.63],
+    [220.00, 261.63],
+    [174.61, 261.63],
+    [196.00, 293.66]
+  ];
+  function scheduleAmbientBeat(){
+    if (!SQ.ambientOn || !SQ.sfxOn || SQ.pausedForMedia) return;
+    var ctx = getAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') return;
+    var idx = SQ.ambientStep % AMBIENT_NOTES.length;
+    var note = AMBIENT_NOTES[idx];
+    tone(note, 0, 2.4, 0.028, 'sine', 0, 0.05);
+    tone(note * 2, 0.04, 1.8, 0.009, 'triangle', 0, 0.06);
+    if (idx % 6 === 0){
+      var pad = AMBIENT_PADS[Math.floor(idx / 6) % AMBIENT_PADS.length];
+      tone(pad[0], 0, 3.6, 0.022, 'sine', 0, 0.28);
+      tone(pad[1], 0.08, 3.4, 0.018, 'triangle', 0, 0.32);
+    }
+    SQ.ambientStep++;
+  }
+  function startAmbientMusic(){
+    if (!SQ.sfxOn || SQ.pausedForMedia) return;
+    var ctx = getAudioCtx();
+    if (!ctx) return;
+    if (SQ.ambientOn && SQ.ambientTimer) return;
+    SQ.ambientOn = true;
+    scheduleAmbientBeat();
+    if (SQ.ambientTimer){ clearInterval(SQ.ambientTimer); }
+    SQ.ambientTimer = setInterval(scheduleAmbientBeat, 640);
+  }
+  function stopAmbientMusic(){
+    SQ.ambientOn = false;
+    if (SQ.ambientTimer){ clearInterval(SQ.ambientTimer); SQ.ambientTimer = null; }
+  }
+  function playSfx(kind){
+    if (!SQ.sfxOn) return;
+    try {
+      switch (kind){
+        case 'pin-open':
+          tone(587.33, 0, 0.38, 0.045, 'sine', 0, 0.04);
+          tone(880.00, 0.14, 0.45, 0.04, 'sine', 0, 0.04);
+          break;
+        case 'pin-tap':
+          tone(987.77, 0, 0.22, 0.042, 'sine', 0, 0.02);
+          tone(1479.98, 0.02, 0.20, 0.018, 'triangle', 0, 0.02);
+          break;
+        case 'pin-back':
+          tone(523.25, 0, 0.22, 0.035, 'sine', 392.00, 0.03);
+          break;
+        case 'pin-err':
+          tone(261.63, 0, 0.24, 0.048, 'triangle', 220.00, 0.025);
+          tone(220.00, 0.18, 0.28, 0.048, 'triangle', 174.61, 0.025);
+          break;
+        case 'pin-ok':
+          tone(523.25, 0, 0.55, 0.048, 'sine', 0, 0.04);
+          tone(659.25, 0.14, 0.60, 0.048, 'sine', 0, 0.04);
+          tone(783.99, 0.28, 0.68, 0.05, 'sine', 0, 0.04);
+          tone(1046.50, 0.44, 0.95, 0.052, 'triangle', 0, 0.05);
+          break;
+        case 'env-open':
+          shimmerNoise(0, 0.72, 0.032, 620, 2400);
+          tone(523.25, 0.12, 0.75, 0.048, 'sine', 0, 0.05);
+          tone(659.25, 0.28, 0.80, 0.048, 'sine', 0, 0.05);
+          tone(783.99, 0.45, 0.88, 0.05, 'sine', 0, 0.05);
+          tone(987.77, 0.62, 1.05, 0.05, 'triangle', 0, 0.06);
+          tone(1318.51, 0.82, 1.25, 0.038, 'sine', 0, 0.06);
+          break;
+        case 'warp':
+          shimmerNoise(0, 1.05, 0.03, 380, 2800);
+          tone(392.00, 0.08, 1.05, 0.038, 'sine', 783.99, 0.12);
+          tone(587.33, 0.28, 1.05, 0.034, 'sine', 1174.66, 0.12);
+          break;
+        case 'gift':
+          tone(659.25, 0, 0.45, 0.046, 'sine', 0, 0.04);
+          tone(830.61, 0.12, 0.50, 0.046, 'sine', 0, 0.04);
+          tone(987.77, 0.24, 0.62, 0.048, 'triangle', 0, 0.05);
+          tone(1318.51, 0.38, 0.82, 0.04, 'sine', 0, 0.05);
+          break;
+        case 'vinyl':
+          shimmerNoise(0, 0.24, 0.022, 1600, 3800);
+          tone(587.33, 0.10, 0.52, 0.048, 'sine', 0, 0.04);
+          tone(739.99, 0.24, 0.56, 0.048, 'sine', 0, 0.04);
+          tone(880.00, 0.38, 0.68, 0.05, 'triangle', 0, 0.05);
+          tone(1174.66, 0.54, 0.96, 0.042, 'sine', 0, 0.05);
+          break;
+        case 'bloom':
+          shimmerNoise(0, 0.52, 0.024, 1100, 3400);
+          tone(587.33, 0, 0.45, 0.04, 'sine', 0, 0.03);
+          tone(739.99, 0.09, 0.50, 0.04, 'sine', 0, 0.03);
+          tone(880.00, 0.18, 0.58, 0.042, 'triangle', 0, 0.04);
+          tone(1174.66, 0.28, 0.72, 0.036, 'sine', 0, 0.04);
+          tone(1479.98, 0.40, 0.85, 0.028, 'sine', 0, 0.05);
+          break;
+        case 'screen':
+          tone(783.99, 0, 0.38, 0.036, 'sine', 0, 0.04);
+          tone(1046.50, 0.12, 0.48, 0.032, 'sine', 0, 0.04);
+          break;
+        case 'finale':
+          shimmerNoise(0, 0.95, 0.03, 620, 3200);
+          tone(523.25, 0, 1.35, 0.045, 'sine', 0, 0.08);
+          tone(659.25, 0.16, 1.35, 0.045, 'sine', 0, 0.08);
+          tone(783.99, 0.32, 1.40, 0.048, 'sine', 0, 0.08);
+          tone(987.77, 0.48, 1.45, 0.045, 'triangle', 0, 0.08);
+          tone(1174.66, 0.66, 1.55, 0.04, 'sine', 0, 0.08);
+          tone(1567.98, 0.86, 1.75, 0.032, 'sine', 0, 0.10);
+          break;
+        case 'toggle':
+          tone(659.25, 0, 0.28, 0.04, 'sine', 0, 0.03);
+          tone(987.77, 0.10, 0.36, 0.036, 'sine', 0, 0.03);
+          break;
+      }
+    } catch (e) { /* ignore */ }
+  }
+  function renderMenuIconSvg(val){
+    var raw = String(val || '').trim();
+    var k = raw.toLowerCase();
+    var c1 = raw.length ? raw.charCodeAt(0) : 0;
+    if (k === 'mail' || k === 'envelope' || k === 'letter' || (c1 === 0xD83D && raw.charCodeAt(1) === 0xDC8C) || c1 === 0x2709){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>';
+    }
+    if (k === 'camera' || k === 'photo' || k === 'gallery' || k === 'image' || (c1 === 0xD83D && (raw.charCodeAt(1) === 0xDCF8 || raw.charCodeAt(1) === 0xDCF7))){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>';
+    }
+    if (k === 'sparkles' || k === 'flower' || k === 'flowers' || k === 'bouquet' || k === 'rose' || c1 === 0x2728 || (c1 === 0xD83D && raw.charCodeAt(1) === 0xDC90) || (c1 === 0xD83C && (raw.charCodeAt(1) === 0xDF38 || raw.charCodeAt(1) === 0xDF39))){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 0 4.5 4.5M7.5 12H9m7.5 0a4.5 4.5 0 1 1-4.5 4.5m4.5-4.5H15m-3 4.5V15"/><circle cx="12" cy="12" r="2"/></svg>';
+    }
+    if (k === 'heart' || k === 'love' || c1 === 0x2764 || (c1 === 0xD83D && (raw.charCodeAt(1) === 0xDC96 || raw.charCodeAt(1) === 0xDC97 || raw.charCodeAt(1) === 0xDC95))){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>';
+    }
+    if (k === 'gift' || k === 'present' || (c1 === 0xD83C && raw.charCodeAt(1) === 0xDF81)){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>';
+    }
+    if (k === 'music' || k === 'song' || k === 'disc' || (c1 === 0xD83C && (raw.charCodeAt(1) === 0xDFB5 || raw.charCodeAt(1) === 0xDFB6))){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+    }
+    if (k === 'video' || k === 'film' || k === 'play' || (c1 === 0xD83C && raw.charCodeAt(1) === 0xDFAC)){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m10 9 5 3-5 3V9z"/></svg>';
+    }
+    if (k === 'star' || k === 'crown'){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    }
+    if (c1 > 127 && raw.length <= 4){ return null; }
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>';
   }
   function pauseSong(){
     var box = byId('song-media-box');
@@ -1092,7 +2266,23 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
   function syncMusicIcon(){
     var b = byId('sq-music-toggle');
     if (!b) return;
-    b.classList.toggle('sq-on', SQ.musicOn);
+    var active = !!(SQ.sfxOn || SQ.musicOn);
+    b.classList.toggle('sq-on', active);
+    var glyph = b.querySelector('.sq-music-glyph');
+    if (glyph){
+      glyph.innerHTML = active
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>';
+    }
+  }
+  function sqShadeHex(hex, amt){
+    var clean = String(hex || '#b02f63').replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(clean)) clean = 'b02f63';
+    var num = parseInt(clean, 16);
+    var r = Math.min(255, Math.max(0, (num >> 16) + amt));
+    var g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amt));
+    var b = Math.min(255, Math.max(0, (num & 0xff) + amt));
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   }
   function applyEnvelopeStyle(){
     var env = byId('sq-envelope');
@@ -1100,6 +2290,186 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     var style = (SQ.config && SQ.config.settings && SQ.config.settings.envelopeStyle) ? SQ.config.settings.envelopeStyle : 1;
     env.className = env.className.replace(/env-style-\d/g, '').trim();
     env.classList.add('env-style-' + style);
+    if (Number(style) === 4){
+      var base = (SQ.config && SQ.config.settings && SQ.config.settings.envelopeColor) ? SQ.config.settings.envelopeColor : '#b02f63';
+      env.style.setProperty('--env-c-base', base);
+      env.style.setProperty('--env-c-light', sqShadeHex(base, 14));
+      env.style.setProperty('--env-c-mid', sqShadeHex(base, -24));
+      env.style.setProperty('--env-c-dark', sqShadeHex(base, -54));
+      env.style.setProperty('--env-c-lid', sqShadeHex(base, 26));
+      env.style.setProperty('--env-c-seal1', sqShadeHex(base, 64));
+      env.style.setProperty('--env-c-paper', sqShadeHex(base, 145));
+    } else {
+      env.style.removeProperty('--env-c-base');
+      env.style.removeProperty('--env-c-light');
+      env.style.removeProperty('--env-c-mid');
+      env.style.removeProperty('--env-c-dark');
+      env.style.removeProperty('--env-c-lid');
+      env.style.removeProperty('--env-c-seal1');
+      env.style.removeProperty('--env-c-paper');
+    }
+  }
+  function syncFilmClones(){
+    var track = byId('mem-film-track');
+    if (!track) return;
+    var origImgs = track.querySelectorAll('.sq-film-frame:not(.sq-film-dup) img');
+    if (!origImgs.length) return;
+    var dups = track.querySelectorAll('.sq-film-frame.sq-film-dup');
+    if (dups.length !== origImgs.length){
+      for (var d = 0; d < dups.length; d++){
+        if (dups[d].parentNode){ dups[d].parentNode.removeChild(dups[d]); }
+      }
+      var origFrames = track.querySelectorAll('.sq-film-frame:not(.sq-film-dup)');
+      for (var i = 0; i < origFrames.length; i++){
+        var clone = origFrames[i].cloneNode(true);
+        clone.classList.add('sq-film-dup');
+        clone.setAttribute('aria-hidden', 'true');
+        clone.removeAttribute('data-sq-edit');
+        clone.removeAttribute('data-sq-tab');
+        clone.removeAttribute('data-sq-field');
+        clone.removeAttribute('title');
+        var ci = clone.querySelector('img');
+        if (ci){ ci.removeAttribute('id'); ci.removeAttribute('data-media'); }
+        track.appendChild(clone);
+      }
+    } else {
+      for (var j = 0; j < origImgs.length; j++){
+        var cImg = dups[j].querySelector('img');
+        if (!cImg) continue;
+        var s = origImgs[j].getAttribute('src');
+        if (s){ cImg.setAttribute('src', s); } else { cImg.removeAttribute('src'); }
+        cImg.className = origImgs[j].className;
+      }
+    }
+  }
+  function splitClusters(str){
+    var s = String(str == null ? '' : str);
+    if (!s) return [];
+    try {
+      if (typeof Intl !== 'undefined' && Intl.Segmenter && typeof Array !== 'undefined' && Array.from){
+        var seg = new Intl.Segmenter('th', { granularity: 'grapheme' });
+        var parts = Array.from(seg.segment(s));
+        var res = [];
+        for (var i = 0; i < parts.length; i++){ res.push(parts[i].segment); }
+        return res;
+      }
+    } catch (e) { /* fallback */ }
+    return s.match(/[^\\u0E31\\u0E33\\u0E34-\\u0E3A\\u0E47-\\u0E4E][\\u0E31\\u0E33\\u0E34-\\u0E3A\\u0E47-\\u0E4E]*|\\s+|[\\s\\S]/g) || [];
+  }
+  function clearTextTimers(){
+    for (var i = 0; i < SQ.textTimers.length; i++){
+      clearTimeout(SQ.textTimers[i]);
+    }
+    SQ.textTimers = [];
+  }
+  function resetGradualElement(el){
+    if (!el) return;
+    var txt = el.getAttribute('data-sq-text');
+    if (txt != null){ el.textContent = txt; }
+  }
+  function resetScreenText(n){
+    clearTextTimers();
+    var sc = byId('sq-screen-' + n);
+    if (!sc) return;
+    var nodes = sc.querySelectorAll('[data-sq-text]');
+    for (var i = 0; i < nodes.length; i++){ resetGradualElement(nodes[i]); }
+  }
+  function queueGradualText(el, startMs, stepMs){
+    if (!el) return startMs;
+    var txt = el.getAttribute('data-sq-text');
+    if (txt == null){
+      txt = el.textContent || '';
+      el.setAttribute('data-sq-text', txt);
+    }
+    if (!txt) return startMs;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      el.textContent = txt;
+      return startMs;
+    }
+    var clusters = splitClusters(txt);
+    if (!clusters.length) return startMs;
+    el.innerHTML = '';
+    var spans = [];
+    for (var i = 0; i < clusters.length; i++){
+      var sp = document.createElement('span');
+      sp.className = 'sq-ch';
+      sp.textContent = clusters[i];
+      el.appendChild(sp);
+      spans.push(sp);
+    }
+    var step = stepMs || 46;
+    for (var j = 0; j < spans.length; j++){
+      (function(node, delay){
+        var id = setTimeout(function(){
+          node.classList.add('sq-ch-on');
+        }, delay);
+        SQ.textTimers.push(id);
+      })(spans[j], startMs + j * step);
+    }
+    return startMs + spans.length * step;
+  }
+  function runScreenTextReveal(n){
+    clearTextTimers();
+    if (n === 3){
+      var t = 1550;
+      var mt = byId('msg-title');
+      if (mt){ t = queueGradualText(mt, t, 42) + 340; }
+      var box = byId('msg-paras');
+      if (box){
+        var ps = box.children;
+        for (var i = 0; i < ps.length; i++){
+          t = queueGradualText(ps[i], t, 46) + 380;
+        }
+      }
+    } else if (n === 4){
+      var md = byId('mem-desc');
+      if (md){ queueGradualText(md, 1780, 44); }
+    } else if (n === 5){
+      var t5 = 1780;
+      var fm = byId('flw-msg');
+      var fh = byId('flw-hl');
+      if (fm){ t5 = queueGradualText(fm, t5, 52) + 380; }
+      if (fh){ queueGradualText(fh, t5, 52); }
+    }
+  }
+  function stopPolSlider(){
+    if (SQ.slideTimer){ clearInterval(SQ.slideTimer); SQ.slideTimer = null; }
+  }
+  function goPolSlide(idx){
+    var track = byId('mem-pol-track');
+    var vp = byId('mem-pol-viewport');
+    if (!track || !vp) return;
+    var slides = track.querySelectorAll('.sq-polaroid');
+    if (!slides.length) return;
+    var n = slides.length;
+    SQ.polIdx = ((idx % n) + n) % n;
+    for (var i = 0; i < n; i++){
+      slides[i].classList.toggle('is-slide-active', i === SQ.polIdx);
+    }
+    var dots = document.querySelectorAll('#mem-pol-dots .sq-pol-dot');
+    for (var j = 0; j < dots.length; j++){
+      dots[j].classList.toggle('on', j === SQ.polIdx);
+    }
+    var vpW = vp.clientWidth || 0;
+    var cardW = slides[SQ.polIdx].offsetWidth || 230;
+    var gap = 24;
+    var totalW = n * cardW + (n - 1) * gap + 16;
+    if (vpW <= 0 || totalW <= vpW){
+      track.style.transform = 'translateX(0px)';
+      return;
+    }
+    var centerOffset = (vpW - cardW) / 2 - (SQ.polIdx * (cardW + gap) + 8);
+    var minX = vpW - totalW;
+    var x = Math.max(minX, Math.min(0, centerOffset));
+    track.style.transform = 'translateX(' + Math.round(x) + 'px)';
+  }
+  function startPolSlider(){
+    stopPolSlider();
+    goPolSlide(SQ.polIdx);
+    SQ.slideTimer = setInterval(function(){
+      if (SQ.screen !== 4 || SQ.slidePaused) return;
+      goPolSlide(SQ.polIdx + 1);
+    }, 3600);
   }
   function sync(){
     var d = SQ.config;
@@ -1108,8 +2478,20 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     var fEls = document.querySelectorAll('[data-f]');
     for (var i = 0; i < fEls.length; i++){
       var el = fEls[i];
-      var v = getPath(d, el.getAttribute('data-f'));
-      el.textContent = (v == null || v === '') ? '' : v;
+      var path = el.getAttribute('data-f') || '';
+      var v = getPath(d, path);
+      if (path.indexOf('menu.card') !== -1 && path.slice(-4) === 'Icon'){
+        var rawIcon = (v == null || v === '') ? (path.indexOf('card1') !== -1 ? 'mail' : (path.indexOf('card2') !== -1 ? 'camera' : 'sparkles')) : String(v).trim();
+        var svgHtml = renderMenuIconSvg(rawIcon);
+        if (svgHtml){ el.innerHTML = svgHtml; }
+        else { el.textContent = rawIcon; }
+        continue;
+      }
+      var nextTxt = (v == null || v === '') ? '' : String(v);
+      if (el.getAttribute('data-sq-text') !== nextTxt || !el.querySelector('.sq-ch')){
+        el.setAttribute('data-sq-text', nextTxt);
+        el.textContent = nextTxt;
+      }
     }
     var mEls = document.querySelectorAll('[data-media]');
     for (var j = 0; j < mEls.length; j++){
@@ -1117,6 +2499,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
       if (img.tagName.toUpperCase() !== 'IMG') continue;
       setMediaImg(img, getPath(d, img.getAttribute('data-media')));
     }
+    syncFilmClones();
     var bEls = document.querySelectorAll('[data-bg]');
     for (var k = 0; k < bEls.length; k++){
       var b = bEls[k];
@@ -1128,49 +2511,131 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     syncPaymentUi();
     syncMusicIcon();
   }
-  function showScreen(n, instant){
+  function clearRevealTimer(){
+    if (SQ.revealTimer){ clearTimeout(SQ.revealTimer); SQ.revealTimer = null; }
+  }
+  function resetGiftMenu(){
+    SQ.picking = false;
+    var row = document.querySelector('#sq-screen-2 .sq-gifts');
+    if (row){ row.classList.remove('sq-picking'); }
+    var cards = document.querySelectorAll('#sq-screen-2 .sq-gift');
+    for (var i = 0; i < cards.length; i++){
+      cards[i].classList.remove('sq-picked');
+      cards[i].classList.remove('sq-slow-glow');
+    }
+  }
+  function revealScreen(n){
+    clearRevealTimer();
+    var el = byId('sq-screen-' + n);
+    if (!el) return;
+    el.classList.remove('sq-staged');
+    el.classList.remove('sq-revealed');
+    void el.offsetWidth;
+    el.classList.add('sq-revealed');
+    runScreenTextReveal(n);
+    if (n === 4){ SQ.polIdx = 0; startPolSlider(); }
+  }
+  function showScreen(n, instant, staged){
+    clearRevealTimer();
+    clearTextTimers();
+    if (n !== 4){ stopPolSlider(); }
+    if (n === 2 || !staged){ SQ.picking = false; }
+    if (n === 2){ resetGiftMenu(); }
     for (var i = 1; i <= 7; i++){
       var el = byId('sq-screen-' + i);
       if (!el) continue;
-      if (i === n){ el.classList.add('sq-active'); el.scrollTop = 0; }
-      else { el.classList.remove('sq-active'); }
+      if (i === n){
+        el.classList.remove('sq-staged');
+        el.classList.remove('sq-revealed');
+        el.classList.add('sq-active');
+        if (staged){
+          el.classList.add('sq-staged');
+        } else {
+          void el.offsetWidth;
+          el.classList.add('sq-revealed');
+        }
+        el.scrollTop = 0;
+      } else {
+        el.classList.remove('sq-active');
+        el.classList.remove('sq-staged');
+        el.classList.remove('sq-revealed');
+      }
     }
+    var prev = SQ.screen;
     SQ.screen = n;
-    if (n !== 6){ pauseSong(); }
+    if (n === 1){
+      SQ.unlocked = false;
+      SQ.pausedForMedia = false;
+      stopAmbientMusic();
+      stopBgMedia();
+      SQ.musicOn = false;
+      syncMusicIcon();
+    } else if (n === 6){
+      SQ.unlocked = true;
+      var sm = (SQ.config && SQ.config.content && SQ.config.content.songMedia) ? SQ.config.content.songMedia : {};
+      if (sm.src || sm.audioSrc){
+        SQ.pausedForMedia = true;
+        stopAmbientMusic();
+        stopBgMedia();
+      }
+    } else {
+      pauseSong();
+      if (!SQ.unlocked){
+        SQ.unlocked = true;
+        if (SQ.sfxOn && !SQ.pausedForMedia){ tryAutoMusic(); }
+      } else if (SQ.pausedForMedia){
+        SQ.pausedForMedia = false;
+        if (SQ.sfxOn){ tryAutoMusic(); }
+      }
+    }
     if (EngineEditMode && EngineShowAdmin && byId('sq-admin-body')){ refreshScreenBtns(); }
     sync();
     applyEnvelopeStyle();
+    if (!staged){
+      runScreenTextReveal(n);
+      if (n === 4){ SQ.polIdx = 0; startPolSlider(); }
+    } else if (n === 4){
+      SQ.polIdx = 0;
+      goPolSlide(0);
+    }
+    if (n === 7 && prev !== 7 && !instant){ playSfx('finale'); }
   }
   function clearWarpTimer(){
     if (SQ.warpTimer){ clearTimeout(SQ.warpTimer); SQ.warpTimer = null; }
   }
   function startWarp(target, dur){
+    playSfx('warp');
     var w = byId('sq-warp');
     w.classList.add('sq-on');
     clearWarpTimer();
+    clearRevealTimer();
     SQ.warpTimer = setTimeout(function(){
-      showScreen(target);
+      SQ.picking = false;
+      showScreen(target, false, true);
       w.classList.remove('sq-on');
-    }, (typeof dur === 'number' && dur >= 0) ? dur : 1200);
+      SQ.revealTimer = setTimeout(function(){
+        revealScreen(target);
+      }, 560);
+    }, (typeof dur === 'number' && dur >= 0) ? dur : 2400);
   }
   function openEnvelope(){
     var e = byId('sq-envelope');
     if (e) e.classList.add('open');
+    playSfx('env-open');
     post({ type: 'sq:open' });
   }
   function openEnvelopeFlow(){
     try {
       openEnvelope();
-      tryAutoMusic();
       clearWarpTimer();
       SQ.warpTimer = setTimeout(function(){
         startWarp(2, SQ.config.settings.warpDurationEnvelopeMs);
-      }, 1150);
+      }, 2350);
     } catch (e) {
       clearWarpTimer();
       SQ.warpTimer = setTimeout(function(){
         startWarp(2, SQ.config.settings.warpDurationEnvelopeMs);
-      }, 1150);
+      }, 2350);
     }
   }
   function envelopeClicked(){
@@ -1182,6 +2647,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     }
   }
   function openPin(){
+    playSfx('pin-open');
     byId('sq-pin-modal').classList.add('on');
     pinClear();
   }
@@ -1191,9 +2657,10 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
   function pressKey(k){
     if (SQ.pin.length >= 4) return;
     if (SQ.pinWrong){ pinClear(); }
+    playSfx('pin-tap');
     SQ.pin += k;
     syncDots();
-    if (SQ.pin.length === 4){ setTimeout(verifyPin, 240); }
+    if (SQ.pin.length === 4){ setTimeout(verifyPin, 380); }
   }
   function clearPinStatus(){
     var s = byId('sq-pin-status');
@@ -1205,16 +2672,17 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     var status = byId('sq-pin-status');
     var card = byId('sq-pin-modal-card');
     if (ok){
+      playSfx('pin-ok');
       status.className = 'sq-pin-status sq-pin-ok';
       status.textContent = 'รหัสถูกต้อง! กำลังเปิดซอง...';
-      tryAutoMusic();
       setTimeout(function(){
         closePin();
         SQ.pin = '';
         syncDots();
         openEnvelopeFlow();
-      }, 620);
+      }, 1100);
     } else {
+      playSfx('pin-err');
       SQ.pinWrong = true;
       status.className = 'sq-pin-status sq-pin-err';
       status.textContent = 'รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง';
@@ -1223,7 +2691,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
         void card.offsetWidth;
         card.classList.add('sq-shake');
       }
-      setTimeout(pinClear, 520);
+      setTimeout(pinClear, 900);
     }
   }
   function pinClear(){
@@ -1240,11 +2708,22 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     clearPinStatus();
   }
   function pickGift(target, btn){
-    if (btn) btn.classList.add('sq-slow-glow');
+    if (SQ.picking) return;
+    SQ.picking = true;
+    if (btn){
+      if (btn.classList.contains('sq-gift')){
+        var row = document.querySelector('#sq-screen-2 .sq-gifts');
+        if (row){ row.classList.add('sq-picking'); }
+        btn.classList.add('sq-picked');
+      }
+      btn.classList.add('sq-slow-glow');
+    }
+    if (target === 6){ playSfx('vinyl'); } else { playSfx('gift'); }
     clearWarpTimer();
+    clearRevealTimer();
     SQ.warpTimer = setTimeout(function(){
       startWarp(target, SQ.config.settings.warpDurationOptionMs);
-    }, 330);
+    }, 820);
   }
   function stopBgMedia(){
     var a = byId('sq-bg-audio'); if (a){ a.pause(); a.src=''; a.removeAttribute('data-loaded'); }
@@ -1298,16 +2777,16 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
   }
   function tryAutoMusic(){
     try {
+      if (!SQ.sfxOn || SQ.pausedForMedia) return;
       var src = SQ.config.content.bgMusic.src;
-      var toggle = byId('sq-music-toggle');
       if (!src){
-        if (toggle) toggle.style.display = 'none';
         stopBgMedia();
-        SQ.musicOn = false;
+        startAmbientMusic();
+        SQ.musicOn = true;
         syncMusicIcon();
         return;
       }
-      if (toggle) toggle.style.display = 'inline-flex';
+      stopAmbientMusic();
       var ytId = youTubeId(src);
       if (ytId){
         playYouTubeBg(ytId);
@@ -1319,22 +2798,36 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
       SQ.musicOn = true;
       syncMusicIcon();
     } catch (e) {
-      if (byId('sq-music-toggle')) byId('sq-music-toggle').style.display = 'none';
       SQ.musicOn = false;
       syncMusicIcon();
     }
   }
   function toggleMusic(){
-    if (SQ.musicOn){
+    if (SQ.sfxOn || SQ.musicOn || SQ.ambientOn){
       stopBgMedia();
+      stopAmbientMusic();
       SQ.musicOn = false;
+      SQ.sfxOn = false;
+      SQ.pausedForMedia = false;
     } else {
+      SQ.sfxOn = true;
+      SQ.pausedForMedia = false;
+      getAudioCtx();
+      playSfx('toggle');
       tryAutoMusic();
     }
     syncMusicIcon();
   }
-  function onFirstGesture(){
-    tryAutoMusic();
+  function onFirstGesture(ev){
+    if (ev && ev.target && ev.target.closest && ev.target.closest('#sq-music-toggle')){
+      window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('touchstart', onFirstGesture);
+      return;
+    }
+    getAudioCtx();
+    if (SQ.unlocked && SQ.sfxOn && !SQ.musicOn && SQ.screen !== 6){
+      tryAutoMusic();
+    }
     window.removeEventListener('pointerdown', onFirstGesture);
     window.removeEventListener('touchstart', onFirstGesture);
   }
@@ -1531,6 +3024,7 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
       fText('content.flowers.title', 'หัวข้อหลัก (Title)', 'ช่อดอกไม้เสมือนจริง'),
       fArea('content.flowers.message', 'ข้อความมอบดอกไม้'),
       fArea('content.flowers.highlightText', 'ข้อความไฮไลต์'),
+      fPara('content.flowers.wishes', 'คำอวยพรสุ่มจากช่อดอกไม้ (บรรทัดละ 1 พร)'),
       fMedia('content.bgMusic.src', 'เสียงพื้นหลัง (YouTube / MP3 / MP4)', 'audio/*;video/*')
     ));
     frag.appendChild(adminGroup('วิดีโอความทรงจำ',
@@ -1626,10 +3120,29 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     if (pm) pm.classList.remove('on');
     var pay = clone.querySelector('#sq-pay-modal');
     if (pay) pay.classList.remove('on');
+    var lb = clone.querySelector('#sq-lightbox');
+    if (lb){ lb.classList.remove('on'); lb.classList.remove('is-text'); }
+    var wb = clone.querySelector('#sq-wish-box');
+    if (wb) wb.classList.remove('is-on');
     for (var i = 1; i <= 7; i++){
       var sc = clone.querySelector('#sq-screen-' + i);
-      if (sc){ sc.classList.remove('sq-active'); if (i === 1) sc.classList.add('sq-active'); }
+      if (sc){
+        sc.classList.remove('sq-active');
+        sc.classList.remove('sq-staged');
+        sc.classList.remove('sq-revealed');
+        if (i === 1) sc.classList.add('sq-active');
+      }
     }
+    var dupFilms = clone.querySelectorAll('.sq-film-dup');
+    for (var df = 0; df < dupFilms.length; df++){
+      if (dupFilms[df].parentNode){ dupFilms[df].parentNode.removeChild(dupFilms[df]); }
+    }
+    var gTexts = clone.querySelectorAll('[data-sq-text]');
+    for (var gt = 0; gt < gTexts.length; gt++){
+      gTexts[gt].textContent = gTexts[gt].getAttribute('data-sq-text') || '';
+    }
+    var polTr = clone.querySelector('#mem-pol-track');
+    if (polTr){ polTr.style.transform = ''; }
     var fab = clone.querySelector('#sq-edit-fab');
     if (fab && fab.parentNode) fab.parentNode.removeChild(fab);
     var panel = clone.querySelector('#sq-admin-panel');
@@ -1668,17 +3181,126 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
   function applyConfig(cfg){
     if (!cfg) return;
     var wasEdit = EngineEditMode;
+    clearTextTimers();
+    resetScreenText(SQ.screen);
     SQ.config = normalize(cfg);
     SQ.paid = !!SQ.config.settings.isPaid;
     sync();
     applyEnvelopeStyle();
     if (wasEdit){ refreshAdmin(); }
   }
+  function bloomBouquet(){
+    playSfx('bloom');
+    var bq = document.querySelector('#sq-screen-5 .sq-bouquet');
+    if (bq && bq.classList){
+      bq.classList.remove('is-blooming');
+      void bq.offsetWidth;
+      bq.classList.add('is-blooming');
+    }
+    var stage = byId('sq-petal-stage');
+    if (!stage) return;
+    var palette = ['#f472b6', '#fb7185', '#fbcfe8', '#e11d48', '#fde68a'];
+    for (var i = 0; i < 14; i++){
+      (function(idx){
+        var p = document.createElement('span');
+        p.className = 'sq-petal-item';
+        var leftPct = 8 + Math.random() * 84;
+        var dx = Math.round((Math.random() - 0.5) * 140) + 'px';
+        var dy = Math.round(280 + Math.random() * 190) + 'px';
+        var rot = Math.round(140 + Math.random() * 260) + 'deg';
+        var dur = (2.6 + Math.random() * 1.4).toFixed(2) + 's';
+        var sc = (0.75 + Math.random() * 0.55).toFixed(2);
+        var color = palette[idx % palette.length];
+        p.style.left = leftPct.toFixed(1) + '%';
+        p.style.setProperty('--dx', dx);
+        p.style.setProperty('--dy', dy);
+        p.style.setProperty('--rot', rot);
+        p.style.setProperty('--dur', dur);
+        p.style.setProperty('--sc', sc);
+        p.style.animationDelay = (idx * 0.07).toFixed(2) + 's';
+        if (idx % 4 === 0){
+          p.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z" fill="#fde68a"/></svg>';
+        } else {
+          p.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C7 6 5 12 8 17c2.2 3.6 5.8 3.6 8 0 3-5 1-11-4-15z" fill="' + color + '"/></svg>';
+        }
+        stage.appendChild(p);
+        setTimeout(function(){
+          if (p.parentNode){ p.parentNode.removeChild(p); }
+        }, 4300);
+      })(i);
+    }
+  }
+  function drawRandomWish(){
+    playSfx('bloom');
+    var list = (SQ.config && SQ.config.content && SQ.config.content.flowers && Array.isArray(SQ.config.content.flowers.wishes))
+      ? SQ.config.content.flowers.wishes
+      : [];
+    var clean = [];
+    for (var i = 0; i < list.length; i++){
+      var item = String(list[i] == null ? '' : list[i]).trim();
+      if (item){ clean.push(item); }
+    }
+    if (!clean.length){
+      clean = ['ขอให้ทุกวันของเธอเต็มไปด้วยรอยยิ้มและความสุขเสมอนะ'];
+    }
+    var idx = 0;
+    if (clean.length > 1){
+      do {
+        idx = Math.floor(Math.random() * clean.length);
+      } while (idx === SQ.lastWishIdx);
+    }
+    SQ.lastWishIdx = idx;
+    var box = byId('sq-wish-box');
+    var txt = byId('sq-wish-text');
+    if (txt){ txt.textContent = clean[idx]; }
+    if (box && box.classList){
+      box.classList.remove('is-on');
+      void box.offsetWidth;
+      box.classList.add('is-on');
+    }
+  }
+  function openLightbox(src, alt){
+    var lb = byId('sq-lightbox');
+    var img = byId('sq-lb-img');
+    if (!lb || !img || !src) return;
+    img.setAttribute('src', src);
+    img.setAttribute('alt', alt || 'ภาพความทรงจำ');
+    if (lb.classList){ lb.classList.remove('is-text'); lb.classList.add('on'); }
+    playSfx('screen');
+  }
+  function openTextLightbox(title, paras){
+    var lb = byId('sq-lightbox');
+    var tEl = byId('sq-lb-title');
+    var bEl = byId('sq-lb-body');
+    if (!lb || !tEl || !bEl) return;
+    tEl.textContent = title ? String(title) : '';
+    tEl.style.display = tEl.textContent.trim() ? '' : 'none';
+    bEl.innerHTML = '';
+    var list = Array.isArray(paras) ? paras : [];
+    for (var i = 0; i < list.length; i++){
+      var txt = String(list[i] == null ? '' : list[i]).trim();
+      if (!txt) continue;
+      var p = document.createElement('p');
+      p.textContent = txt;
+      bEl.appendChild(p);
+    }
+    if (!bEl.children.length && !tEl.textContent.trim()) return;
+    if (lb.classList){ lb.classList.add('is-text'); lb.classList.add('on'); }
+    playSfx('screen');
+  }
+  function closeLightbox(){
+    var lb = byId('sq-lightbox');
+    if (lb && lb.classList){ lb.classList.remove('on'); lb.classList.remove('is-text'); }
+  }
   function handleAct(act, el){
     switch (act){
       case 'open-envelope': envelopeClicked(); break;
-      case 'menu': showScreen(2); break;
+      case 'menu': playSfx('screen'); showScreen(2); break;
+      case 'bloom-bouquet': bloomBouquet(); break;
+      case 'flower-wish': drawRandomWish(); break;
+      case 'lb-close': closeLightbox(); break;
       case 'replay':
+        playSfx('pin-back');
         SQ.pin = '';
         syncDots();
         var e = byId('sq-envelope');
@@ -1686,14 +3308,23 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
         closePin();
         showScreen(1);
         break;
-      case 'next-finale': startWarp(7, 1200); break;
+      case 'next-finale': playSfx('gift'); startWarp(7, (SQ.config && SQ.config.settings && SQ.config.settings.warpDurationOptionMs) || 2400); break;
       case 'vinyl': pickGift(6, el); break;
-      case 'pin-clear': pinClear(); break;
-      case 'pin-backspace': pinBackspace(); break;
+      case 'pol-prev': playSfx('pin-back'); goPolSlide(SQ.polIdx - 1); break;
+      case 'pol-next': playSfx('screen'); goPolSlide(SQ.polIdx + 1); break;
+      case 'pol-dot':
+        playSfx('pin-tap');
+        goPolSlide(Number(el.getAttribute('data-idx')) || 0);
+        break;
+      case 'pin-clear': playSfx('pin-back'); pinClear(); break;
+      case 'pin-backspace': playSfx('pin-back'); pinBackspace(); break;
       case 'close-pin': closePin(); break;
       case 'open-admin': openAdmin(); break;
       case 'close-admin': closeAdmin(); break;
-      case 'screen': showScreen(Number(el.getAttribute('data-n')) || 1); break;
+      case 'screen':
+        playSfx('screen');
+        showScreen(Number(el.getAttribute('data-n')) || 1);
+        break;
       case 'export': doExport(); break;
       case 'pay': requestPay(); break;
       case 'pay-open': post({ type: 'sq:request-pay', config: SQ.config }); break;
@@ -1706,8 +3337,21 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
   function delegationClick(ev){
     var t = ev.target;
     while (t && t !== document){
+      if (EngineStudioSelect && t.hasAttribute && t.hasAttribute('data-sq-edit')){
+        ev.stopPropagation();
+        ev.preventDefault();
+        post({
+          type: 'sq:select-field',
+          tabIndex: Number(t.getAttribute('data-sq-tab')) || 1,
+          fieldId: t.getAttribute('data-sq-field') || ''
+        });
+        return;
+      }
       if (t.hasAttribute && t.hasAttribute('data-act')){
         handleAct(t.getAttribute('data-act'), t);
+        return;
+      }
+      if (t.id === 'sq-lb-img' || t.id === 'sq-lb-letter' || (t.classList && t.classList.contains('sq-lb-card'))){
         return;
       }
       if (t.hasAttribute && t.hasAttribute('data-key')){
@@ -1725,6 +3369,30 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
         return;
       }
       t = t.parentNode;
+    }
+    var raw = ev.target;
+    if (raw && raw.tagName && raw.tagName.toUpperCase() === 'IMG'){
+      if (!raw.classList || !raw.classList.contains('sq-img-fallback')){
+        var src = raw.getAttribute('src');
+        var isPhoto = raw.closest && raw.closest('#sq-screen-3 .sq-polaroid, #sq-screen-4 .sq-film-frame, #sq-screen-4 .sq-polaroid, #sq-screen-6 .sq-polaroid, #song-media-box');
+        if (src && isPhoto){
+          openLightbox(src, raw.getAttribute('alt') || '');
+          return;
+        }
+      }
+    }
+    if (raw && raw.closest){
+      var c = (SQ.config && SQ.config.content) ? SQ.config.content : {};
+      if (raw.closest('#sq-screen-3 .sq-letter')){
+        var lt = c.letter || {};
+        openTextLightbox(lt.title || '', lt.paragraphs || []);
+      } else if (raw.closest('#sq-screen-4 #mem-desc')){
+        var mem = c.memories || {};
+        if (mem.description){ openTextLightbox(mem.sectionTitle || '', [mem.description]); }
+      } else if (raw.closest('#sq-screen-5 .sq-floral-note')){
+        var flw = c.flowers || {};
+        openTextLightbox(flw.title || '', [flw.message || '', flw.highlightText || '']);
+      }
     }
   }
   function delegationChange(ev){
@@ -1744,6 +3412,12 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     postChange();
   }
   function delegationKey(ev){
+    var lb = byId('sq-lightbox');
+    if (lb && lb.classList && lb.classList.contains('on') && ev.key === 'Escape'){
+      closeLightbox();
+      ev.preventDefault();
+      return;
+    }
     var isOpen = byId('sq-pin-modal').classList.contains('on');
     if (!isOpen) return;
     var k = ev.key;
@@ -1766,6 +3440,31 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
       if (d.shareUrl) SQ.shareUrl = d.shareUrl;
     }
   }
+  function markStudioEl(selector, tab, fieldId, label){
+    var list = document.querySelectorAll(selector);
+    for (var i = 0; i < list.length; i++){
+      var el = list[i];
+      if (!el) continue;
+      el.setAttribute('data-sq-edit', label);
+      el.setAttribute('data-sq-tab', String(tab));
+      el.setAttribute('data-sq-field', fieldId);
+      el.setAttribute('title', 'คลิกเพื่อ' + label);
+    }
+  }
+  function initStudioSelectMode(){
+    document.documentElement.classList.add('sq-studio');
+    markStudioEl('#sq-greeting', 1, 'editor-step-panel-1', 'แก้ไขชื่อการ์ดและหน้าซอง');
+    markStudioEl('#sq-envelope', 1, 'editor-step-panel-1-b', 'แก้ไขสไตล์ซองจดหมายและรหัส PIN');
+    markStudioEl('[data-f="content.menu.subTitle"], [data-f="content.menu.title"]', 2, 'editor-step-panel-2', 'แก้ไขหัวข้อเมนูของขวัญ');
+    markStudioEl('.sq-gift', 2, 'editor-step-panel-2', 'แก้ไขการ์ดเมนูของขวัญ');
+    markStudioEl('#sq-screen-3 .sq-polaroid', 3, 'editor-step-panel-3', 'แก้ไขรูปโพลารอยด์จดหมาย');
+    markStudioEl('#msg-title, #msg-paras', 3, 'editor-step-panel-3', 'แก้ไขหัวข้อและเนื้อหาจดหมาย');
+    markStudioEl('#mem-title, #mem-desc', 4, 'editor-step-panel-4', 'แก้ไขหัวข้อและคำอธิบายความทรงจำ');
+    markStudioEl('#sq-screen-4 .sq-film-frame, #sq-screen-4 .sq-polaroid', 4, 'editor-step-panel-4', 'แก้ไขรูปภาพความทรงจำ');
+    markStudioEl('#sq-screen-5 .sq-eyebrow, #sq-screen-5 .sq-title, #flw-msg, #flw-hl, #sq-vinyl', 5, 'editor-step-panel-5', 'แก้ไขข้อความช่อดอกไม้และเพลง');
+    markStudioEl('#song-eyebrow, #song-title, #song-artist, #song-media-box, #sq-screen-6 .sq-polaroid', 6, 'editor-step-panel-6', 'แก้ไขวิดีโอและภาพประกอบ');
+    markStudioEl('#finale-main, #finale-sub', 7, 'editor-step-panel-7', 'แก้ไขข้อความฉากจบ Finale');
+  }
   function boot(){
     var raw = '';
     try { var node = byId('sq-config'); if (node) raw = node.textContent || ''; } catch (e) { raw = ''; }
@@ -1774,12 +3473,20 @@ export const SURPRISE_QR_ENGINE_JS: string = `(function(){
     SQ.config = normalize(parsed || defaultConfig());
     SQ.paid = !!SQ.config.settings.isPaid;
     if (EngineEditMode && EngineShowAdmin){ buildAdmin(); }
+    if (EngineStudioSelect){ initStudioSelectMode(); }
     sync();
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function(){ sync(); });
     }
     showScreen(1);
-    tryAutoMusic();
+    var polCar = byId('mem-pol-carousel');
+    if (polCar){
+      polCar.addEventListener('mouseenter', function(){ SQ.slidePaused = true; });
+      polCar.addEventListener('mouseleave', function(){ SQ.slidePaused = false; });
+      polCar.addEventListener('touchstart', function(){ SQ.slidePaused = true; });
+      polCar.addEventListener('touchend', function(){ setTimeout(function(){ SQ.slidePaused = false; }, 1800); });
+    }
+    window.addEventListener('resize', function(){ if (SQ.screen === 4){ goPolSlide(SQ.polIdx); } });
     window.addEventListener('pointerdown', onFirstGesture);
     window.addEventListener('touchstart', onFirstGesture);
     document.addEventListener('click', delegationClick);
@@ -1807,6 +3514,8 @@ export interface SurpriseQRBuildOptions {
    * rendered.
    */
   showAdmin?: boolean;
+  /** Enable studio preview hover-to-frame highlights & click-to-edit messaging. */
+  studioSelect?: boolean;
   /** Extra HTML injected at the very end of <head> (fonts, meta, scripts). */
   headExtra?: string;
 }
@@ -1845,6 +3554,7 @@ export function buildSurpriseQRHTML(
   const editMode = Boolean(options.edit);
   // Studio live-preview (edit mode but no admin FAB/drawer).
   const showAdminMode = editMode && options.showAdmin !== false;
+  const studioSelectMode = editMode && !showAdminMode && Boolean(options.studioSelect);
   const configCtx = JSON.parse(
     serializeSafeJSON(config && typeof config === "object" ? config : {}),
   ) as Record<string, unknown>;
@@ -1861,7 +3571,9 @@ export function buildSurpriseQRHTML(
     "/* Anniversary Surprise engine — bundled single-file template. */",
     SURPRISE_QR_ENGINE_JS.replace(EDIT_MARKER, editMode ? "true" : "false")
       .split("__SQ_ADMIN__")
-      .join(showAdminMode ? "true" : "false"),
+      .join(showAdminMode ? "true" : "false")
+      .split("__SQ_STUDIO_SELECT__")
+      .join(studioSelectMode ? "true" : "false"),
     "</script>",
     "",
   ].join("\n");
@@ -1875,7 +3587,15 @@ export function buildSurpriseQRHTML(
   const adminHideStyle = showAdminMode
     ? ""
     : '<style id="sq-admin-hide">#sq-edit-fab,#sq-admin-panel{display:none!important}</style>';
-  const besidesHead = headBase + adminHideStyle;
+  const studioHoverStyle = studioSelectMode
+    ? `<style id="sq-studio-hover">
+html.sq-studio [data-sq-edit]{transition:outline-color 140ms ease,box-shadow 140ms ease}
+html.sq-studio [data-sq-edit]:hover:not(:has([data-sq-edit]:hover)){outline:2px dashed rgba(251,191,36,.96)!important;outline-offset:3px;box-shadow:inset 0 0 0 2px rgba(251,191,36,.55),0 0 0 2px rgba(10,6,18,.72),0 0 0 5px rgba(251,191,36,.22),0 0 22px rgba(251,191,36,.32)!important;cursor:pointer!important}
+html.sq-studio [data-sq-edit]:not(.sq-hero):not(.envelope-wrap):hover:not(:has([data-sq-edit]:hover)){position:relative;z-index:25}
+html.sq-studio [data-sq-edit]:not(img):hover:not(:has([data-sq-edit]:hover))::after{content:attr(data-sq-edit);position:absolute;top:-12px;right:6px;z-index:60;pointer-events:none;padding:2px 8px;border-radius:9999px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f0a06;border:1px solid rgba(254,243,199,.85);box-shadow:0 4px 12px rgba(0,0,0,.45);font-family:system-ui,sans-serif;font-size:10px;font-weight:700;line-height:1.3;white-space:nowrap}
+</style>`
+    : "";
+  const besidesHead = headBase + adminHideStyle + studioHoverStyle;
 
   const bodyContent = SURPRISE_QR_BODY + "\n" + configScript + engineScript;
 

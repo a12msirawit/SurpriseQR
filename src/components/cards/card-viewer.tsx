@@ -26,6 +26,12 @@ import {
   defaultMidnightCinemaData,
   defaultStarlightMemoriesData,
   defaultVelvetCandleData,
+  defaultGrandNewYearData,
+  defaultSongkranSplendorData,
+  defaultLoveOsData,
+  defaultPixelGachaData,
+  defaultLunar3DData,
+  defaultOrbitOfUsData,
   type TemplateSlug,
 } from "@/data/templates";
 
@@ -35,6 +41,12 @@ function getDefaultDataForSlug(slug: TemplateSlug | null): SurpriseQRData {
   if (slug === "midnight-cinema") return defaultMidnightCinemaData;
   if (slug === "vintage-wax-seal") return defaultVintageWaxSealData;
   if (slug === "retro-y2k") return defaultRetroY2KData;
+  if (slug === "new-year-grand-celebration") return defaultGrandNewYearData;
+  if (slug === "songkran-splendor") return defaultSongkranSplendorData;
+  if (slug === "love-os") return defaultLoveOsData;
+  if (slug === "pixel-gacha") return defaultPixelGachaData;
+  if (slug === "lunar-3d") return defaultLunar3DData;
+  if (slug === "orbit-of-us") return defaultOrbitOfUsData;
   return defaultSurpriseQRData;
 }
 import type { SurpriseQRData } from "@/types/templates";
@@ -351,7 +363,12 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
     renderStrategy === "vintage-wax-seal" ||
     renderStrategy === "midnight-cinema" ||
     renderStrategy === "starlight-memories" ||
-    renderStrategy === "velvet-candle";
+    renderStrategy === "velvet-candle" ||
+    renderStrategy === "new-year-grand-celebration" ||
+    renderStrategy === "love-os" ||
+    renderStrategy === "pixel-gacha" ||
+    renderStrategy === "lunar-3d" ||
+    renderStrategy === "orbit-of-us";
   useEffect(() => {
     if ((isOpened || isImmersiveStrategy) && !error) {
       incrementCardViewCount(hashId);
@@ -496,14 +513,36 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
       slug === "vintage-wax-seal" ||
       slug === "midnight-cinema" ||
       slug === "starlight-memories" ||
-      slug === "velvet-candle"
+      slug === "velvet-candle" ||
+      slug === "new-year-grand-celebration" ||
+      slug === "songkran-splendor" ||
+      slug === "halloween-haunted-scroll" ||
+      slug === "love-os" ||
+      slug === "pixel-gacha" ||
+      slug === "lunar-3d" ||
+      slug === "orbit-of-us"
     ) {
       return buildSurpriseQRData(card, embeddedContent, getDefaultDataForSlug(slug));
     }
     if (slug === "candles") {
+      const optStr = (key: string) =>
+        typeof embeddedContent[key] === "string" && embeddedContent[key]
+          ? (embeddedContent[key] as string)
+          : undefined;
       return {
         recipientName: card.recipient_name,
-        senderName: card.sender_name,
+        senderName: optStr("senderName") ?? card.sender_name,
+        introHeadline: optStr("introHeadline"),
+        introPrompt: optStr("introPrompt"),
+        introButtonCaption: optStr("introButtonCaption"),
+        blowingHeadline: optStr("blowingHeadline"),
+        celebrationHeadline: optStr("celebrationHeadline"),
+        celebrationHint: optStr("celebrationHint"),
+        revealButtonCaption: optStr("revealButtonCaption"),
+        letterTitle: optStr("letterTitle"),
+        closingButtonCaption: optStr("closingButtonCaption"),
+        closingBadge: optStr("closingBadge"),
+        closingTitle: optStr("closingTitle"),
         message:
           typeof embeddedContent.message === "string"
             ? embeddedContent.message
@@ -516,8 +555,9 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
             : typeof embeddedContent.message === "string"
               ? embeddedContent.message
               : "") || card.message,
-        audio_url: card.audio_url,
+        audio_url: card.audio_url ?? optStr("audio_url"),
         image_url: card.image_url,
+        videoUrl: optStr("videoUrl"),
         photos: Array.isArray(embeddedContent.photos) ? embeddedContent.photos : [],
       };
     }
@@ -541,7 +581,14 @@ export default function CardViewer({ card, ownerTier, hashId }: CardViewerProps)
       renderStrategy === "vintage-wax-seal" ||
       renderStrategy === "midnight-cinema" ||
       renderStrategy === "starlight-memories" ||
-      renderStrategy === "velvet-candle") &&
+      renderStrategy === "velvet-candle" ||
+      renderStrategy === "new-year-grand-celebration" ||
+      renderStrategy === "songkran-splendor" ||
+      renderStrategy === "halloween-haunted-scroll" ||
+      renderStrategy === "love-os" ||
+      renderStrategy === "pixel-gacha" ||
+      renderStrategy === "lunar-3d" ||
+      renderStrategy === "orbit-of-us") &&
     TemplateComponent
   ) {
     return (

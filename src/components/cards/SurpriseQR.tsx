@@ -29,6 +29,8 @@ export interface SurpriseQRProps {
   activeScreen?: number;
   /** Increment to force a fresh sq:set-config push to the iframe (fallback). */
   refreshToken?: number;
+  /** Called in Studio preview when user clicks an editable element in the iframe. */
+  onSelectField?: (tabIndex: number, fieldId?: string) => void;
 }
 
 /** Download a text payload as a file (used for the HTML bundle export). */
@@ -69,6 +71,7 @@ export default function SurpriseQR({
   studio = false,
   activeScreen,
   refreshToken,
+  onSelectField,
 }: SurpriseQRProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const readyRef = useRef(false);
@@ -88,13 +91,15 @@ export default function SurpriseQR({
     return config;
   }, [config, expectedPin]);
 
-  // The iframe shell is built ONCE per (edit, studio) mode. Every keystroke
+  const studioSelect = Boolean(studio && onSelectField);
+
+  // The iframe shell is built ONCE per (edit, studio, studioSelect) mode. Every keystroke
   // afterwards flows through postMessage (sq:set-config) so the engine never
   // reloads and the active screen / playback is preserved during live edits.
   const html = useMemo(
-    () => buildSurpriseQRHTML(merged, { edit: isEditing, showAdmin: !studio }),
+    () => buildSurpriseQRHTML(merged, { edit: isEditing, showAdmin: !studio, studioSelect }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isEditing, studio],
+    [isEditing, studio, studioSelect],
   );
 
   // Generate the PromptPay QR data URL for the built-in pay modal.
@@ -180,7 +185,13 @@ export default function SurpriseQR({
       if (ev.source !== frame.contentWindow) return;
       const data = ev.data;
       if (!data || typeof data !== "object") return;
-      const msg = data as { type?: string; config?: SurpriseQRData; html?: string };
+      const msg = data as {
+        type?: string;
+        config?: SurpriseQRData;
+        html?: string;
+        tabIndex?: number;
+        fieldId?: string;
+      };
       switch (msg.type) {
         case "sq:ready":
           readyRef.current = true;
@@ -232,6 +243,11 @@ export default function SurpriseQR({
             frame.contentWindow?.postMessage({ type: "sq:payment-success" }, "*");
           }
           break;
+        case "sq:select-field":
+          if (typeof msg.tabIndex === "number") {
+            onSelectField?.(msg.tabIndex, msg.fieldId || undefined);
+          }
+          break;
         case "sq:export":
           if (msg.html) downloadFile(msg.html, "surprise-card.html");
           break;
@@ -242,7 +258,7 @@ export default function SurpriseQR({
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qrDataUrl, promptAmount, shareUrl, onRequestPay, merged]);
+  }, [qrDataUrl, promptAmount, shareUrl, onRequestPay, onSelectField, merged]);
 
   function confirmPaid() {
     setPayConfirmed(true);

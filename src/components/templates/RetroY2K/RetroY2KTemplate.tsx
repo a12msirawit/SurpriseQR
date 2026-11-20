@@ -109,6 +109,8 @@ const NotepadContent = React.memo(function NotepadContent({
       {/* Sunken Notepad Canvas with Yellowish Tint Paper */}
       <div className="p-2">
         <div
+          data-editable-field={onSelectField ? "field-retro-letter-content" : undefined}
+          data-edit-label={onSelectField ? "เนื้อหาจดหมาย" : undefined}
           onClick={(e) => {
             if (onSelectField) {
               e.stopPropagation();
@@ -443,9 +445,13 @@ const RetroY2KTemplate = React.memo(function RetroY2KTemplate({
                 : undefined
             }
             titleTooltip={onSelectField ? "คลิกเพื่อแก้ไขหัวข้อ Alert (แท็บ 1)" : undefined}
+            titleFieldId={onSelectField ? "field-retro-alert-title" : undefined}
+            titleEditLabel={onSelectField ? "หัวข้อ Alert" : undefined}
           >
             <div className="p-4 space-y-4">
               <div
+                data-editable-field={onSelectField ? "field-retro-alert-message" : undefined}
+                data-edit-label={onSelectField ? "ข้อความแจ้งเตือน" : undefined}
                 onClick={(e) => {
                   if (onSelectField) {
                     e.stopPropagation();
@@ -534,6 +540,8 @@ const RetroY2KTemplate = React.memo(function RetroY2KTemplate({
                   : undefined
               }
               titleTooltip={onSelectField ? "คลิกเพื่อแก้ไขชื่อไฟล์ (แท็บ 2)" : undefined}
+              titleFieldId={onSelectField ? "field-retro-letter-title" : undefined}
+              titleEditLabel={onSelectField ? "ชื่อไฟล์จดหมาย" : undefined}
             >
               <NotepadContent
                 fullText={fullLetterText}
@@ -568,6 +576,8 @@ const RetroY2KTemplate = React.memo(function RetroY2KTemplate({
                 <div className="p-3 space-y-2.5">
                   {/* Sunken picture frame */}
                   <div
+                    data-editable-field={onSelectField ? "field-retro-photo-viewer" : undefined}
+                    data-edit-label={onSelectField ? "รูปภาพความทรงจำ" : undefined}
                     onClick={(e) => {
                       if (onSelectField) {
                         e.stopPropagation();
@@ -595,6 +605,8 @@ const RetroY2KTemplate = React.memo(function RetroY2KTemplate({
                   {/* Optional Photo Caption */}
                   {data.photoCaption && (
                     <p
+                      data-editable-field={onSelectField ? "field-retro-photo-caption" : undefined}
+                      data-edit-label={onSelectField ? "คำบรรยายภาพ" : undefined}
                       onClick={(e) => {
                         if (onSelectField) {
                           e.stopPropagation();
@@ -663,6 +675,8 @@ const RetroY2KTemplate = React.memo(function RetroY2KTemplate({
 
               {/* Display & Spectrum Visualizer */}
               <div
+                data-editable-field={onSelectField ? "field-retro-song-title" : undefined}
+                data-edit-label={onSelectField ? "ชื่อเพลงและศิลปิน" : undefined}
                 onClick={(e) => {
                   if (onSelectField) {
                     e.stopPropagation();
@@ -724,6 +738,8 @@ const RetroY2KTemplate = React.memo(function RetroY2KTemplate({
                   </button>
                 </div>
                 <span
+                  data-editable-field={onSelectField ? "field-retro-audio-src" : undefined}
+                  data-edit-label={onSelectField ? "ไฟล์เพลง" : undefined}
                   onClick={(e) => {
                     if (onSelectField) {
                       e.stopPropagation();
@@ -756,11 +772,15 @@ const RetroY2KTemplate = React.memo(function RetroY2KTemplate({
                   : undefined
               }
               titleTooltip={onSelectField ? "คลิกเพื่อแก้ไขหัวข้อฉลอง (แท็บ 7)" : undefined}
+              titleFieldId={onSelectField ? "field-retro-finale-title" : undefined}
+              titleEditLabel={onSelectField ? "หัวข้อฉลองสุดท้าย" : undefined}
             >
               <div className="p-4 text-center space-y-3.5">
                 <div className="flex items-center justify-center gap-3 text-rose-500 animate-bounce"><Sparkles className="w-6 h-6 text-amber-400" /><Heart className="w-7 h-7 text-rose-500 fill-rose-500" /><Gift className="w-7 h-7 text-purple-500" /><Sparkles className="w-6 h-6 text-amber-400" /></div>
 
                 <div
+                  data-editable-field={onSelectField ? "field-retro-finale-message" : undefined}
+                  data-edit-label={onSelectField ? "ข้อความฉลองสุดท้าย" : undefined}
                   onClick={(e) => {
                     if (onSelectField) {
                       e.stopPropagation();

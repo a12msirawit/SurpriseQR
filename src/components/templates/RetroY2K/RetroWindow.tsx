@@ -19,6 +19,8 @@ export interface RetroWindowProps {
   dragConstraints?: React.RefObject<Element | null>;
   onTitleClick?: (e: React.MouseEvent) => void;
   titleTooltip?: string;
+  titleFieldId?: string;
+  titleEditLabel?: string;
 }
 
 const RetroWindow = React.memo(function RetroWindow({
@@ -35,6 +37,8 @@ const RetroWindow = React.memo(function RetroWindow({
   dragConstraints,
   onTitleClick,
   titleTooltip,
+  titleFieldId,
+  titleEditLabel,
 }: RetroWindowProps) {
   const [minimized, setMinimized] = useState(false);
   const [btnPressed, setBtnPressed] = useState<string | null>(null);
@@ -78,6 +82,8 @@ const RetroWindow = React.memo(function RetroWindow({
         <div
           onClick={onTitleClick}
           title={titleTooltip}
+          data-editable-field={titleFieldId}
+          data-edit-label={titleEditLabel}
           className={`flex items-center gap-1.5 overflow-hidden text-xs md:text-sm font-bold tracking-tight ${
             onTitleClick ? "cursor-pointer hover:underline hover:text-cyan-200 transition-colors" : ""
           }`}

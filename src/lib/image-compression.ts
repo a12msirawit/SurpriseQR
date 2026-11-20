@@ -1,4 +1,16 @@
-export async function compressImage(file: File): Promise<File> {
+export interface CompressImageOptions {
+  maxDimension?: number;
+  quality?: number;
+  mimeType?: "image/jpeg" | "image/webp";
+}
+
+export async function compressImage(file: File, options: CompressImageOptions = {}): Promise<File> {
+  const {
+    maxDimension = 1200,
+    quality = 0.78,
+    mimeType = "image/jpeg",
+  } = options;
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     const canvas = document.createElement('canvas');
@@ -9,10 +21,11 @@ export async function compressImage(file: File): Promise<File> {
       return;
     }
 
+    const objectUrl = URL.createObjectURL(file);
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       let width = img.width;
       let height = img.height;
-      const maxDimension = 1200;
 
       if (width > maxDimension || height > maxDimension) {
         if (width > height) {
@@ -28,25 +41,32 @@ export async function compressImage(file: File): Promise<File> {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
+      const ext = mimeType === 'image/webp' ? '.webp' : '.jpg';
       canvas.toBlob(
         (blob) => {
           if (!blob) {
             reject(new Error('Failed to compress image'));
             return;
           }
-          const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-            type: 'image/jpeg',
+          const actualType = blob.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+          const actualExt = actualType === 'image/webp' ? '.webp' : '.jpg';
+          const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '') + actualExt, {
+            type: actualType,
             lastModified: Date.now(),
           });
           resolve(compressedFile);
         },
-        'image/jpeg',
-        0.78
+        mimeType,
+        quality
       );
+      void ext;
     };
 
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image'));
+    };
+    img.src = objectUrl;
   });
 }
 

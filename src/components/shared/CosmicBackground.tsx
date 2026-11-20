@@ -80,20 +80,19 @@ export default function CosmicBackground() {
     if (!canvas || !context) return;
 
     let stars: Star[] = [];
-    let devicePixelRatio = 1;
+    let lastFrameTime = 0;
 
     const resize = () => {
-      devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = window.innerWidth * devicePixelRatio;
-      canvas.height = window.innerHeight * devicePixelRatio;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       canvas.style.width = `${window.innerWidth}px`;
       canvas.style.height = `${window.innerHeight}px`;
-      context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-      const count = Math.floor((window.innerWidth * window.innerHeight) / 9000);
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      const count = Math.min(130, Math.floor((window.innerWidth * window.innerHeight) / 14000));
       stars = Array.from({ length: count }, () => ({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        radius: 0.3 + Math.random() * 1.5,
+        radius: 0.4 + Math.random() * 1.4,
         alpha: 0.35 + Math.random() * 0.65,
         speed: 0.002 + Math.random() * 0.012,
         color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
@@ -105,16 +104,19 @@ export default function CosmicBackground() {
         starFrameRef.current = null;
         return;
       }
-      context.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      for (const star of stars) {
-        const twinkle = star.alpha * (0.78 + Math.sin(time * star.speed) * 0.22);
-        context.globalAlpha = twinkle;
-        context.fillStyle = star.color;
-        context.beginPath();
-        context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        context.fill();
+      if (time - lastFrameTime >= 42) {
+        lastFrameTime = time;
+        context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        for (const star of stars) {
+          const twinkle = star.alpha * (0.78 + Math.sin(time * star.speed) * 0.22);
+          context.globalAlpha = twinkle;
+          context.fillStyle = star.color;
+          context.beginPath();
+          context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+          context.fill();
+        }
+        context.globalAlpha = 1;
       }
-      context.globalAlpha = 1;
       starFrameRef.current = window.requestAnimationFrame(animate);
     };
 

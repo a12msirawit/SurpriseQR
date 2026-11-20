@@ -9,6 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import type { UserTier } from "@/types/database";
 import type { TopupHistoryItem } from "@/components/topup/TopupHistoryTable";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/image-compression";
 import { PACKAGE_TIER_RANK, PRICING_PACKAGES, getPackageFeatures, STACKING_FOOTNOTE, type PricingPackage } from "@/lib/packages";
 
 interface PaymentModalProps {
@@ -52,7 +53,6 @@ export default function PaymentModal({
   const [loading, setLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
-  const [transferTime, setTransferTime] = useState("");
   const qrRef = useRef<SVGSVGElement>(null);
   const expired = secondsLeft === 0;
   const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
@@ -77,7 +77,7 @@ export default function PaymentModal({
     if (scheduledPackageTier === pkg.tierKey) return "จ่ายแพ็กรอบถัดไปแล้ว";
     if (pendingPackageType === pkg.id) return "รอผลรายการนี้";
     if (pendingPackageType && activePackageRank > 0 && rank === activePackageRank) return "มีรายการอัปเกรดรอตรวจสอบ";
-    if (activePackageTier === pkg.tierKey && !isRenewalWindowOpen) return "ต่อได้เมื่อเหลือ 7 วัน";
+    if (activePackageTier === pkg.tierKey && !isRenewalWindowOpen) return "แพ็กปัจจุบัน";
     return null;
   };
   const packageExpiryLabel = packageExpiresAt
@@ -125,7 +125,6 @@ export default function PaymentModal({
     setCustomAmount("");
     setError(null);
     setMessage(null);
-    setTransferTime("");
     setSubmittedAt(null);
     setWalletBalance(null);
   }
@@ -214,17 +213,24 @@ export default function PaymentModal({
     if (!file || expired) return;
     setLoading(true);
     setError(null);
+    let slipToUpload: File = file;
+    try {
+      const compressed = await compressImage(file, {
+        maxDimension: 900,
+        quality: 0.6,
+        mimeType: "image/webp",
+      });
+      if (compressed.size < file.size) {
+        slipToUpload = compressed;
+      }
+    } catch {
+      // Fall back to original file if browser canvas compression fails
+    }
     const formData = new FormData();
-    formData.append("slip", file);
+    formData.append("slip", slipToUpload);
     formData.append("amount", String(selectedAmount));
     formData.append("credits_granted", selectedPackage ? "0" : String(selectedAmount));
     if (selectedPackage) formData.append("package_type", selectedPackage.id);
-    formData.append("claimed_transfer_time", transferTime);
-    if (!transferTime) {
-      setError("กรุณาระบุเวลาที่โอนเงิน");
-      setLoading(false);
-      return;
-    }
     try {
       const response = await fetch("/api/payments/submit", { method: "POST", body: formData });
       const data = await response.json();
@@ -390,12 +396,12 @@ export default function PaymentModal({
                 const blockedReason = selectedPackageBlockedReason(pkg);
                 const sameScheduledPackage = scheduledPackageTier === pkg.tierKey;
                 const badge = blockedReason ?? (sameScheduledPackage ? "รอเริ่มรอบถัดไป" : sameActivePackage ? "ต่อรอบเมื่อเหลือ 7 วัน" : pkg.badge);
-                return <button key={pkg.id} type="button" disabled={Boolean(blockedReason)} onClick={() => choosePackage(pkg)} className={`group relative flex min-h-full flex-col justify-between rounded-3xl border p-6 sm:p-8 text-left transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-purple-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/60 disabled:cursor-not-allowed disabled:opacity-50 ${pkg.highlighted ? "border-purple-400/50 bg-gradient-to-b from-purple-900/40 to-[#120a21]/95 shadow-xl shadow-purple-950/40" : "border-purple-900/40 bg-[#120a21]/90 backdrop-blur-xl"} ${selectedPackage?.id === pkg.id ? "ring-2 ring-purple-500/80 shadow-2xl shadow-purple-950/50" : ""}`}>
-                <span className={`mb-3 inline-flex self-start rounded-full border px-3 py-1 text-xs font-semibold ${sameActivePackage ? "border-emerald-400/40 bg-emerald-400/20 text-emerald-300" : "border-purple-500/30 bg-purple-500/20 text-purple-300"}`}>{badge}{selectedPackage?.id === pkg.id && <Check className="ml-1 h-3.5 w-3.5" />}</span>
+                return <button key={pkg.id} type="button" disabled={Boolean(blockedReason)} onClick={() => choosePackage(pkg)} className={`group relative flex min-h-full flex-col justify-between rounded-3xl p-6 sm:p-8 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/60 disabled:cursor-not-allowed ${sameActivePackage ? "border-2 border-emerald-400/80 ring-2 ring-emerald-400/30 bg-gradient-to-b from-emerald-950/40 via-[#120a21]/95 to-[#120a21] shadow-[0_0_34px_-6px_rgba(16,185,129,0.45)] disabled:opacity-100" : `border hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-purple-950/50 disabled:opacity-50 ${pkg.highlighted ? "border-purple-400/50 bg-gradient-to-b from-purple-900/40 to-[#120a21]/95 shadow-xl shadow-purple-950/40" : "border-purple-900/40 bg-[#120a21]/90 backdrop-blur-xl"}`} ${selectedPackage?.id === pkg.id ? "ring-2 ring-purple-500/80 shadow-2xl shadow-purple-950/50" : ""}`}>
+                <span className={`mb-3 inline-flex self-start rounded-full border px-3 py-1 text-xs font-semibold ${sameActivePackage ? "border-emerald-400/50 bg-emerald-400/20 text-emerald-200 shadow-sm shadow-emerald-500/20" : "border-purple-500/30 bg-purple-500/20 text-purple-300"}`}>{badge}{selectedPackage?.id === pkg.id && <Check className="ml-1 h-3.5 w-3.5" />}</span>
                 <strong className="text-xl font-bold text-white sm:text-2xl">{pkg.name}</strong>
                 <span className="my-3 flex items-baseline gap-1 text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.35)] text-4xl font-extrabold font-mono tracking-tight sm:text-5xl lg:text-6xl"><span className="text-2xl font-bold opacity-90 sm:text-3xl">฿</span>{pkg.price}</span>
                 <span className="my-4 space-y-3 text-xs text-slate-300 sm:text-sm">{getPackageFeatures(pkg, currentTier).map((feature) => <span key={feature} className="flex items-start"><CheckCircle2 className="mr-2 mt-0.5 inline-block h-4 w-4 shrink-0 text-emerald-400" />{feature}</span>)}</span>
-                <span className="mt-auto w-full rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-purple-900/30 transition-all duration-200 active:scale-95 hover:from-purple-500 hover:to-pink-500">{blockedReason ?? (sameScheduledPackage ? "รอเริ่มรอบถัดไป" : sameActivePackage ? "ต่ออายุแพ็กนี้" : activePackageRank > 0 && PACKAGE_TIER_RANK[pkg.tierKey] > activePackageRank ? "อัปเกรดเป็นแพ็กนี้" : "เลือกแพ็กเกจนี้")}</span>
+                <span className={`mt-auto w-full rounded-xl px-4 py-3 text-center text-sm font-semibold transition-all duration-200 ${sameActivePackage && blockedReason ? "border border-emerald-400/50 bg-emerald-500/20 text-emerald-200" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-900/30 active:scale-95 hover:from-purple-500 hover:to-pink-500"}`}>{blockedReason ?? (sameScheduledPackage ? "รอเริ่มรอบถัดไป" : sameActivePackage ? "ต่ออายุแพ็กนี้" : activePackageRank > 0 && PACKAGE_TIER_RANK[pkg.tierKey] > activePackageRank ? "อัปเกรดเป็นแพ็กนี้" : "เลือกแพ็กเกจนี้")}</span>
               </button>;
               })}
             </div>
@@ -415,10 +421,6 @@ export default function PaymentModal({
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-5 px-6 sm:px-12">
-            <div className="w-full bg-amber-500/10 border border-amber-500/30 text-amber-300 backdrop-blur-md rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full text-xs font-semibold">รอการชำระเงิน</span>
-              <span className="text-amber-400 font-bold font-mono text-base lg:text-lg flex items-center gap-2"><Clock3 className="h-5 w-5" />เหลือเวลา {minutes}:{seconds} นาที</span>
-            </div>
             <div className="w-full bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-xl p-4 text-center my-4 text-xs sm:text-sm font-medium">ห้ามใช้ QR Code เดิมซ้ำ - 1 QR Code ต่อการโอน 1 ครั้งเท่านั้น</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full bg-[#120a21]/90 border border-purple-900/40 rounded-3xl p-8 backdrop-blur-xl shadow-2xl shadow-purple-950/50">
               <div className="flex flex-col items-center justify-center text-center">
@@ -426,6 +428,10 @@ export default function PaymentModal({
                 <QRCodeSVG ref={qrRef} value={payload} size={240} className="mx-auto" />
               </div>
               <div className="space-y-4 text-center md:text-left">
+                <div className="w-full bg-amber-500/10 border border-amber-500/30 text-amber-300 backdrop-blur-md rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+                  <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full text-xs font-semibold">รอการชำระเงิน</span>
+                  <span className="text-amber-400 font-bold font-mono text-sm sm:text-base flex items-center gap-1.5"><Clock3 className="h-4 w-4" />เหลือเวลา {minutes}:{seconds} นาที</span>
+                </div>
                 <p className="text-emerald-400 font-extrabold text-3xl sm:text-4xl my-4 tracking-wide">ยอดชำระ: ฿{selectedAmount.toFixed(2)} บาท</p>
                 <p className="text-slate-300 text-sm">ชื่อบัญชี: นาย สิริวิชญ์ ยงบรรทม</p>
                 {selectedPackage && refundablePackageCredits > 0 && <p className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm leading-6 text-emerald-200">ใช้เครดิตที่คืนจากแพ็ก {Math.min(selectedPackage.price, refundablePackageCredits).toFixed(2)} บาทแล้ว ยอดที่ต้องโอน {selectedAmount.toFixed(2)} บาท</p>}
@@ -436,14 +442,9 @@ export default function PaymentModal({
             </div>
             <button type="button" onClick={() => setStep("amount")} className="text-purple-400 hover:text-purple-300 text-sm font-medium inline-flex items-center gap-1 transition-colors">← เปลี่ยนจำนวนเงิน</button>
             <label className={`block rounded-2xl border-2 border-dashed bg-white/5 p-6 text-center text-sm text-slate-300 hover:border-space-accent ${embedded ? "border-pink-400/40" : "border-space-border"}`}><UploadCloud className="mx-auto mb-2 h-8 w-8 text-space-accent" />{file?.name || "เลือกสลิป JPG, PNG หรือ WEBP"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="hidden" /></label>
-            <div>
-              <label htmlFor="claimed_transfer_time" className="mb-1 block text-xs font-semibold text-slate-300">เวลาที่โอนเงิน <span className="text-rose-400">*</span></label>
-              <input id="claimed_transfer_time" name="claimed_transfer_time" type="datetime-local" required value={transferTime} onChange={(event) => setTransferTime(event.target.value)} className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-space-accent [color-scheme:dark]" />
-              <p className="mt-1 text-[11px] text-slate-400">ระบุวัน-เวลาที่คุณโอนเงินจริง (ใช้ตรวจสอบกับสลิป)</p>
-            </div>
             {error && <p className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</p>}
             {message && <p className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700"><Check className="h-4 w-4" />{message}</p>}
-            <button type="submit" disabled={!file || loading || !transferTime} className="btn-gradient w-full rounded-xl px-4 py-3.5 font-bold text-white shadow-lg disabled:opacity-50">{loading ? "กำลังส่ง..." : "ส่งสลิปชำระเงิน"}</button>
+            <button type="submit" disabled={!file || loading} className="btn-gradient w-full rounded-xl px-4 py-3.5 font-bold text-white shadow-lg disabled:opacity-50">{loading ? "กำลังส่ง..." : "ส่งสลิปชำระเงิน"}</button>
           </form>
         )}
       </div>

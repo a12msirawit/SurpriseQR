@@ -1,11 +1,14 @@
 import BackButton from "@/components/templates/back-button";
 import TemplateShowcase from "@/components/dashboard/template-showcase";
+import { getProfile } from "@/lib/auth";
 import { getAllTemplates } from "@/lib/templates";
 
 export const dynamic = "force-dynamic";
 
 export default async function TemplatesPage() {
-  const templates = await getAllTemplates();
+  const profile = await getProfile();
+  const isAdmin = profile?.role === "admin";
+  const templates = await getAllTemplates({ includeAdminHidden: isAdmin });
   return (
     <main className="min-h-screen w-full bg-transparent font-['Prompt'] text-slate-100">
       <div className="mx-auto w-full max-w-[1800px] px-4 lg:px-6 py-4">

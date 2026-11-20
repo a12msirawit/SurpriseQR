@@ -18,9 +18,10 @@ interface CardPreviewProps {
   };
   template?: Template | null;
   darkMode?: boolean;
+  onSelectField?: (tabIndex: number, fieldId?: string) => void;
 }
 
-export default function CardPreview({ card, template, darkMode = false }: CardPreviewProps) {
+export default function CardPreview({ card, template, darkMode = false, onSelectField }: CardPreviewProps) {
   const templateSlug = template ? getTemplateSlugById(template.id) : null;
   const TemplateComponent = templateSlug ? getTemplateComponent(templateSlug) : null;
 
@@ -28,7 +29,7 @@ export default function CardPreview({ card, template, darkMode = false }: CardPr
   // generic preview so each template shows its own design.
   if (TemplateComponent && templateSlug) {
     return (
-      <div className={`rounded-3xl border p-8 shadow-xl ${darkMode ? "space-y-6 border-space-border glass-panel bg-white/5 text-white" : "space-y-6 border-rose-200/60 bg-gradient-to-br from-rose-100/80 via-pink-100/60 to-purple-100/80"}`}>
+      <div className={`${onSelectField ? "studio-live-preview " : ""}rounded-3xl border p-8 shadow-xl ${darkMode ? "space-y-6 border-space-border glass-panel bg-white/5 text-white" : "space-y-6 border-rose-200/60 bg-gradient-to-br from-rose-100/80 via-pink-100/60 to-purple-100/80"}`}>
         <TemplateComponent
           config={{
             recipientName: card.recipient_name,
@@ -39,6 +40,7 @@ export default function CardPreview({ card, template, darkMode = false }: CardPr
             image_url: card.image_url,
           }}
           studio
+          onSelectField={onSelectField}
         />
       </div>
     );

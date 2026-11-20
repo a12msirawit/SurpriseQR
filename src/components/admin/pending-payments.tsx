@@ -135,9 +135,9 @@ export default function PendingPayments({ payments }: PendingPaymentsProps) {
                     ดูสลิป
                   </button>
                 </td>
-                <td className="py-4 px-4 text-sm text-slate-400 flex items-center gap-2">
+                <td className="py-4 px-4 text-sm text-slate-400 flex items-center gap-2" suppressHydrationWarning>
                   <Clock className="w-4 h-4" />
-                  {new Date(payment.created_at).toLocaleString()}
+                  {new Date(payment.created_at).toLocaleString("th-TH")}
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="flex justify-end gap-2">

@@ -2,9 +2,72 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Eye, ExternalLink, X, Crown, Wand2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Eye, EyeOff, ExternalLink, X, Crown, Wand2 } from "lucide-react";
 import type { Template, TemplateDemoLinks } from "@/types/database";
+import { getTemplateComponent } from "@/lib/template-components";
+import PreviewWatermark from "@/components/ui/preview-watermark";
+import {
+  defaultBlowCandlesData,
+  defaultMidnightCinemaData,
+  defaultRetroY2KData,
+  defaultStarlightMemoriesData,
+  defaultSurpriseQRData,
+  defaultVelvetCandleData,
+  defaultVintageWaxSealData,
+  defaultGrandNewYearData,
+  defaultSongkranSplendorData,
+  defaultHalloweenHauntedData,
+  defaultLoveOsData,
+  defaultPixelGachaData,
+  defaultLunar3DData,
+  defaultOrbitOfUsData,
+  getTemplateSlugById,
+  matchTemplateSlugByTitle,
+  type TemplateSlug,
+} from "@/data/templates";
+import { defaultStorylineModel } from "@/types/storyline";
+
+function getPreviewConfig(slug: TemplateSlug | null): unknown {
+  switch (slug) {
+    case "velvet-candle":
+      return defaultVelvetCandleData;
+    case "new-year-grand-celebration":
+      return defaultGrandNewYearData;
+    case "songkran-splendor":
+      return defaultSongkranSplendorData;
+    case "halloween-haunted-scroll":
+      return defaultHalloweenHauntedData;
+    case "love-os":
+      return defaultLoveOsData;
+    case "pixel-gacha":
+      return defaultPixelGachaData;
+    case "lunar-3d":
+      return defaultLunar3DData;
+    case "orbit-of-us":
+      return defaultOrbitOfUsData;
+    case "starlight-memories":
+      return defaultStarlightMemoriesData;
+    case "midnight-cinema":
+      return defaultMidnightCinemaData;
+    case "vintage-wax-seal":
+      return defaultVintageWaxSealData;
+    case "retro-y2k":
+      return defaultRetroY2KData;
+    case "candles":
+      return {
+        recipientName: "คนพิเศษ",
+        senderName: "จากใจ",
+        wishMessage: defaultBlowCandlesData.content.finale.subText,
+        message: defaultBlowCandlesData.content.letter.paragraphs.join("\n\n"),
+        photos: [{ src: "/templates/galaxy-1.png" }],
+      };
+    case "storyline":
+      return { storylineModel: defaultStorylineModel };
+    default:
+      return defaultSurpriseQRData;
+  }
+}
 
 /** Safely coerce demo_video_links from the DB (null, object, or JSON string) into a record. */
 function normalizeDemoLinks(value: unknown): TemplateDemoLinks {
@@ -60,6 +123,7 @@ const DEMO_LINKS: DemoLink[] = [
  */
 export default function TemplateCard({ template, fallbackImage }: TemplateCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const thumbnailSrc =
     template.thumbnail_url || template.preview_url || fallbackImage || "/templates/surprise-qr.svg";
   const title = template.title || "เทมเพลต";
@@ -67,6 +131,28 @@ export default function TemplateCard({ template, fallbackImage }: TemplateCardPr
 
   const links = normalizeDemoLinks(template.demo_video_links);
   const availableLinks = DEMO_LINKS.filter((item) => !!links[item.key]?.trim());
+
+  const resolvedSlug =
+    (template.slug as TemplateSlug | undefined) ??
+    getTemplateSlugById(template.id) ??
+    matchTemplateSlugByTitle(title);
+  const PreviewComponent = isPreviewOpen
+    ? getTemplateComponent({ id: template.id, title })
+    : null;
+
+  useEffect(() => {
+    if (!isPreviewOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsPreviewOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isPreviewOpen]);
 
   return (
     <>
@@ -91,6 +177,11 @@ export default function TemplateCard({ template, fallbackImage }: TemplateCardPr
               className="object-cover"
             />
           )}
+          {template.is_published === false && (
+            <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-fuchsia-400/50 bg-fuchsia-950/85 px-2.5 py-1 text-[11px] font-bold text-fuchsia-200 shadow-lg backdrop-blur-md">
+              <EyeOff className="h-3 w-3" /> เฉพาะแอดมิน
+            </span>
+          )}
           {isPremium ? (
             <span className="absolute right-3 top-3 z-10 inline-flex items-center rounded-full border border-amber-500/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2.5 py-1 text-xs font-semibold text-amber-300 shadow-lg backdrop-blur-md">
               <Crown className="w-3 h-3 mr-1 inline" /> พรีเมียม
@@ -106,9 +197,25 @@ export default function TemplateCard({ template, fallbackImage }: TemplateCardPr
             {template.category || ""}
           </span>
           <h3 className="text-lg font-black text-white">{title}</h3>
-          <p className={`text-[14px] font-semibold ${isPremium ? "text-amber-400" : "text-emerald-400"}`}>
-            {isPremium ? `฿${template.price ?? 0}` : "ฟรี"}
-          </p>
+          {isPremium ? (
+            <div className="flex items-center gap-2">
+              <span className="text-[14px] font-bold text-amber-400">
+                ฿{Number(template.price ?? 0).toLocaleString()}
+              </span>
+              {template.original_price && template.original_price > (template.price ?? 0) && (
+                <>
+                  <span className="text-xs text-slate-400 line-through">
+                    ฿{Number(template.original_price).toLocaleString()}
+                  </span>
+                  <span className="rounded-full border border-rose-400/30 bg-rose-500/20 px-2 py-0.5 text-[11px] font-bold text-rose-300">
+                    ลด {Math.round(((template.original_price - (template.price ?? 0)) / template.original_price) * 100)}%
+                  </span>
+                </>
+              )}
+            </div>
+          ) : (
+            <p className="text-[14px] font-semibold text-emerald-400">ฟรี</p>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-white/5 p-4">
           <button
@@ -178,12 +285,65 @@ export default function TemplateCard({ template, fallbackImage }: TemplateCardPr
 
             <button
               type="button"
+              onClick={() => {
+                setIsModalOpen(false);
+                setIsPreviewOpen(true);
+              }}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-fuchsia-400/40 bg-gradient-to-r from-purple-600/80 to-pink-600/80 px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:from-purple-500 hover:to-pink-500 active:scale-95"
+            >
+              <Eye className="h-4 w-4" />
+              <span>พรีวิวเทมเพลต</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setIsModalOpen(false)}
-              className="mt-5 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+              className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
             >
               ปิด
             </button>
           </div>
+        </div>
+      )}
+
+      {isPreviewOpen && (
+        <div
+          className="fixed inset-0 z-[120] h-[100dvh] w-screen overflow-hidden bg-[#06030c]"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`พรีวิวเทมเพลต ${title}`}
+        >
+          <div className="fixed left-4 top-4 z-[130] flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen(false)}
+              aria-label="ปิดตัวอย่าง"
+              title="ปิดตัวอย่าง"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/65 text-slate-100 shadow-2xl backdrop-blur-md transition hover:border-white/40 hover:bg-black/85 hover:text-white"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <Link
+              href={`/dashboard/create?template=${template.id}`}
+              onClick={() => setIsPreviewOpen(false)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 text-xs font-bold text-white shadow-xl backdrop-blur-md transition hover:from-purple-500 hover:to-pink-500"
+            >
+              <Wand2 className="h-3.5 w-3.5" />
+              <span>เลือกเทมเพลตนี้</span>
+            </Link>
+          </div>
+
+          <div className="relative h-full w-full overflow-x-hidden overflow-y-auto custom-scrollbar">
+            {PreviewComponent ? (
+              <PreviewComponent config={getPreviewConfig(resolvedSlug)} isEditing={false} />
+            ) : (
+              <div className="flex h-full items-center justify-center p-8 text-center text-sm text-slate-400">
+                ไม่พบคอมโพเนนต์สำหรับพรีวิวเทมเพลตนี้
+              </div>
+            )}
+          </div>
+          <PreviewWatermark />
         </div>
       )}
     </>

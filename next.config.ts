@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
       "framer-motion",
       "canvas-confetti",
       "qrcode.react",
+      "three",
     ],
   },
   images: {

@@ -21,8 +21,10 @@ export interface SurpriseQRSettings {
   promptpayTarget?: string;
   /** Optional PromptPay amount in THB. */
   promptpayAmount?: number;
-  /** Envelope visual style preset for Screen 1 (1 = Classic Pink, 2 = Gold Premium, 3 = Soft Lavender). */
-  envelopeStyle?: 1 | 2 | 3;
+  /** Envelope visual style preset for Screen 1 (1 = Classic Pink, 2 = Gold Premium, 3 = Soft Lavender, 4 = Custom Color). */
+  envelopeStyle?: 1 | 2 | 3 | 4;
+  /** Custom hex color used when envelopeStyle === 4. */
+  envelopeColor?: string;
 }
 
 /** Media item supporting both direct URLs and local files/data URLs. */
@@ -55,6 +57,8 @@ export interface SurpriseQRFlowers {
   title: string;
   message: string;
   highlightText: string;
+  /** Random wishes shown one at a time when tapping the wish icon button. */
+  wishes?: string[];
 }
 
 /** Song / video player screen (screen 6). */
@@ -103,6 +107,7 @@ export interface SurpriseQRFinale {
   heroImage: SurpriseQRMedia;
   mainText: string;
   subText: string;
+  anniversaryDate?: string;
 }
 
 /** Full content payload of the anniversary card. */

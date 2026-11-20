@@ -124,6 +124,19 @@ export default async function AdminPage() {
         </div>
 
         <div className="glass-panel rounded-2xl p-6">
+          <div className="flex items-center justify-between gap-2 mb-6">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <h2 className="text-2xl font-bold text-white">คำขอชำระเงินที่รอดำเนินการ</h2>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              {(payments ?? []).length} รายการ
+            </span>
+          </div>
+          <PendingPayments payments={(payments as Payment[]) ?? []} />
+        </div>
+
+        <div className="glass-panel rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-5 h-5 text-pink-400" />
             <h2 className="text-xl font-bold text-white">Top 5 เทมเพลตยอดนิยม</h2>
@@ -152,21 +165,7 @@ export default async function AdminPage() {
           )}
         </div>
 
-        <div className="glass-panel rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <h2 className="text-2xl font-bold text-white">คำขอชำระเงินที่รอดำเนินการ</h2>
-          </div>
-          <PendingPayments payments={(payments as Payment[]) ?? []} />
-        </div>
-
-        <div className="glass-panel rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <Sparkles className="w-5 h-5 text-purple-400" />
-            <h2 className="text-2xl font-bold text-white">จัดการเทมเพลต</h2>
-          </div>
-          <TemplateManager templates={allTemplates} />
-        </div>
+        <TemplateManager templates={allTemplates} />
       </section>
     </main>
   );

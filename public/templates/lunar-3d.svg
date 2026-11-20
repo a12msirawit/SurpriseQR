@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" fill="none">
+  <defs>
+    <radialGradient id="space" cx="50%" cy="48%" r="65%">
+      <stop offset="0%" stop-color="#1b1f3b"/>
+      <stop offset="55%" stop-color="#0b0d1e"/>
+      <stop offset="100%" stop-color="#04050c"/>
+    </radialGradient>
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f8f2dc" stop-opacity="0.55"/>
+      <stop offset="55%" stop-color="#c7d2fe" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moonSurf" cx="38%" cy="35%" r="62%">
+      <stop offset="0%" stop-color="#fffdf5"/>
+      <stop offset="52%" stop-color="#dcd7c9"/>
+      <stop offset="85%" stop-color="#8b8896"/>
+      <stop offset="100%" stop-color="#48475a"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#space)"/>
+  <!-- Starfield + subtle warp rays -->
+  <g stroke="#e0e7ff" stroke-linecap="round" opacity="0.35">
+    <line x1="80" y1="80" x2="120" y2="108" stroke-width="1.5"/>
+    <line x1="720" y1="90" x2="675" y2="120" stroke-width="1.5"/>
+    <line x1="95" y1="420" x2="145" y2="388" stroke-width="1.5"/>
+    <line x1="705" y1="415" x2="655" y2="382" stroke-width="1.5"/>
+  </g>
+  <g fill="#ffffff">
+    <circle cx="132" cy="148" r="2"/><circle cx="218" cy="86" r="1.5" opacity="0.8"/>
+    <circle cx="624" cy="112" r="2.2"/><circle cx="696" cy="212" r="1.6" opacity="0.75"/>
+    <circle cx="174" cy="348" r="1.8"/><circle cx="614" cy="364" r="2"/>
+    <circle cx="290" cy="422" r="1.4" opacity="0.7"/><circle cx="520" cy="74" r="1.8"/>
+  </g>
+  <!-- Moon Halo -->
+  <circle cx="400" cy="240" r="178" fill="url(#moonGlow)"/>
+  <!-- 360 Orbit Ring Hint -->
+  <ellipse cx="400" cy="244" rx="188" ry="44" stroke="#fde68a" stroke-opacity="0.38" stroke-width="1.5" stroke-dasharray="5 7"/>
+  <!-- 3D Moon Sphere -->
+  <circle cx="400" cy="240" r="108" fill="url(#moonSurf)"/>
+  <!-- Lunar Maria & Craters -->
+  <g fill="#6d6a7c" opacity="0.32">
+    <ellipse cx="366" cy="212" rx="28" ry="22" transform="rotate(-18 366 212)"/>
+    <ellipse cx="434" cy="252" rx="22" ry="18" transform="rotate(14 434 252)"/>
+    <circle cx="386" cy="274" r="14"/>
+    <circle cx="426" cy="198" r="11"/>
+    <circle cx="348" cy="256" r="9"/>
+  </g>
+  <g stroke="#ffffff" stroke-opacity="0.28" stroke-width="1.2" fill="none">
+    <circle cx="386" cy="274" r="14"/>
+    <circle cx="426" cy="198" r="11"/>
+  </g>
+  <!-- Title -->
+  <text x="400" y="424" text-anchor="middle" fill="#fef3c7" font-family="serif" font-size="22" font-weight="600" letter-spacing="4">LUNAR SECRET 3D</text>
+</svg>
+

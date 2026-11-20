@@ -1,73 +1,63 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Cake,
   ChevronLeft,
   ChevronRight,
+  Crown,
+  Delete,
+  Flame,
+  Gift,
   Heart,
-  Image as ImageIcon,
   Lock,
   Mic,
   MicOff,
+  Play,
   RotateCcw,
   Sparkles,
+  Volume2,
+  VolumeX,
   Wind,
+  X,
+  ZoomIn,
 } from "lucide-react";
-import { verifyCardPin } from "@/app/c/[hash_id]/actions";
+import { extractYouTubeId } from "@/lib/audio-helper";
+import { submitCardReaction, verifyCardPin } from "@/app/c/[hash_id]/actions";
+import BackgroundAudioPlayer from "@/components/audio/BackgroundAudioPlayer";
+import CandleStageCanvas from "./blow-candles/CandleStageCanvas";
+import CelebrationLayer from "./blow-candles/CelebrationLayer";
+import EnchantedGalaCanvas from "./blow-candles/EnchantedGalaCanvas";
+import {
+  FiligreeGalaFrame,
+  RoyalBirthdayMandala,
+} from "./blow-candles/RoyalBirthdayDecor";
+import ScratchFoil from "./blow-candles/ScratchFoil";
+import {
+  playCandleExtinguish,
+  playCandleIgnite,
+  playCelebrationFanfare,
+  playCountdownTick,
+  playGiftOpenChime,
+  playWarpShimmer,
+  playWindWhoosh,
+  startBirthdayMusicBox,
+  unlockBlowAudio,
+} from "./blow-candles/blowCandlesSound";
+import type {
+  BlowCandlesConfig,
+  BlowCandlesStage,
+  BlowCandlesTemplateProps,
+} from "./blow-candles/types";
+import { useAudioBlowDetection } from "./blow-candles/useAudioBlowDetection";
 
-interface BlowCandlesPhoto {
-  src?: string;
-}
+const WISH_TYPEWRITER_TEXT =
+  "หลับตาลงช้า ๆ แล้วตั้งคำอธิษฐานที่ดีที่สุดสำหรับปีใหม่ของชีวิตในวันนี้";
 
-interface BlowCandlesConfig {
-  recipientName?: string;
-  senderName?: string;
-  message?: string;
-  wishMessage?: string;
-  image_url?: string | null;
-  photos?: Array<BlowCandlesPhoto | string>;
-  data?: {
-    recipientName?: string;
-    senderName?: string;
-    message?: string;
-    wishMessage?: string;
-    photos?: Array<BlowCandlesPhoto | string>;
-  };
-}
-
-interface BlowCandlesTemplateProps {
-  config?: unknown;
-  data?: {
-    recipientName?: string;
-    wishMessage?: string;
-  };
-  isEditing?: boolean;
-  studio?: boolean;
-  activeScreen?: number;
-  refreshToken?: number;
-  expectedPin?: string;
-  hashId?: string;
-  pinRequired?: boolean;
-}
-
-type StageId = "cake" | "letter" | "memories" | "finale";
-
-const CANDLE_POSITIONS = [
-  { x: 96, y: 54, color: "#fb7185", stripe: "#ffe4e6" },
-  { x: 122, y: 46, color: "#c084fc", stripe: "#f3e8ff" },
-  { x: 150, y: 42, color: "#fbbf24", stripe: "#fef3c7" },
-  { x: 178, y: 46, color: "#38bdf8", stripe: "#e0f2fe" },
-  { x: 204, y: 54, color: "#f472b6", stripe: "#fce7f3" },
-];
-
-const BOKEH_DOTS = [
-  { top: "10%", left: "12%", size: 8, delay: "0s", duration: "6s" },
-  { top: "22%", left: "82%", size: 12, delay: "1.2s", duration: "7.5s" },
-  { top: "68%", left: "10%", size: 10, delay: "0.7s", duration: "8s" },
-  { top: "75%", left: "86%", size: 14, delay: "1.8s", duration: "6.5s" },
-  { top: "42%", left: "6%", size: 6, delay: "2.4s", duration: "7s" },
-  { top: "38%", left: "92%", size: 7, delay: "0.4s", duration: "9s" },
+const DEFAULT_MEMORY_PHOTOS = [
+  "/templates/galaxy-1.png",
+  "/templates/galaxy-2.png",
 ];
 
 function extractPhotos(configObj: BlowCandlesConfig): string[] {
@@ -83,48 +73,114 @@ function extractPhotos(configObj: BlowCandlesConfig): string[] {
   return [];
 }
 
-function playCelebrationChime() {
-  if (typeof window === "undefined") return;
-  const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AudioCtx) return;
-
-  try {
-    const ctx = new AudioCtx();
-    const notes = [523.25, 659.25, 783.99, 1046.5];
-    notes.forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      const start = ctx.currentTime + idx * 0.11;
-      gain.gain.setValueAtTime(0.001, start);
-      gain.gain.exponentialRampToValueAtTime(0.08, start + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.45);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(start);
-      osc.stop(start + 0.48);
-    });
-    window.setTimeout(() => {
-      void ctx.close().catch(() => {});
-    }, 1200);
-  } catch {
-    // Ignore audio context restrictions
+function triggerHaptic(pattern: number | number[]) {
+  if (
+    typeof navigator !== "undefined" &&
+    typeof navigator.vibrate === "function"
+  ) {
+    try {
+      navigator.vibrate(pattern);
+    } catch {
+      // Ignore unsupported haptic hardware
+    }
   }
 }
 
-async function triggerBirthdayConfetti() {
-  try {
-    const { default: confetti } = await import("canvas-confetti");
-    confetti({
-      particleCount: 95,
-      spread: 75,
-      origin: { y: 0.58 },
-      colors: ["#fbbf24", "#f472b6", "#c084fc", "#38bdf8", "#ffffff"],
-    });
-  } catch {
-    // Ignore confetti errors
-  }
+interface GlowMedallionProps {
+  icon: React.ReactNode;
+  caption: string;
+  onClick?: () => void;
+  onPointerDown?: () => void;
+  onPointerUp?: () => void;
+  onPointerLeave?: () => void;
+  tone?: "gold" | "rose" | "sky" | "glass";
+  size?: "md" | "lg";
+  activeRing?: boolean;
+  pulseScale?: number;
+  disabled?: boolean;
+  ariaLabel?: string;
+}
+
+function GlowMedallion({
+  icon,
+  caption,
+  onClick,
+  onPointerDown,
+  onPointerUp,
+  onPointerLeave,
+  tone = "gold",
+  size = "lg",
+  activeRing = false,
+  pulseScale = 0,
+  disabled = false,
+  ariaLabel,
+}: GlowMedallionProps) {
+  const toneStyles = {
+    gold: {
+      ring: "border-amber-200/70 shadow-[0_0_36px_rgba(251,191,36,0.42),inset_0_1px_10px_rgba(255,255,255,0.5)]",
+      core: "from-amber-200/40 via-rose-400/25 to-[#1f0a2c]/85 text-amber-50",
+      halo: "border-amber-300/45",
+    },
+    rose: {
+      ring: "border-rose-300/70 shadow-[0_0_36px_rgba(244,63,94,0.45),inset_0_1px_10px_rgba(255,255,255,0.45)]",
+      core: "from-rose-300/40 via-fuchsia-500/30 to-[#24092d]/85 text-rose-50",
+      halo: "border-rose-300/45",
+    },
+    sky: {
+      ring: "border-sky-200/70 shadow-[0_0_32px_rgba(56,189,248,0.4),inset_0_1px_10px_rgba(255,255,255,0.45)]",
+      core: "from-sky-300/35 via-indigo-500/30 to-slate-950/85 text-sky-50",
+      halo: "border-sky-300/45",
+    },
+    glass: {
+      ring: "border-amber-200/30 shadow-[0_12px_30px_rgba(0,0,0,0.5),inset_0_1px_8px_rgba(255,255,255,0.28)]",
+      core: "from-white/18 via-white/5 to-black/65 text-amber-50",
+      halo: "border-amber-200/25",
+    },
+  }[tone];
+
+  const dim = size === "lg" ? "h-[64px] w-[64px]" : "h-14 w-14";
+
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.();
+        }}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          onPointerDown?.();
+        }}
+        onPointerUp={(e) => {
+          e.stopPropagation();
+          onPointerUp?.();
+        }}
+        onPointerLeave={() => onPointerLeave?.()}
+        onPointerCancel={() => onPointerLeave?.()}
+        disabled={disabled}
+        aria-label={ariaLabel || caption}
+        className={`group relative flex ${dim} items-center justify-center rounded-full border bg-gradient-to-br backdrop-blur-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 ${toneStyles.ring} ${toneStyles.core}`}
+      >
+        <span
+          className={`pointer-events-none absolute -inset-2 rounded-full border transition-transform duration-150 ${toneStyles.halo} ${activeRing ? "animate-ping" : "group-hover:scale-110"
+            }`}
+          style={{
+            transform:
+              pulseScale > 0
+                ? `scale(${1 + Math.min(0.45, pulseScale * 0.45)})`
+                : undefined,
+            animationDuration: activeRing ? "1.6s" : undefined,
+          }}
+        />
+        <span className="pointer-events-none absolute inset-1.5 rounded-full border border-dashed border-white/30 transition-transform duration-700 group-hover:rotate-45" />
+        <span className="relative z-10">{icon}</span>
+      </button>
+      <span className="pointer-events-none max-w-[140px] text-center text-[11px] font-medium tracking-wide text-amber-100/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+        {caption}
+      </span>
+    </div>
+  );
 }
 
 export default function BlowCandlesTemplate({
@@ -132,226 +188,389 @@ export default function BlowCandlesTemplate({
   data,
   studio = false,
   activeScreen,
+  refreshToken = 0,
   expectedPin = "",
   hashId = "",
   pinRequired = false,
+  onSelectField,
 }: BlowCandlesTemplateProps) {
-  const configObj = (config as BlowCandlesConfig) || {};
+  const configObj = useMemo<BlowCandlesConfig>(
+    () =>
+      config && typeof config === "object"
+        ? (config as BlowCandlesConfig)
+        : {},
+    [config]
+  );
+
   const recipientName =
     configObj.recipientName ||
     configObj.data?.recipientName ||
     data?.recipientName ||
     "คนพิเศษ";
   const senderName =
-    configObj.senderName ||
-    configObj.data?.senderName ||
-    "คนที่ห่วงใยคุณ";
+    configObj.senderName || configObj.data?.senderName || "จากใจคนพิเศษ";
+  const introHeadline =
+    configObj.introHeadline || configObj.data?.introHeadline || "ค่ำคืนแห่งคำอธิษฐาน";
+  const introPrompt =
+    configObj.introPrompt || configObj.data?.introPrompt || WISH_TYPEWRITER_TEXT;
+  const introButtonCaption =
+    configObj.introButtonCaption ||
+    configObj.data?.introButtonCaption ||
+    "แตะเริ่มอธิษฐานและเป่าเทียน";
+  const blowingHeadline =
+    configObj.blowingHeadline ||
+    configObj.data?.blowingHeadline ||
+    "เป่าลมดับเทียนทั้ง 5 เล่ม";
+  const celebrationHeadline =
+    configObj.celebrationHeadline ||
+    configObj.data?.celebrationHeadline ||
+    "คำอธิษฐานส่องสว่างแล้ว";
+  const celebrationHint =
+    configObj.celebrationHint ||
+    configObj.data?.celebrationHint ||
+    "แตะลูกโป่งหรือท้องฟ้าเพื่อจุดพลุฉลอง";
+  const revealButtonCaption =
+    configObj.revealButtonCaption ||
+    configObj.data?.revealButtonCaption ||
+    "แตะเปิดกล่องความลับในเค้ก";
+  const letterTitle =
+    configObj.letterTitle ||
+    configObj.data?.letterTitle ||
+    `สาส์นอวยพรถึง ${recipientName}`;
+  const closingButtonCaption =
+    configObj.closingButtonCaption ||
+    configObj.data?.closingButtonCaption ||
+    "ชมการ์ดความทรงจำปิดท้าย";
+  const closingBadge =
+    configObj.closingBadge ||
+    configObj.data?.closingBadge ||
+    "Birthday Keepsake";
+  const closingTitle =
+    configObj.closingTitle ||
+    configObj.data?.closingTitle ||
+    `Happy Birthday ${recipientName}`;
   const wishMessage =
     configObj.wishMessage ||
     configObj.data?.wishMessage ||
     data?.wishMessage ||
-    "ขอให้ปีนี้เต็มไปด้วยรอยยิ้ม ความสุข และความทรงจำที่แสนวิเศษ";
+    "ขอให้ความปรารถนาดีทุกอย่างในค่ำคืนนี้สว่างไสวและเป็นจริงในเร็ววัน";
   const letterText =
     configObj.message ||
     configObj.data?.message ||
-    "สุขสันต์วันเกิดนะ! ขอให้ทุกความปรารถนาของคุณเป็นจริง และมีความสุขในทุกๆ วันต่อจากนี้";
+    "สุขสันต์วันเกิดนะ! ขอบคุณที่เป็นความสุขและเรื่องราวดี ๆ เสมอมา ขอให้ปีนี้เต็มไปด้วยรอยยิ้ม ความอบอุ่น และความสำเร็จในทุกก้าวที่ตั้งใจไว้";
+  const bgmUrl = configObj.audio_url || data?.audio_url || undefined;
+  const videoUrl = (
+    configObj.videoUrl ||
+    configObj.video_url ||
+    configObj.data?.videoUrl ||
+    ""
+  ).trim();
+  const youtubeVideoId = extractYouTubeId(videoUrl);
   const photos = useMemo(() => extractPhotos(configObj), [configObj]);
+  const displayPhotos = useMemo(() => {
+    if (photos.length >= 2) return photos.slice(0, 2);
+    if (photos.length === 1) return [photos[0], DEFAULT_MEMORY_PHOTOS[1]];
+    return DEFAULT_MEMORY_PHOTOS;
+  }, [photos]);
+  const lightboxPhotos = photos.length > 0 ? photos : DEFAULT_MEMORY_PHOTOS;
 
-  const [pinUnlocked, setPinUnlocked] = useState(!pinRequired || studio);
+  const [stage, setStage] = useState<BlowCandlesStage>(() =>
+    pinRequired && !studio ? "pin" : "intro"
+  );
+  const stageRef = useRef(stage);
+  stageRef.current = stage;
+  const [warpPhase, setWarpPhase] = useState<"idle" | "out" | "in">("idle");
+  const [warpWhisper, setWarpWhisper] = useState(
+    "กำลังเข้าสู่บทถัดไปของค่ำคืนพิเศษ..."
+  );
+  const [muted, setMuted] = useState<boolean>(studio);
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinChecking, setPinChecking] = useState(false);
 
-  const [stage, setStage] = useState<StageId>("cake");
-  const [litCandles, setLitCandles] = useState<boolean[]>([true, true, true, true, true]);
-  const [smokedCandles, setSmokedCandles] = useState<boolean[]>([false, false, false, false, false]);
-  const [celebrated, setCelebrated] = useState(false);
+  const [typedCount, setTypedCount] = useState(0);
+  const [countdownValue, setCountdownValue] = useState(3);
+  const [litCandles, setLitCandles] = useState<boolean[]>([
+    true,
+    true,
+    true,
+    true,
+    true,
+  ]);
+  const [touchWind, setTouchWind] = useState(0);
+  const [touchBlowing, setTouchBlowing] = useState(false);
+  const [cakeOpened, setCakeOpened] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [lightboxPhotoIndex, setLightboxPhotoIndex] = useState<number | null>(null);
+  const [poppedBalloons, setPoppedBalloons] = useState(0);
+  const [burstSignal, setBurstSignal] = useState(0);
+  const [loveSending, setLoveSending] = useState(false);
+  const [loveSent, setLoveSent] = useState(false);
+  const [flashBurst, setFlashBurst] = useState(false);
 
-  const [micActive, setMicActive] = useState(false);
-  const [micLevel, setMicLevel] = useState(0);
-  const [micError, setMicError] = useState<string | null>(null);
+  const dropTimerRef = useRef<number | null>(null);
+  const touchHoldTimerRef = useRef<number | null>(null);
+  const warpTimersRef = useRef<{ mid?: number; end?: number }>({});
+  const warpBusyRef = useRef(false);
 
-  const micStreamRef = useRef<MediaStream | null>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const micRafRef = useRef<number | null>(null);
-  const lastBlowTimeRef = useRef<number>(0);
+  const clearWarpTimers = () => {
+    if (warpTimersRef.current.mid) window.clearTimeout(warpTimersRef.current.mid);
+    if (warpTimersRef.current.end) window.clearTimeout(warpTimersRef.current.end);
+  };
 
-  const litCount = litCandles.filter(Boolean).length;
-  const allBlownOut = litCount === 0;
+  /**
+   * Execute slow, silky celestial hyperspace warp between sequential chapters.
+   */
+  const triggerStageWarp = useCallback(
+    (
+      nextStage: BlowCandlesStage,
+      options?: {
+        whisper?: string;
+        outMs?: number;
+        inMs?: number;
+        extraOnSwap?: () => void;
+      }
+    ) => {
+      if (warpBusyRef.current) return;
+      warpBusyRef.current = true;
+      clearWarpTimers();
 
+      const outMs = options?.outMs ?? 680;
+      const inMs = options?.inMs ?? 780;
+      setWarpWhisper(
+        options?.whisper ?? "กำลังพาคุณเข้าสู่ช่วงเวลาถัดไปอย่างช้า ๆ..."
+      );
+      playWarpShimmer(mutedRef.current);
+      setWarpPhase("out");
+
+      warpTimersRef.current.mid = window.setTimeout(() => {
+        options?.extraOnSwap?.();
+        setStage(nextStage);
+        setWarpPhase("in");
+
+        warpTimersRef.current.end = window.setTimeout(() => {
+          setWarpPhase("idle");
+          warpBusyRef.current = false;
+        }, inMs);
+      }, outMs);
+    },
+    []
+  );
+
+  // Sync Studio preview strictly with editor step selection
   useEffect(() => {
-    setPinUnlocked(!pinRequired || studio);
-  }, [pinRequired, studio]);
-
-  useEffect(() => {
+    if (!studio && !activeScreen) return;
+    warpBusyRef.current = false;
+    setWarpPhase("idle");
+    if (refreshToken > 0 && studio) {
+      setLitCandles([true, true, true, true, true]);
+    }
     if (!activeScreen) return;
-    if (activeScreen === 1) setStage("cake");
-    else if (activeScreen === 2) setStage("letter");
-    else if (activeScreen === 3 || activeScreen === 4) setStage("memories");
-    else if (activeScreen >= 5) setStage("finale");
-  }, [activeScreen]);
+    if (activeScreen === 1) {
+      setCakeOpened(false);
+      setStage("intro");
+    } else if (activeScreen === 2) {
+      setStage("blowing");
+    } else if (activeScreen === 3) {
+      setCakeOpened(true);
+      setStage("reveal_layer");
+    } else if (activeScreen >= 4) {
+      setCakeOpened(true);
+      setStage("viral_closing");
+    }
+  }, [activeScreen, refreshToken, studio]);
 
-  const stopMicrophone = useCallback(() => {
-    if (micRafRef.current !== null) {
-      window.cancelAnimationFrame(micRafRef.current);
-      micRafRef.current = null;
+  // Built-in celestial music-box Happy Birthday melody when no custom track is configured
+  useEffect(() => {
+    if (bgmUrl || studio || !audioUnlocked) return;
+    const stopMusicBox = startBirthdayMusicBox(
+      () => !mutedRef.current && stageRef.current !== "pin"
+    );
+    return () => {
+      stopMusicBox();
+    };
+  }, [bgmUrl, studio, audioUnlocked]);
+
+  // Intro typewriter prompt
+  useEffect(() => {
+    if (stage !== "intro") return;
+    setTypedCount(0);
+    const id = window.setInterval(() => {
+      setTypedCount((prev) => {
+        if (prev >= introPrompt.length) {
+          window.clearInterval(id);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 34);
+    return () => window.clearInterval(id);
+  }, [stage, introPrompt]);
+
+  // Countdown 3 -> 2 -> 1 -> blowing
+  useEffect(() => {
+    if (stage !== "countdown") return;
+    setCountdownValue(3);
+    playCountdownTick(3, mutedRef.current);
+    triggerHaptic(24);
+
+    const t1 = window.setTimeout(() => {
+      setCountdownValue(2);
+      playCountdownTick(2, mutedRef.current);
+      triggerHaptic(24);
+    }, 950);
+    const t2 = window.setTimeout(() => {
+      setCountdownValue(1);
+      playCountdownTick(1, mutedRef.current);
+      triggerHaptic(24);
+    }, 1900);
+    const t3 = window.setTimeout(() => {
+      playCountdownTick(0, mutedRef.current);
+      setStage("blowing");
+    }, 2850);
+
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+    };
+  }, [stage]);
+
+  // Slow twilight smoke & wish ascent drop before fireworks celebration
+  const enterExtinguishDrop = useCallback(() => {
+    setStage("extinguish_drop");
+    playWindWhoosh(0.95, mutedRef.current);
+    triggerHaptic([30, 50, 30]);
+
+    if (dropTimerRef.current !== null) {
+      window.clearTimeout(dropTimerRef.current);
     }
-    if (micStreamRef.current) {
-      micStreamRef.current.getTracks().forEach((track) => track.stop());
-      micStreamRef.current = null;
-    }
-    if (audioCtxRef.current) {
-      void audioCtxRef.current.close().catch(() => {});
-      audioCtxRef.current = null;
-    }
-    setMicActive(false);
-    setMicLevel(0);
+    dropTimerRef.current = window.setTimeout(() => {
+      setFlashBurst(true);
+      setBurstSignal((b) => b + 1);
+      setStage("grand_celebration");
+      playCelebrationFanfare(mutedRef.current);
+      triggerHaptic([40, 40, 80]);
+      window.setTimeout(() => setFlashBurst(false), 850);
+    }, 1650);
   }, []);
 
   useEffect(() => {
     return () => {
-      stopMicrophone();
-    };
-  }, [stopMicrophone]);
-
-  const celebrateIfFinished = useCallback(
-    (nextLit: boolean[]) => {
-      if (nextLit.every((lit) => !lit) && !celebrated) {
-        setCelebrated(true);
-        stopMicrophone();
-        playCelebrationChime();
-        void triggerBirthdayConfetti();
+      clearWarpTimers();
+      if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
+      if (touchHoldTimerRef.current !== null) {
+        window.clearInterval(touchHoldTimerRef.current);
       }
-    },
-    [celebrated, stopMicrophone],
-  );
+    };
+  }, []);
 
-  const extinguishSingleCandle = useCallback(
+  const ensureAudioReady = () => {
+    unlockBlowAudio();
+    setAudioUnlocked(true);
+  };
+
+  const extinguishNextCandle = useCallback(() => {
+    setLitCandles((prev) => {
+      const idx = prev.findIndex(Boolean);
+      if (idx === -1) return prev;
+      const next = [...prev];
+      next[idx] = false;
+      const remaining = next.filter(Boolean).length;
+      playCandleExtinguish(remaining, mutedRef.current);
+      triggerHaptic(20);
+      if (remaining === 0) {
+        enterExtinguishDrop();
+      }
+      return next;
+    });
+  }, [enterExtinguishDrop]);
+
+  const extinguishSpecificCandle = useCallback(
     (index: number) => {
+      ensureAudioReady();
+      if (stage !== "blowing") return;
+
       setLitCandles((prev) => {
         if (!prev[index]) return prev;
         const next = [...prev];
         next[index] = false;
-        celebrateIfFinished(next);
+        const remaining = next.filter(Boolean).length;
+        playCandleExtinguish(remaining, mutedRef.current);
+        triggerHaptic(25);
+        if (remaining === 0) {
+          enterExtinguishDrop();
+        }
         return next;
       });
-      setSmokedCandles((prev) => {
-        const next = [...prev];
-        next[index] = true;
-        return next;
-      });
-      window.setTimeout(() => {
-        setSmokedCandles((prev) => {
-          const next = [...prev];
-          next[index] = false;
-          return next;
-        });
-      }, 1500);
     },
-    [celebrateIfFinished],
+    [stage, enterExtinguishDrop]
   );
 
-  const extinguishNextCandle = useCallback(() => {
-    setLitCandles((prev) => {
-      const targetIndex = prev.findIndex(Boolean);
-      if (targetIndex === -1) return prev;
-      const next = [...prev];
-      next[targetIndex] = false;
-
-      setSmokedCandles((sPrev) => {
-        const sNext = [...sPrev];
-        sNext[targetIndex] = true;
-        return sNext;
-      });
-      window.setTimeout(() => {
-        setSmokedCandles((sPrev) => {
-          const sNext = [...sPrev];
-          sNext[targetIndex] = false;
-          return sNext;
-        });
-      }, 1500);
-
-      celebrateIfFinished(next);
-      return next;
+  const { micActive, micLevel, micError, startMic, stopMic } =
+    useAudioBlowDetection({
+      enabled: stage === "blowing",
+      onBlowDetected: () => {
+        extinguishNextCandle();
+      },
     });
-  }, [celebrateIfFinished]);
+
+  const handleTouchHoldStart = () => {
+    if (stage !== "blowing") return;
+    ensureAudioReady();
+    setTouchBlowing(true);
+    setTouchWind(78);
+    triggerHaptic([28, 40, 28]);
+
+    if (touchHoldTimerRef.current !== null) {
+      window.clearInterval(touchHoldTimerRef.current);
+    }
+    extinguishNextCandle();
+    touchHoldTimerRef.current = window.setInterval(() => {
+      extinguishNextCandle();
+    }, 320);
+  };
+
+  const handleTouchHoldEnd = () => {
+    setTouchBlowing(false);
+    setTouchWind(0);
+    if (touchHoldTimerRef.current !== null) {
+      window.clearInterval(touchHoldTimerRef.current);
+      touchHoldTimerRef.current = null;
+    }
+  };
 
   const blowAllCandles = () => {
-    const litIndices = litCandles
-      .map((isLit, idx) => (isLit ? idx : -1))
-      .filter((idx) => idx !== -1);
-    if (litIndices.length === 0) return;
+    if (stage !== "blowing") return;
+    ensureAudioReady();
+    stopMic();
+    setLitCandles([false, false, false, false, false]);
+    enterExtinguishDrop();
+  };
 
-    litIndices.forEach((candleIdx, step) => {
-      window.setTimeout(() => {
-        extinguishSingleCandle(candleIdx);
-      }, step * 110);
+  const replayExperience = () => {
+    ensureAudioReady();
+    stopMic();
+    playCandleIgnite(mutedRef.current);
+    triggerStageWarp("intro", {
+      whisper: "กำลังจุดเทียนวิเศษขึ้นใหม่อีกครั้ง...",
+      outMs: 650,
+      inMs: 750,
+      extraOnSwap: () => {
+        setLitCandles([true, true, true, true, true]);
+        setCakeOpened(false);
+        setLoveSent(false);
+        setPoppedBalloons(0);
+      },
     });
-  };
-
-  const relightAllCandles = () => {
-    setLitCandles([true, true, true, true, true]);
-    setSmokedCandles([false, false, false, false, false]);
-    setCelebrated(false);
-    setStage("cake");
-  };
-
-  const toggleMicrophone = async () => {
-    if (micActive) {
-      stopMicrophone();
-      return;
-    }
-
-    setMicError(null);
-    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-      setMicError("อุปกรณ์นี้ไม่รองรับไมโครโฟน กรุณาแตะที่เทียนหรือกดปุ่มเป่าเทียนด้านล่าง");
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) {
-        stream.getTracks().forEach((track) => track.stop());
-        setMicError("เบราว์เซอร์ไม่รองรับการตรวจจับเสียง กรุณาแตะที่เทียนแทน");
-        return;
-      }
-
-      const audioCtx = new AudioCtx();
-      const source = audioCtx.createMediaStreamSource(stream);
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
-      source.connect(analyser);
-
-      micStreamRef.current = stream;
-      audioCtxRef.current = audioCtx;
-      setMicActive(true);
-
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      const detectBlow = () => {
-        analyser.getByteFrequencyData(dataArray);
-        const lowBand = dataArray.slice(0, 24);
-        const avg = lowBand.reduce((sum, val) => sum + val, 0) / lowBand.length;
-        const normalized = Math.min(100, Math.round((avg / 140) * 100));
-        setMicLevel(normalized);
-
-        const now = Date.now();
-        if (avg > 62 && now - lastBlowTimeRef.current > 240) {
-          lastBlowTimeRef.current = now;
-          extinguishNextCandle();
-        }
-        micRafRef.current = window.requestAnimationFrame(detectBlow);
-      };
-
-      micRafRef.current = window.requestAnimationFrame(detectBlow);
-    } catch {
-      setMicError("ไม่สามารถเข้าถึงไมโครโฟนได้ กรุณาแตะที่เทียนหรือกดปุ่มเป่าเทียนแทน");
-      stopMicrophone();
-    }
   };
 
   const handlePinKey = async (digit: string) => {
+    ensureAudioReady();
     if (pinChecking || pinInput.length >= 4) return;
     const nextPin = `${pinInput}${digit}`;
     setPinInput(nextPin);
@@ -363,12 +582,22 @@ export default function BlowCandlesTemplate({
         if (hashId) {
           const result = await verifyCardPin(hashId, nextPin);
           if (result.success) {
-            setPinUnlocked(true);
+            playCandleIgnite(mutedRef.current);
+            triggerStageWarp("intro", {
+              whisper: "ปลดล็อกสำเร็จ กำลังเปิดม่านค่ำคืนแห่งคำอธิษฐาน...",
+              outMs: 650,
+              inMs: 750,
+            });
             return;
           }
           setPinError(result.error || "รหัส PIN ไม่ถูกต้อง");
         } else if (expectedPin && nextPin === expectedPin) {
-          setPinUnlocked(true);
+          playCandleIgnite(mutedRef.current);
+          triggerStageWarp("intro", {
+            whisper: "ปลดล็อกสำเร็จ กำลังเปิดม่านค่ำคืนแห่งคำอธิษฐาน...",
+            outMs: 650,
+            inMs: 750,
+          });
           return;
         } else {
           setPinError("รหัส PIN ไม่ถูกต้อง");
@@ -382,6 +611,24 @@ export default function BlowCandlesTemplate({
     }
   };
 
+  const handleSendLoveBack = async () => {
+    if (loveSending) return;
+    ensureAudioReady();
+    setLoveSending(true);
+    playCelebrationFanfare(mutedRef.current);
+    setBurstSignal((b) => b + 1);
+    triggerHaptic([30, 40, 30]);
+    if (hashId && !studio) {
+      try {
+        await submitCardReaction(hashId, "heart", "เป่าเค้กวันเกิดแล้วนะ!");
+      } catch {
+        // Keep UI responsive even if reaction request fails
+      }
+    }
+    setLoveSent(true);
+    setLoveSending(false);
+  };
+
   const letterParagraphs = useMemo(() => {
     const parts = letterText
       .split(/\n+/)
@@ -390,507 +637,976 @@ export default function BlowCandlesTemplate({
     return parts.length > 0 ? parts : [letterText];
   }, [letterText]);
 
-  const stageTabs: Array<{ id: StageId; label: string }> = [
-    { id: "cake", label: "เป่าเทียน" },
-    { id: "letter", label: "คำอวยพร" },
-    { id: "memories", label: "ความทรงจำ" },
-    { id: "finale", label: "ปิดท้าย" },
-  ];
+  const effectiveWind = Math.max(micLevel, touchWind) / 100;
+  const litCount = litCandles.filter(Boolean).length;
+  const isWarping = warpPhase !== "idle";
+  const showCelebration =
+    stage === "grand_celebration" ||
+    stage === "reveal_layer" ||
+    stage === "viral_closing";
+
+  const stageOrderIndex =
+    stage === "intro"
+      ? 0
+      : stage === "countdown" || stage === "blowing"
+        ? 1
+        : stage === "extinguish_drop" || stage === "grand_celebration"
+          ? 2
+          : stage === "reveal_layer"
+            ? 3
+            : stage === "viral_closing"
+              ? 4
+              : -1;
+
+  const constellationSteps: Array<{
+    id: BlowCandlesStage;
+    label: string;
+    icon: React.ReactNode;
+  }> = [
+      { id: "intro", label: "อธิษฐาน", icon: <Sparkles className="h-3.5 w-3.5" /> },
+      { id: "blowing", label: "เป่าเทียน", icon: <Wind className="h-3.5 w-3.5" /> },
+      {
+        id: "grand_celebration",
+        label: "เฉลิมฉลอง",
+        icon: <Crown className="h-3.5 w-3.5" />,
+      },
+      { id: "reveal_layer", label: "ความลับ", icon: <Gift className="h-3.5 w-3.5" /> },
+      {
+        id: "viral_closing",
+        label: "บันทึกความสุข",
+        icon: <Heart className="h-3.5 w-3.5" />,
+      },
+    ];
+
+  const handleEditableClick = (
+    e: React.MouseEvent,
+    tabIndex: number,
+    fieldId?: string
+  ) => {
+    if (!studio) return;
+    e.stopPropagation();
+    onSelectField?.(tabIndex, fieldId);
+  };
 
   return (
-    <div className="relative flex h-full min-h-[560px] w-full flex-col justify-between overflow-hidden rounded-2xl bg-[radial-gradient(ellipse_at_top,#351249_0%,#150826_52%,#070312_100%)] p-5 text-white shadow-2xl sm:p-7">
-      <style>{`
-        @keyframes candleFlicker {
-          0%, 100% { transform: scale(1) rotate(-2deg); opacity: 0.96; }
-          35% { transform: scale(1.06, 0.95) rotate(2.5deg); opacity: 1; }
-          70% { transform: scale(0.95, 1.07) rotate(-1.5deg); opacity: 0.9; }
-        }
-        @keyframes smokeRise {
-          0% { transform: translateY(0) scale(0.7); opacity: 0.75; }
-          100% { transform: translateY(-34px) scale(1.7); opacity: 0; }
-        }
-        @keyframes floatBokeh {
-          0%, 100% { transform: translateY(0px) scale(1); opacity: 0.25; }
-          50% { transform: translateY(-16px) scale(1.18); opacity: 0.6; }
-        }
-      `}</style>
+    <div
+      className={`relative flex ${studio ? "min-h-full" : "min-h-[100dvh]"
+        } w-full flex-col items-center justify-between overflow-x-hidden overflow-y-hidden bg-[#06020e] px-4 py-3 sm:py-4 text-white select-none`}
+    >
+      {bgmUrl && !studio && (
+        <BackgroundAudioPlayer url={bgmUrl} isPlaying={!muted} loop />
+      )}
 
-      {/* Ambient Bokeh Lights */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div
-          className={`absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl transition-all duration-700 ${
-            allBlownOut ? "bg-fuchsia-500/20" : "bg-amber-400/20"
-          }`}
-        />
-        {BOKEH_DOTS.map((dot, idx) => (
-          <span
-            key={idx}
-            className="absolute rounded-full bg-amber-200/50 blur-[1px]"
-            style={{
-              top: dot.top,
-              left: dot.left,
-              width: `${dot.size}px`,
-              height: `${dot.size}px`,
-              animation: `floatBokeh ${dot.duration} ease-in-out ${dot.delay} infinite`,
+      {/* Rich Deep Velvet & Aurora Volumetric Nebula Backdrop (Never bare!) */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,#321048_0%,#150724_48%,#06020e_100%)]" />
+      <motion.div
+        animate={{ opacity: [0.35, 0.65, 0.35], scale: [1, 1.09, 1] }}
+        transition={{ duration: 7.5, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute -top-24 left-1/2 h-80 w-96 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.22)_0%,rgba(244,114,182,0.12)_48%,transparent_75%)] blur-2xl"
+      />
+      <motion.div
+        animate={{ opacity: [0.25, 0.48, 0.25], x: [-18, 18, -18] }}
+        transition={{ duration: 10.5, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute -bottom-24 left-1/2 h-80 w-[440px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(244,114,182,0.22)_0%,rgba(168,85,247,0.14)_50%,transparent_76%)] blur-2xl"
+      />
+
+      {/* Interactive Volumetric Lighting, Sparkler Trails, Fireworks & Warp Streaks */}
+      <EnchantedGalaCanvas
+        litCount={litCount}
+        isWarping={isWarping}
+        celebrationActive={showCelebration}
+        extinguishAscent={stage === "extinguish_drop"}
+        muted={muted}
+        burstTrigger={burstSignal}
+      />
+
+      {/* Ornate Double Art-Deco Rose-Gold Perimeter Frame */}
+      <FiligreeGalaFrame />
+
+      {/* Confetti & Poppable 3D Metallic Balloons */}
+      <CelebrationLayer
+        active={showCelebration}
+        muted={muted}
+        burstSignal={burstSignal}
+        onBalloonPop={(count) => setPoppedBalloons(count)}
+      />
+
+      {/* Extinguish Flash Bloom */}
+      {flashBurst && (
+        <div className="pointer-events-none absolute inset-0 z-40 animate-pulse bg-gradient-to-b from-amber-100/45 via-rose-200/20 to-transparent" />
+      )}
+
+      {/* Center Radial Golden Warp Aperture Bloom + Whisper during Slow Warp Transition */}
+      <AnimatePresence>
+        {isWarping && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: [0.2, 0.95, 0.25], scale: [0.65, 1.35, 1.75] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.4, ease: "easeInOut" }}
+            className="pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center"
+          >
+            <div className="h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(255,251,235,0.48)_0%,rgba(251,191,36,0.25)_38%,rgba(244,114,182,0.12)_58%,transparent_76%)] blur-2xl" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Warp Interaction Guard + Silky Floating Chapter Whisper Pill */}
+      <AnimatePresence>
+        {isWarping && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35 }}
+            className="pointer-events-auto absolute inset-0 z-50 flex items-end justify-center pb-14"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-amber-200/45 bg-black/55 px-5 py-2 text-xs font-medium tracking-wide text-amber-100 shadow-[0_0_28px_rgba(251,191,36,0.28)] backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 animate-spin text-amber-300" />
+              {warpWhisper}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Top Celestial Read-Only Diamond Progress Stepper & Audio Orb */}
+      <header className="relative z-30 flex w-full max-w-md items-center justify-between gap-2 pt-1">
+        {stage !== "pin" && stage !== "intro" ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              ensureAudioReady();
+              if (stage === "viral_closing") {
+                setCakeOpened(true);
+                setStage("reveal_layer");
+              } else if (stage === "reveal_layer") {
+                setStage("grand_celebration");
+              } else if (stage === "grand_celebration" || stage === "extinguish_drop") {
+                setLitCandles([true, true, true, true, true]);
+                setStage("blowing");
+              } else if (stage === "blowing" || stage === "countdown") {
+                setStage("intro");
+              }
             }}
-          />
-        ))}
-      </div>
+            aria-label="ย้อนกลับ"
+            title="ย้อนกลับ"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-200/35 bg-black/45 text-amber-100 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:border-amber-200/75 hover:bg-amber-300/15"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        ) : (
+          <div className="w-9 shrink-0" />
+        )}
 
-      {/* Top Header */}
-      <div className="relative z-10 flex flex-col items-center text-center">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold tracking-wider text-amber-200 uppercase">
-          <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-          Happy Birthday Celebration
-        </span>
-        <h2 className="mt-2.5 bg-gradient-to-r from-amber-200 via-pink-200 to-purple-200 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent sm:text-3xl">
-          สุขสันต์วันเกิด {recipientName}
-        </h2>
-      </div>
-
-      {/* PIN Gate Screen */}
-      {!pinUnlocked ? (
-        <div className="relative z-10 mx-auto my-auto flex w-full max-w-xs flex-col items-center rounded-2xl border border-white/15 bg-black/40 p-6 text-center backdrop-blur-xl">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20 text-amber-300">
-            <Lock className="h-6 w-6" />
-          </div>
-          <h3 className="mt-3 text-base font-bold text-white">กรุณาใส่รหัส PIN 4 หลัก</h3>
-          <p className="mt-1 text-xs text-slate-300">เพื่อปลดล็อกเค้กวันเกิดและคำอวยพร</p>
-
-          <div className="mt-4 flex gap-3">
-            {[0, 1, 2, 3].map((slot) => (
-              <span
-                key={slot}
-                className={`h-3.5 w-3.5 rounded-full border transition-all ${
-                  pinInput.length > slot
-                    ? "scale-110 border-amber-300 bg-amber-300 shadow-[0_0_10px_#fcd34d]"
-                    : "border-white/30 bg-white/5"
-                }`}
-              />
-            ))}
-          </div>
-
-          {pinError && <p className="mt-3 text-xs font-medium text-rose-300">{pinError}</p>}
-
-          <div className="mt-5 grid w-full grid-cols-3 gap-2.5">
-            {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) => (
-              <button
-                key={num}
-                type="button"
-                disabled={pinChecking}
-                onClick={() => void handlePinKey(num)}
-                className="rounded-xl border border-white/10 bg-white/10 py-2.5 text-base font-bold text-white transition hover:bg-white/20 active:scale-95"
-              >
-                {num}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setPinInput("");
-                setPinError(null);
-              }}
-              className="rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/15"
-            >
-              ล้าง
-            </button>
-            <button
-              type="button"
-              disabled={pinChecking}
-              onClick={() => void handlePinKey("0")}
-              className="rounded-xl border border-white/10 bg-white/10 py-2.5 text-base font-bold text-white transition hover:bg-white/20 active:scale-95"
-            >
-              0
-            </button>
-            <button
-              type="button"
-              onClick={() => setPinInput((prev) => prev.slice(0, -1))}
-              className="rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/15"
-            >
-              ลบ
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="relative z-10 my-4 flex flex-1 flex-col items-center justify-center">
-          {/* STAGE 1: INTERACTIVE CAKE & CANDLES */}
-          {stage === "cake" && (
-            <div className="flex w-full max-w-md flex-col items-center">
-              <p className="mb-2 text-center text-xs text-amber-100/80 sm:text-sm">
-                {allBlownOut
-                  ? "คำอธิษฐานถูกส่งออกไปแล้ว! ขอให้สมหวังทุกประการ"
-                  : `เหลือเทียนที่ติดไฟอยู่ ${litCount} เล่ม — เป่าผ่านไมค์หรือแตะที่เปลวเทียนได้เลย`}
-              </p>
-
-              {/* Multi-tier Birthday Cake SVG */}
-              <div className="relative flex w-full max-w-[300px] items-center justify-center">
-                <svg
-                  viewBox="0 0 300 250"
-                  className="h-auto w-full drop-shadow-[0_18px_35px_rgba(0,0,0,0.65)]"
-                  role="img"
-                  aria-label="เค้กวันเกิดพร้อมเทียน"
-                >
-                  <defs>
-                    <linearGradient id="cakeStand" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#92400e" />
-                      <stop offset="50%" stopColor="#fbbf24" />
-                      <stop offset="100%" stopColor="#78350f" />
-                    </linearGradient>
-                    <linearGradient id="cakeLower" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#9d174d" />
-                      <stop offset="100%" stopColor="#500724" />
-                    </linearGradient>
-                    <linearGradient id="cakeUpper" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#db2777" />
-                      <stop offset="100%" stopColor="#831843" />
-                    </linearGradient>
-                    <linearGradient id="icingCream" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#fff1f2" />
-                      <stop offset="100%" stopColor="#fbcfe8" />
-                    </linearGradient>
-                    <radialGradient id="flameGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#fde047" stopOpacity="0.85" />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
-                    </radialGradient>
-                  </defs>
-
-                  {/* Pedestal Stand */}
-                  <ellipse cx="150" cy="232" rx="74" ry="10" fill="url(#cakeStand)" />
-                  <rect x="137" y="205" width="26" height="26" rx="4" fill="url(#cakeStand)" />
-                  <ellipse cx="150" cy="206" rx="112" ry="13" fill="url(#cakeStand)" />
-
-                  {/* Lower Cake Tier */}
-                  <rect x="64" y="144" width="172" height="58" rx="14" fill="url(#cakeLower)" />
-                  <path
-                    d="M64 152 Q80 170 96 154 Q114 174 132 154 Q150 174 168 154 Q186 174 204 154 Q220 170 236 152 L236 144 Q236 136 226 136 L74 136 Q64 136 64 144 Z"
-                    fill="url(#icingCream)"
-                  />
-
-                  {/* Upper Cake Tier */}
-                  <rect x="86" y="88" width="128" height="52" rx="12" fill="url(#cakeUpper)" />
-                  <path
-                    d="M86 96 Q100 112 114 98 Q128 114 142 98 Q156 114 170 98 Q184 114 198 98 Q208 106 214 96 L214 88 Q214 80 204 80 L96 80 Q86 80 86 88 Z"
-                    fill="url(#icingCream)"
-                  />
-
-                  {/* Golden Plaque */}
-                  <rect x="108" y="168" width="84" height="22" rx="6" fill="#fef3c7" stroke="#f59e0b" strokeWidth="1.5" />
-                  <text
-                    x="150"
-                    y="183"
-                    textAnchor="middle"
-                    fill="#92400e"
-                    fontSize="10"
-                    fontWeight="700"
-                  >
-                    Make a Wish
-                  </text>
-
-                  {/* Sprinkles */}
-                  <circle cx="95" cy="184" r="2.2" fill="#fde047" />
-                  <circle cx="204" cy="180" r="2.2" fill="#38bdf8" />
-                  <circle cx="115" cy="126" r="2" fill="#fde047" />
-                  <circle cx="184" cy="124" r="2" fill="#a7f3d0" />
-
-                  {/* Candles & Interactive Flames */}
-                  {CANDLE_POSITIONS.map((candle, idx) => {
-                    const isLit = litCandles[idx];
-                    const hasSmoke = smokedCandles[idx];
-                    return (
-                      <g
-                        key={idx}
-                        onClick={() => extinguishSingleCandle(idx)}
-                        className={isLit ? "cursor-pointer" : "cursor-default"}
-                      >
-                        {/* Candle Stick */}
-                        <rect
-                          x={candle.x - 4.5}
-                          y={candle.y}
-                          width="9"
-                          height="34"
-                          rx="3"
-                          fill={candle.color}
-                        />
-                        <line
-                          x1={candle.x - 3}
-                          y1={candle.y + 8}
-                          x2={candle.x + 3}
-                          y2={candle.y + 13}
-                          stroke={candle.stripe}
-                          strokeWidth="2"
-                        />
-                        <line
-                          x1={candle.x - 3}
-                          y1={candle.y + 20}
-                          x2={candle.x + 3}
-                          y2={candle.y + 25}
-                          stroke={candle.stripe}
-                          strokeWidth="2"
-                        />
-                        {/* Wick */}
-                        <line
-                          x1={candle.x}
-                          y1={candle.y - 5}
-                          x2={candle.x}
-                          y2={candle.y}
-                          stroke="#1f2937"
-                          strokeWidth="1.8"
-                        />
-
-                        {/* Flame Glow + Animated Flame */}
-                        {isLit && (
-                          <g
-                            style={{
-                              transformOrigin: `${candle.x}px ${candle.y - 6}px`,
-                              animation: `candleFlicker ${1.2 + idx * 0.14}s ease-in-out infinite`,
-                            }}
-                          >
-                            <circle cx={candle.x} cy={candle.y - 14} r="18" fill="url(#flameGlow)" />
-                            <path
-                              d={`M ${candle.x} ${candle.y - 26} C ${candle.x + 6} ${candle.y - 16}, ${candle.x + 5} ${candle.y - 7}, ${candle.x} ${candle.y - 6} C ${candle.x - 5} ${candle.y - 7}, ${candle.x - 6} ${candle.y - 16}, ${candle.x} ${candle.y - 26} Z`}
-                              fill="#fb923c"
-                            />
-                            <path
-                              d={`M ${candle.x} ${candle.y - 20} C ${candle.x + 3} ${candle.y - 14}, ${candle.x + 2.5} ${candle.y - 8}, ${candle.x} ${candle.y - 7} C ${candle.x - 2.5} ${candle.y - 8}, ${candle.x - 3} ${candle.y - 14}, ${candle.x} ${candle.y - 20} Z`}
-                              fill="#fef08a"
-                            />
-                          </g>
-                        )}
-
-                        {/* Smoke Wisp when Blown Out */}
-                        {!isLit && hasSmoke && (
-                          <g
-                            style={{
-                              transformOrigin: `${candle.x}px ${candle.y - 8}px`,
-                              animation: "smokeRise 1.4s ease-out forwards",
-                            }}
-                          >
-                            <circle cx={candle.x} cy={candle.y - 10} r="4" fill="#cbd5e1" opacity="0.55" />
-                            <circle cx={candle.x + 3} cy={candle.y - 17} r="5.5" fill="#e2e8f0" opacity="0.4" />
-                          </g>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
-
-              {/* Microphone Meter when active */}
-              {micActive && (
-                <div className="mt-1 w-full max-w-xs rounded-xl border border-emerald-400/30 bg-emerald-950/40 px-3 py-2">
-                  <div className="flex items-center justify-between text-[11px] text-emerald-200">
-                    <span>กำลังฟังเสียงลมเป่า...</span>
-                    <span className="font-mono">{micLevel}%</span>
-                  </div>
-                  <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-black/40">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-amber-300 transition-all duration-75"
-                      style={{ width: `${micLevel}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {micError && (
-                <p className="mt-2 text-center text-xs text-amber-300">{micError}</p>
-              )}
-
-              {/* Controls */}
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
-                {!allBlownOut ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={blowAllCandles}
-                      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-pink-500/25 transition hover:brightness-110 active:scale-95"
-                    >
-                      <Wind className="h-4 w-4" />
-                      เป่าเทียนทั้งหมด
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void toggleMicrophone()}
-                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-xs font-semibold transition ${
-                        micActive
-                          ? "border-emerald-400/50 bg-emerald-500/20 text-emerald-200"
-                          : "border-white/15 bg-white/10 text-slate-200 hover:bg-white/20"
+        {stage !== "pin" ? (
+          <nav
+            aria-label="ลำดับด่านแบบทีละขั้น"
+            className="pointer-events-none flex select-none items-center gap-1.5 rounded-full border border-amber-200/20 bg-black/45 px-3.5 py-1.5 shadow-lg backdrop-blur-md sm:gap-2"
+          >
+            {constellationSteps.map((step, idx) => {
+              const isCompleted = idx < stageOrderIndex;
+              const isActive = idx === stageOrderIndex;
+              return (
+                <React.Fragment key={step.id}>
+                  <div
+                    title={step.label}
+                    className={`relative flex h-7 w-7 items-center justify-center rounded-full border transition-all duration-500 ${isActive
+                        ? "scale-110 border-amber-200/90 bg-amber-300/25 text-amber-100 shadow-[0_0_16px_rgba(251,191,36,0.55)]"
+                        : isCompleted
+                          ? "border-rose-300/60 bg-rose-400/20 text-rose-100"
+                          : "border-white/10 bg-white/[0.03] text-slate-500 opacity-45"
                       }`}
-                    >
-                      {micActive ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                      {micActive ? "ปิดไมค์" : "เป่าผ่านไมค์"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setStage("letter")}
-                      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 px-6 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-amber-500/25 transition hover:brightness-110 active:scale-95"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      เปิดอ่านคำอวยพร
-                    </button>
-                    <button
-                      type="button"
-                      onClick={relightAllCandles}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold text-slate-200 hover:bg-white/20"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      จุดเทียนใหม่
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STAGE 2: BIRTHDAY LETTER */}
-          {stage === "letter" && (
-            <div className="w-full max-w-md rounded-2xl border border-amber-200/20 bg-white/10 p-5 shadow-xl backdrop-blur-xl sm:p-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-pink-400" />
-                  <h3 className="text-base font-bold text-amber-100">คำอวยพรถึง {recipientName}</h3>
-                </div>
-                <Cake className="h-4 w-4 text-amber-300" />
-              </div>
-
-              <div className="mt-4 max-h-[240px] space-y-3 overflow-y-auto pr-1 text-sm leading-relaxed text-slate-100">
-                {letterParagraphs.map((paragraph, idx) => (
-                  <p key={idx}>{paragraph}</p>
-                ))}
-              </div>
-
-              <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-3 text-xs text-amber-200/80">
-                <span>ด้วยรักและปรารถนาดี</span>
-                <span className="font-bold text-amber-200">{senderName}</span>
-              </div>
-
-              <div className="mt-4 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setStage("memories")}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 px-4 py-2 text-xs font-bold text-white"
-                >
-                  ดูรูปความทรงจำ
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STAGE 3: MEMORY POLAROIDS */}
-          {stage === "memories" && (
-            <div className="flex w-full max-w-md flex-col items-center">
-              {photos.length > 0 ? (
-                <div className="w-full rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl">
-                  <div className="relative overflow-hidden rounded-xl bg-black/40">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photos[photoIndex % photos.length]}
-                      alt={`ความทรงจำที่ ${(photoIndex % photos.length) + 1}`}
-                      className="h-60 w-full object-cover"
+                  >
+                    {isCompleted || isActive ? (
+                      step.icon
+                    ) : (
+                      <Lock className="h-2.5 w-2.5 opacity-80" />
+                    )}
+                  </div>
+                  {idx < constellationSteps.length - 1 && (
+                    <span
+                      className={`h-px w-2.5 transition-colors duration-500 sm:w-4 ${idx < stageOrderIndex
+                          ? "bg-gradient-to-r from-rose-300/75 to-amber-200/75"
+                          : "bg-white/15"
+                        }`}
                     />
-                    {photos.length > 1 && (
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </nav>
+        ) : (
+          <div className="flex-1" />
+        )}
+
+        {/* Sculpted Audio Sphere Toggle */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            ensureAudioReady();
+            setMuted((m) => !m);
+          }}
+          aria-label={muted ? "เปิดเสียงดนตรีและเอฟเฟกต์" : "ปิดเสียง"}
+          title={muted ? "เปิดเสียง" : "ปิดเสียง"}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 hover:scale-105 ${!muted
+              ? "border-amber-300/60 bg-amber-400/15 text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.35)]"
+              : "border-white/15 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
+            }`}
+        >
+          {muted ? (
+            <VolumeX className="h-4 w-4" />
+          ) : (
+            <Volume2 className="h-4 w-4 animate-pulse" />
+          )}
+        </button>
+      </header>
+
+      {/* Main Theater Stage with Silky Warp Scaling & Opacity Flow */}
+      <main className="relative z-20 flex w-full max-w-md flex-1 flex-col items-center justify-center py-2">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={stage === "pin" ? "pin" : stage === "reveal_layer" ? "reveal" : stage === "viral_closing" ? "closing" : "cake"}
+            initial={{ opacity: 0, scale: 0.94, filter: "blur(6px)" }}
+            animate={{
+              opacity: warpPhase === "out" ? 0 : 1,
+              scale: warpPhase === "out" ? 1.07 : 1,
+              filter: warpPhase === "out" ? "blur(6px)" : "blur(0px)",
+            }}
+            exit={{ opacity: 0, scale: 1.06, filter: "blur(6px)" }}
+            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+            className="flex w-full flex-col items-center justify-center"
+          >
+            {/* STAGE 0: PIN GATE */}
+            {stage === "pin" && (
+              <div className="relative w-full max-w-[310px] rounded-[2rem] border border-amber-200/30 bg-black/60 p-6 text-center shadow-[0_28px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-amber-300/50 bg-gradient-to-br from-amber-300/25 to-rose-500/25 text-amber-200 shadow-[0_0_28px_rgba(251,191,36,0.35)]">
+                  <Lock className="h-6 w-6" />
+                </div>
+                <h2 className="text-base font-bold tracking-wide text-amber-100">
+                  รหัสลับเปิดเค้กวันเกิด
+                </h2>
+                <p className="mt-1 text-xs text-slate-300/80">
+                  กรอกรหัสผ่าน 4 หลักเพื่อจุดเทียนวิเศษ
+                </p>
+
+                <div className="mt-5 flex justify-center gap-3.5">
+                  {[0, 1, 2, 3].map((slot) => (
+                    <div
+                      key={slot}
+                      className={`h-3.5 w-3.5 rounded-full border transition-all duration-300 ${slot < pinInput.length
+                          ? "scale-115 border-amber-200 bg-amber-300 shadow-[0_0_14px_rgba(253,224,71,0.85)]"
+                          : "border-white/25 bg-white/5"
+                        }`}
+                    />
+                  ))}
+                </div>
+
+                {pinError && (
+                  <p className="mt-3 text-xs font-medium text-rose-300">
+                    {pinError}
+                  </p>
+                )}
+
+                <div className="mx-auto mt-6 grid max-w-[232px] grid-cols-3 justify-items-center gap-3">
+                  {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map(
+                    (digit) => (
+                      <button
+                        key={digit}
+                        type="button"
+                        onClick={() => void handlePinKey(digit)}
+                        disabled={pinChecking}
+                        className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-white/5 text-base font-semibold text-amber-50 transition-all hover:border-amber-300/50 hover:bg-amber-300/15 active:scale-90"
+                      >
+                        {digit}
+                      </button>
+                    )
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPinInput("");
+                      setPinError(null);
+                    }}
+                    aria-label="ล้างรหัส"
+                    className="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/15"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handlePinKey("0")}
+                    disabled={pinChecking}
+                    className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-white/5 text-base font-semibold text-amber-50 transition-all hover:border-amber-300/50 hover:bg-amber-300/15 active:scale-90"
+                  >
+                    0
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPinInput((p) => p.slice(0, -1));
+                      setPinError(null);
+                    }}
+                    aria-label="ลบตัวเลข"
+                    className="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/15"
+                  >
+                    <Delete className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STAGES 1–5: CANDLE & ROYAL GALA STAGE */}
+            {(stage === "intro" ||
+              stage === "countdown" ||
+              stage === "blowing" ||
+              stage === "extinguish_drop" ||
+              stage === "grand_celebration") && (
+                <div className="flex w-full flex-col items-center">
+                  {/* Recipient Crown Ribbon & Calligraphic Headline */}
+                  <div className="mb-1 text-center">
+                    <div
+                      onClick={(e) => handleEditableClick(e, 1, "field-candles-recipient")}
+                      title={studio ? "คลิกเพื่อแก้ไขชื่อผู้รับ" : undefined}
+                      data-editable-field={studio ? "field-candles-recipient" : undefined}
+                      data-edit-label={studio ? "แก้ไขชื่อผู้รับ" : undefined}
+                      className={`inline-flex items-center gap-1.5 rounded-full border border-amber-200/35 bg-white/5 px-3.5 py-1 text-[11px] font-semibold tracking-wider text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.16)] backdrop-blur-md ${studio
+                          ? "cursor-pointer hover:border-amber-300 hover:bg-amber-400/15"
+                          : ""
+                        }`}
+                    >
+                      <Crown className="h-3.5 w-3.5 text-amber-300" />
+                      <span>แด่ {recipientName}</span>
+                    </div>
+                    <h1
+                      onClick={(e) => {
+                        if (stage === "intro") handleEditableClick(e, 1, "field-candles-intro-headline");
+                        else if (stage === "blowing") handleEditableClick(e, 2, "field-candles-blowing-headline");
+                        else if (stage === "grand_celebration") handleEditableClick(e, 2, "field-candles-celebration-headline");
+                      }}
+                      title={studio ? "คลิกเพื่อแก้ไขหัวข้อ" : undefined}
+                      className={`mt-1.5 bg-gradient-to-b from-amber-50 via-rose-100 to-amber-300 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent drop-shadow-[0_4px_14px_rgba(244,114,182,0.22)] sm:text-3xl ${studio ? "cursor-pointer hover:opacity-85" : ""}`}
+                    >
+                      {stage === "grand_celebration"
+                        ? celebrationHeadline
+                        : stage === "blowing"
+                          ? blowingHeadline
+                          : stage === "countdown"
+                            ? "สูดลมหายใจให้เต็มปอด"
+                            : stage === "extinguish_drop"
+                              ? "แสงเทียนเปลี่ยนเป็นคำอธิษฐาน"
+                              : introHeadline}
+                    </h1>
+                  </div>
+
+                  {/* Royal Mandala Orbit + Cake Theater Stage */}
+                  <div className="relative my-1 flex items-center justify-center">
+                    <RoyalBirthdayMandala
+                      accelerated={isWarping || stage === "countdown"}
+                      litGlow={litCount > 0 || stage === "grand_celebration"}
+                    />
+
+                    <CandleStageCanvas
+                      candles={litCandles}
+                      windStrength={effectiveWind}
+                      cakeOpened={cakeOpened}
+                      stage={stage}
+                      onCandleTap={extinguishSpecificCandle}
+                      onTouchHoldStart={handleTouchHoldStart}
+                      onTouchHoldEnd={handleTouchHoldEnd}
+                    />
+
+                    {/* Celestial Countdown Ring Overlay */}
+                    {stage === "countdown" && (
+                      <motion.div
+                        key={countdownValue}
+                        initial={{ scale: 0.7, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.35 }}
+                        className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center"
+                      >
+                        <div className="relative flex h-24 w-24 items-center justify-center rounded-full border border-amber-200/75 bg-black/60 shadow-[0_0_55px_rgba(251,191,36,0.55)] backdrop-blur-md">
+                          <span className="absolute -inset-2.5 animate-ping rounded-full border border-rose-300/45" />
+                          <span className="text-5xl font-black text-amber-200">
+                            {countdownValue}
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Twilight Smoke & Wish Ascent Anticipation */}
+                    {stage === "extinguish_drop" && (
                       <>
-                        <button
-                          type="button"
-                          onClick={() => setPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length)}
-                          aria-label="รูปก่อนหน้า"
-                          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPhotoIndex((prev) => (prev + 1) % photos.length)}
-                          aria-label="รูปถัดไป"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
+                        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+                          <div className="h-44 w-44 animate-ping rounded-full border border-amber-200/40 bg-amber-200/10" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-x-0 bottom-2 z-30 text-center">
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/35 bg-black/65 px-4 py-1.5 text-xs tracking-wide text-amber-100/95 shadow-xl backdrop-blur-md">
+                            <Sparkles className="h-3.5 w-3.5 animate-spin text-amber-300" />
+                            คำอธิษฐานกำลังลอยขึ้นสู่ฟากฟ้า...
+                          </span>
+                        </div>
                       </>
                     )}
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-300">
-                    <span>ภาพความทรงจำ</span>
-                    <span className="font-mono">
-                      {(photoIndex % photos.length) + 1} / {photos.length}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex w-full flex-col items-center rounded-2xl border border-white/15 bg-white/5 p-6 text-center backdrop-blur-xl">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-500/20 text-pink-300">
-                    <ImageIcon className="h-6 w-6" />
-                  </div>
-                  <h3 className="mt-3 text-base font-bold text-white">บันทึกความทรงจำวันเกิด</h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
-                    {wishMessage}
-                  </p>
+
+                  {/* STAGE 1 ACTIONS: INTRO */}
+                  {stage === "intro" && (
+                    <div className="mt-1 flex flex-col items-center gap-3 px-2 text-center">
+                      <p
+                        onClick={(e) => handleEditableClick(e, 1, "field-candles-intro-prompt")}
+                        title={studio ? "คลิกเพื่อแก้ไขข้อความเกริ่นนำ" : undefined}
+                        className={`min-h-[36px] max-w-xs text-xs leading-relaxed text-rose-100/90 sm:text-sm ${studio ? "cursor-pointer rounded-lg px-2 py-0.5 hover:bg-white/10" : ""}`}
+                      >
+                        {introPrompt.slice(0, typedCount)}
+                        {typedCount < introPrompt.length && (
+                          <span className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-amber-300 align-middle" />
+                        )}
+                      </p>
+
+                      <GlowMedallion
+                        tone="gold"
+                        size="lg"
+                        activeRing
+                        icon={
+                          <Flame className="h-7 w-7 animate-pulse text-amber-200" />
+                        }
+                        caption={introButtonCaption}
+                        onClick={() => {
+                          ensureAudioReady();
+                          playCandleIgnite(mutedRef.current);
+                          triggerHaptic(30);
+                          triggerStageWarp("countdown", {
+                            whisper:
+                              "กำลังจุดประกายคำอธิษฐานและเข้าสู่นับถอยหลัง...",
+                            outMs: 680,
+                            inMs: 780,
+                          });
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* STAGE 3 ACTIONS: BLOWING */}
+                  {stage === "blowing" && (
+                    <div className="mt-1 flex w-full flex-col items-center gap-3.5">
+                      <div className="flex items-center gap-2 rounded-full border border-amber-200/20 bg-black/45 px-4 py-1.5 backdrop-blur-md">
+                        {litCandles.map((lit, i) => (
+                          <span
+                            key={i}
+                            className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${lit
+                                ? "bg-amber-300 shadow-[0_0_12px_rgba(253,224,71,0.95)]"
+                                : "bg-slate-600/60"
+                              }`}
+                          />
+                        ))}
+                        <span className="ml-1.5 text-[11px] font-medium text-amber-100/85">
+                          เหลือ {litCount} เล่ม
+                        </span>
+                      </div>
+
+                      <div className="flex items-start justify-center gap-5 sm:gap-7">
+                        <GlowMedallion
+                          tone={micActive ? "sky" : "glass"}
+                          size="md"
+                          activeRing={micActive}
+                          pulseScale={micActive ? micLevel / 100 : 0}
+                          icon={
+                            micActive ? (
+                              <Mic className="h-5 w-5 text-sky-200" />
+                            ) : (
+                              <MicOff className="h-5 w-5 text-slate-200" />
+                            )
+                          }
+                          caption={
+                            micActive ? "เป่าใส่ไมค์ได้เลย" : "เปิดไมค์เป่าเทียน"
+                          }
+                          onClick={() => {
+                            ensureAudioReady();
+                            if (micActive) stopMic();
+                            else void startMic();
+                          }}
+                        />
+
+                        <GlowMedallion
+                          tone="rose"
+                          size="lg"
+                          activeRing={touchBlowing}
+                          icon={<Wind className="h-7 w-7 text-rose-100" />}
+                          caption={
+                            touchBlowing ? "กำลังเป่าลม" : "กดค้างเพื่อเป่า"
+                          }
+                          onPointerDown={handleTouchHoldStart}
+                          onPointerUp={handleTouchHoldEnd}
+                          onPointerLeave={handleTouchHoldEnd}
+                        />
+
+                        <GlowMedallion
+                          tone="gold"
+                          size="md"
+                          icon={<Sparkles className="h-5 w-5 text-amber-200" />}
+                          caption="เป่าดับพร้อมกัน"
+                          onClick={blowAllCandles}
+                        />
+                      </div>
+
+                      {micError && (
+                        <p className="max-w-xs text-center text-[11px] text-rose-300/90">
+                          {micError}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* STAGE 5 ACTIONS: GRAND CELEBRATION */}
+                  {stage === "grand_celebration" && (
+                    <div className="mt-1 flex flex-col items-center gap-3 text-center">
+                      <p
+                        onClick={(e) => handleEditableClick(e, 2, "field-candles-celebration-hint")}
+                        title={studio ? "คลิกเพื่อแก้ไขข้อความแนะนำ" : undefined}
+                        className={`max-w-xs text-xs leading-relaxed text-amber-100/90 sm:text-sm ${studio ? "cursor-pointer rounded-lg px-2 py-0.5 hover:bg-white/10" : ""}`}
+                      >
+                        {celebrationHint}
+                        {poppedBalloons > 0
+                          ? ` · เก็บลูกโป่งแล้ว ${poppedBalloons} ดวง`
+                          : ""}
+                      </p>
+
+                      <GlowMedallion
+                        tone="gold"
+                        size="lg"
+                        activeRing
+                        icon={<Gift className="h-7 w-7 text-amber-100" />}
+                        caption={revealButtonCaption}
+                        onClick={() => {
+                          ensureAudioReady();
+                          playGiftOpenChime(mutedRef.current);
+                          triggerStageWarp("reveal_layer", {
+                            whisper: "กำลังเปิดกล่องความลับที่ซ่อนไว้ภายในเค้ก...",
+                            outMs: 700,
+                            inMs: 800,
+                            extraOnSwap: () => {
+                              setCakeOpened(true);
+                            },
+                          });
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
+            {/* STAGE 6: REVEAL LAYER (HIDDEN TREASURE VAULT) */}
+            {stage === "reveal_layer" && (
+              <div className="relative flex w-full flex-col items-center gap-4">
+                {!cakeOpened ? (
+                  <div className="flex flex-col items-center gap-5 rounded-[2rem] border border-amber-200/30 bg-black/55 px-6 py-8 text-center shadow-[0_24px_70px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-amber-300/45 bg-amber-400/15 text-amber-200 shadow-[0_0_26px_rgba(251,191,36,0.35)]">
+                      <Cake className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-amber-100">
+                        ความลับที่ซ่อนอยู่ในเค้ก
+                      </h2>
+                      <p className="mt-1 max-w-[240px] text-xs leading-relaxed text-slate-300">
+                        ภายในเค้กก้อนนี้มีความทรงจำและข้อความพิเศษเตรียมไว้ให้คุณ
+                      </p>
+                    </div>
+                    <GlowMedallion
+                      tone="gold"
+                      size="lg"
+                      activeRing
+                      icon={<Gift className="h-6 w-6 text-amber-100" />}
+                      caption="เปิดเค้กดูความลับ"
+                      onClick={() => {
+                        ensureAudioReady();
+                        playGiftOpenChime(mutedRef.current);
+                        triggerHaptic(30);
+                        setCakeOpened(true);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex w-full flex-col gap-4 rounded-[2rem] border border-amber-200/30 bg-[#11071f]/80 p-5 shadow-[0_26px_80px_rgba(0,0,0,0.82)] backdrop-blur-2xl">
+                    {/* 2 Memory Photos with Slow Staggered Entrance & Click-to-View */}
+                    <div className="space-y-2">
+                      {studio && (
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={(e) => handleEditableClick(e, 3, "field-candles-photos")}
+                            title="คลิกเพื่อแก้ไขรูปความทรงจำ"
+                            data-editable-field="field-candles-photos"
+                            data-edit-label="แก้ไขรูปความทรงจำ"
+                            className="rounded-lg border border-amber-200/35 bg-amber-300/15 px-2.5 py-1 text-[11px] font-semibold text-amber-200 transition hover:bg-amber-300/25"
+                          >
+                            แก้ไขรูป
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {displayPhotos.map((src, idx) => (
+                          <motion.button
+                            key={`${src}-${idx}`}
+                            type="button"
+                            initial={{ opacity: 0, y: 24, scale: 0.92 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{
+                              duration: 1.0,
+                              delay: 0.2 + idx * 0.3,
+                              ease: [0.22, 1, 0.36, 1],
+                            }}
+                            onClick={() => setLightboxPhotoIndex(idx)}
+                            className="group relative overflow-hidden rounded-2xl border border-amber-200/40 bg-black/50 text-left shadow-lg transition-colors hover:border-amber-200/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+                          >
+                            <div className="relative h-32 w-full overflow-hidden sm:h-36">
+                              <img
+                                src={src}
+                                alt={`ภาพความทรงจำ ${idx + 1}`}
+                                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                              <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-black/55 text-amber-100 backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
+                                <ZoomIn className="h-3.5 w-3.5" />
+                              </span>
+                            </div>
+
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Gilded Birthday Letter Scroll with Slow Text Entrance */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 26 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.95,
+                        delay: 0.65,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      onClick={(e) => handleEditableClick(e, 3, "field-candles-letter")}
+                      title={studio ? "คลิกเพื่อแก้ไขจดหมายอวยพร" : undefined}
+                      data-editable-field={studio ? "field-candles-letter" : undefined}
+                      data-edit-label={studio ? "แก้ไขจดหมายอวยพร" : undefined}
+                      className={`rounded-2xl border border-amber-200/25 bg-gradient-to-b from-amber-100/[0.06] to-black/50 p-4 shadow-inner ${studio ? "cursor-pointer hover:border-amber-300/60" : ""
+                        }`}
+                    >
+                      <motion.div
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          duration: 0.85,
+                          delay: 0.8,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className="flex items-center justify-between border-b border-amber-200/15 pb-2"
+                      >
+                        <span className="text-xs font-bold tracking-wide text-amber-200">
+                          {letterTitle}
+                        </span>
+                        <Heart className="h-3.5 w-3.5 fill-rose-400/50 text-rose-300" />
+                      </motion.div>
+                      <div className="mt-2.5 max-h-36 space-y-2 overflow-y-auto pr-1 text-xs leading-relaxed text-slate-100 sm:text-sm">
+                        {letterParagraphs.map((paragraph, idx) => (
+                          <motion.p
+                            key={idx}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                              duration: 0.9,
+                              delay: 0.95 + idx * 0.28,
+                              ease: [0.22, 1, 0.36, 1],
+                            }}
+                          >
+                            {paragraph}
+                          </motion.p>
+                        ))}
+                      </div>
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{
+                          duration: 0.85,
+                          delay: 1.05 + letterParagraphs.length * 0.28,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className="mt-3 text-right text-xs font-semibold text-amber-300"
+                      >
+                        ด้วยรัก จาก {senderName}
+                      </motion.p>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 18, scale: 0.92 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{
+                        duration: 0.9,
+                        delay: 1.25 + letterParagraphs.length * 0.2,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      className="flex justify-center pt-1"
+                    >
+                      <GlowMedallion
+                        tone="rose"
+                        size="md"
+                        activeRing
+                        icon={<Sparkles className="h-5 w-5 text-rose-100" />}
+                        caption={closingButtonCaption}
+                        onClick={() => {
+                          ensureAudioReady();
+                          triggerStageWarp("viral_closing", {
+                            whisper:
+                              "กำลังร้อยเรียงการ์ดความทรงจำปิดท้าย...",
+                            outMs: 680,
+                            inMs: 780,
+                          });
+                        }}
+                      />
+                    </motion.div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STAGE 7: ROYAL KEEPSAKE CLOSING */}
+            {stage === "viral_closing" && (
+              <div className="relative flex w-full max-w-[360px] flex-col items-center rounded-[2.2rem] border border-amber-200/40 bg-gradient-to-b from-[#29103b]/85 via-[#140822]/92 to-black/90 p-6 text-center shadow-[0_28px_90px_rgba(0,0,0,0.86)] backdrop-blur-2xl">
+                {/* Top Video Player */}
+                <div className="mb-4 w-full space-y-1.5">
+                  {studio && videoUrl && (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={(e) => handleEditableClick(e, 4, "field-candles-video")}
+                        title="คลิกเพื่อแก้ไขวิดีโอความทรงจำ"
+                        data-editable-field="field-candles-video"
+                        data-edit-label="แก้ไขวิดีโอความทรงจำ"
+                        className="rounded-lg border border-amber-200/35 bg-amber-300/15 px-2.5 py-0.5 text-[11px] font-semibold text-amber-200 transition hover:bg-amber-300/25"
+                      >
+                        แก้ไขวิดีโอ
+                      </button>
+                    </div>
+                  )}
+
+                  {youtubeVideoId ? (
+                    <div className="aspect-video w-full overflow-hidden rounded-2xl border border-amber-200/35 bg-black shadow-lg">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&playsinline=1&modestbranding=1`}
+                        title="วิดีโอความทรงจำ"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="h-full w-full"
+                      />
+                    </div>
+                  ) : videoUrl ? (
+                    <div className="overflow-hidden rounded-2xl border border-amber-200/35 bg-black shadow-lg">
+                      <video
+                        src={videoUrl}
+                        controls
+                        playsInline
+                        preload="metadata"
+                        className="aspect-video w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      onClick={(e) => {
+                        if (studio) {
+                          handleEditableClick(e, 4, "field-candles-video");
+                        }
+                      }}
+                      title={studio ? "คลิกเพื่อเพิ่มวิดีโอความทรงจำ" : undefined}
+                      data-editable-field={studio ? "field-candles-video" : undefined}
+                      data-edit-label={studio ? "เพิ่มวิดีโอความทรงจำ" : undefined}
+                      className={`group relative flex aspect-video w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-200/35 bg-gradient-to-br from-[#1f0c33] via-[#120720] to-black shadow-lg ${
+                        studio ? "cursor-pointer hover:border-amber-200/75" : ""
+                      }`}
+                    >
+                      <span className="absolute left-3 top-2.5 rounded-md border border-amber-200/25 bg-black/50 px-2 py-0.5 text-[10px] font-bold tracking-widest text-amber-200/80 uppercase">
+                        Video
+                      </span>
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/55 bg-amber-300/20 text-amber-100 shadow-[0_0_24px_rgba(251,191,36,0.3)] transition-transform duration-300 group-hover:scale-105">
+                        <Play className="ml-0.5 h-5 w-5 fill-amber-100/80" />
+                      </span>
+                      <div className="absolute inset-x-3 bottom-2.5 flex items-center gap-2">
+                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/15">
+                          <div className="h-full w-1/3 rounded-full bg-amber-300/60" />
+                        </div>
+                        <span className="font-mono text-[10px] text-amber-100/60">
+                          00:00
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/55 bg-amber-300/15 text-amber-200 shadow-[0_0_26px_rgba(251,191,36,0.4)]">
+                  <Crown className="h-5 w-5" />
+                </div>
+
+                <span
+                  onClick={(e) => handleEditableClick(e, 4, "field-candles-closing-badge")}
+                  title={studio ? "คลิกเพื่อแก้ไขป้ายหัวข้อ" : undefined}
+                  className={`mt-3 text-[10px] font-semibold tracking-[0.28em] text-rose-200/80 uppercase ${studio ? "cursor-pointer rounded px-1.5 py-0.5 hover:bg-white/10" : ""}`}
+                >
+                  {closingBadge}
+                </span>
+
+                <h3
+                  onClick={(e) => handleEditableClick(e, 4, "field-candles-closing-title")}
+                  title={studio ? "คลิกเพื่อแก้ไขหัวข้อหน้าปิดท้าย" : undefined}
+                  data-editable-field={studio ? "field-candles-recipient-final" : undefined}
+                  data-edit-label={studio ? "แก้ไขหัวข้อหน้าปิดท้าย" : undefined}
+                  className={`mt-2 bg-gradient-to-r from-amber-100 via-rose-100 to-amber-200 bg-clip-text text-2xl font-black text-transparent ${studio ? "cursor-pointer hover:underline" : ""
+                    }`}
+                >
+                  {closingTitle}
+                </h3>
+
+                <p
+                  onClick={(e) => handleEditableClick(e, 4, "field-candles-wish")}
+                  title={studio ? "คลิกเพื่อแก้ไขข้อความปิดท้าย" : undefined}
+                  data-editable-field={studio ? "field-candles-wish" : undefined}
+                  data-edit-label={studio ? "แก้ไขข้อความปิดท้าย" : undefined}
+                  className={`mt-3 text-xs leading-relaxed text-slate-200 sm:text-sm ${studio
+                      ? "cursor-pointer rounded-lg p-1 hover:bg-white/10"
+                      : ""
+                    }`}
+                >
+                  &ldquo;{wishMessage}&rdquo;
+                </p>
+
+                <p
+                  onClick={(e) => handleEditableClick(e, 1, "field-candles-sender")}
+                  title={studio ? "คลิกเพื่อแก้ไขชื่อผู้ส่ง" : undefined}
+                  className={`mt-3 text-xs font-semibold text-amber-300 ${studio ? "cursor-pointer rounded px-1.5 py-0.5 hover:bg-white/10" : ""}`}
+                >
+                  ด้วยรักจาก {senderName}
+                </p>
+
+                <div className="mt-6 flex items-start justify-center gap-8">
+                  <GlowMedallion
+                    tone="rose"
+                    size="lg"
+                    activeRing={!loveSent}
+                    disabled={loveSending}
+                    icon={
+                      <Heart
+                        className={`h-7 w-7 transition-transform duration-300 ${loveSent
+                            ? "scale-110 fill-rose-300 text-rose-100"
+                            : "text-rose-100"
+                          }`}
+                      />
+                    }
+                    caption={
+                      loveSent ? "ส่งหัวใจกลับแล้ว" : "ส่งหัวใจกลับให้ผู้ส่ง"
+                    }
+                    onClick={() => void handleSendLoveBack()}
+                  />
+
+                  <GlowMedallion
+                    tone="glass"
+                    size="lg"
+                    icon={<RotateCcw className="h-6 w-6 text-amber-100" />}
+                    caption="จุดเทียนเล่นใหม่"
+                    onClick={replayExperience}
+                  />
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+
+      {/* Bottom Gala Watermark Signature */}
+      <footer className="pointer-events-none relative z-20 flex items-center gap-1.5 text-[10px] tracking-[0.24em] text-amber-100/50 uppercase">
+        <Sparkles className="h-3 w-3 text-amber-200/60" />
+        <span>Royal Candlelight Gala</span>
+        <Sparkles className="h-3 w-3 text-amber-200/60" />
+      </footer>
+
+      {/* Slow Animated Photo Lightbox */}
+      <AnimatePresence>
+        {lightboxPhotoIndex !== null && lightboxPhotos.length > 0 && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="ดูภาพความทรงจำขนาดใหญ่"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: "easeInOut" }}
+            onClick={() => setLightboxPhotoIndex(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.76, y: 28 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.84, y: 18 }}
+              transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-amber-200/40 bg-[#140822] p-3 shadow-[0_30px_90px_rgba(0,0,0,0.9)]"
+            >
               <button
                 type="button"
-                onClick={() => setStage("finale")}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-pink-500 px-5 py-2 text-xs font-bold text-slate-950"
+                onClick={() => setLightboxPhotoIndex(null)}
+                aria-label="ปิดภาพขยาย"
+                className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/65 text-white backdrop-blur-sm transition hover:bg-black/85"
               >
-                ไปยังหน้าปิดท้าย
-                <ChevronRight className="h-4 w-4" />
+                <X className="h-4 w-4" />
               </button>
-            </div>
-          )}
 
-          {/* STAGE 4: FINALE */}
-          {stage === "finale" && (
-            <div className="w-full max-w-md rounded-2xl border border-amber-300/25 bg-gradient-to-b from-white/10 to-white/5 p-6 text-center shadow-xl backdrop-blur-xl">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-400/20 text-amber-300">
-                <Sparkles className="h-7 w-7" />
+              <div className="overflow-hidden rounded-2xl bg-black/70">
+                <img
+                  src={lightboxPhotos[lightboxPhotoIndex % lightboxPhotos.length]}
+                  alt={`ภาพความทรงจำที่ ${(lightboxPhotoIndex % lightboxPhotos.length) + 1}`}
+                  className="max-h-[70vh] w-full object-contain"
+                />
               </div>
-              <h3 className="mt-3 text-xl font-extrabold text-amber-100">
-                สุขสันต์วันเกิดอีกครั้งนะ {recipientName}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-200">
-                {wishMessage}
-              </p>
-              <p className="mt-3 text-xs font-semibold text-pink-300">
-                จาก {senderName}
-              </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={relightAllCandles}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 px-5 py-2 text-xs font-bold text-white"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  จุดเทียนเล่นใหม่
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* Bottom Stage Navigation Pills */}
-      {pinUnlocked && (
-        <div className="relative z-10 flex flex-wrap items-center justify-center gap-2 pt-2">
-          {stageTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setStage(tab.id)}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-                stage === tab.id
-                  ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/20"
-                  : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/15 hover:text-white"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      )}
+              <div className="mt-3 flex items-center justify-between px-2 pb-1 text-xs text-amber-100">
+                <span>
+                  ภาพความทรงจำที่ {(lightboxPhotoIndex % lightboxPhotos.length) + 1} /{" "}
+                  {lightboxPhotos.length}
+                </span>
+                {lightboxPhotos.length > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLightboxPhotoIndex(
+                          (prev) =>
+                            ((prev ?? 0) - 1 + lightboxPhotos.length) %
+                            lightboxPhotos.length
+                        )
+                      }
+                      aria-label="ภาพก่อนหน้า"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 text-amber-100 transition hover:bg-white/20"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLightboxPhotoIndex(
+                          (prev) => ((prev ?? 0) + 1) % lightboxPhotos.length
+                        )
+                      }
+                      aria-label="ภาพถัดไป"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 text-amber-100 transition hover:bg-white/20"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

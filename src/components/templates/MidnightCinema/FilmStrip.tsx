@@ -88,8 +88,14 @@ export default function FilmStrip({
     <section className="relative mx-auto w-full max-w-2xl px-4 py-6">
       {/* Section Header */}
       <div
-        onClick={() => onSelectField?.(3, "field-cinema-memories-title")}
-        className="mb-6 text-center cursor-pointer group"
+        data-editable-field={onSelectField ? "field-cinema-memories-title" : undefined}
+        data-edit-label={onSelectField ? "หัวข้อและคำบรรยายม้วนฟิล์ม" : undefined}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelectField?.(3, "field-cinema-memories-title");
+        }}
+        title={onSelectField ? "คลิกเพื่อแก้ไขหัวข้อและคำบรรยายม้วนฟิล์ม" : undefined}
+        className={`mb-6 text-center group rounded-xl p-2 transition-all ${onSelectField ? "cursor-pointer hover:ring-2 hover:ring-amber-400/70" : ""}`}
       >
         <p className="font-mono text-[10px] tracking-[0.3em] text-amber-500/80 uppercase">
           REEL NO. 01 • 35MM
@@ -116,8 +122,14 @@ export default function FilmStrip({
 
         {/* Current Active Frame Spotlight Display */}
         <div
-          onClick={() => onSelectField?.(3, `field-cinema-photo-${activeIndex}`)}
-          className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-[#0a0c12] cursor-pointer overflow-hidden group"
+          data-editable-field={onSelectField ? `field-cinema-photo-${activeIndex}` : undefined}
+          data-edit-label={onSelectField ? `รูปภาพเฟรมที่ ${activeIndex + 1}` : undefined}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectField?.(3, `field-cinema-photo-${activeIndex}`);
+          }}
+          title={onSelectField ? `คลิกเพื่อแก้ไขรูปภาพเฟรมที่ ${activeIndex + 1}` : undefined}
+          className={`relative aspect-[16/10] sm:aspect-[16/9] w-full bg-[#0a0c12] overflow-hidden group transition-all ${onSelectField ? "cursor-pointer hover:ring-2 hover:ring-amber-400/80" : ""}`}
         >
           <AnimatePresence mode="wait">
             <motion.div

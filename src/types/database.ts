@@ -98,8 +98,11 @@ export interface Template {
   category: TemplateCategory;
   is_premium: boolean;
   price?: number;
+  original_price?: number | null;
   is_active?: boolean;
   is_published?: boolean;
+  /** When is_published is false, whether admins still see this template on /dashboard & /templates. */
+  admin_preview_visible?: boolean;
   preview_url: string;
   /** Public URL of the uploaded preview video (template-previews bucket); null falls back to the static image. */
   preview_video_url?: string | null;

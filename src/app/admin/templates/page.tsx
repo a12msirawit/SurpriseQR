@@ -10,10 +10,18 @@ export const dynamic = "force-dynamic";
 export default async function AdminTemplatesPage() {
   await requireAdmin();
   const supabase = await createClient();
-  const { data } = await supabase
+  let { data, error } = await supabase
     .from("templates")
-    .select("id, title, category, price, is_premium, is_active, is_published, preview_url, created_at")
+    .select("id, title, category, price, original_price, is_premium, is_active, is_published, preview_url, created_at")
     .order("created_at", { ascending: false });
+
+  if (error) {
+    const fallback = await supabase
+      .from("templates")
+      .select("id, title, category, price, is_premium, is_active, is_published, preview_url, created_at")
+      .order("created_at", { ascending: false });
+    data = fallback.data as typeof data;
+  }
 
   return (
     <main className="min-h-screen bg-[#06030c] p-4 md:p-8">

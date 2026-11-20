@@ -47,6 +47,7 @@ export default function StarlightMemoriesTemplate({
   const menu = (content.menu as Record<string, unknown>) || {};
   const letter = (content.letter as Record<string, unknown>) || {};
   const memories = (content.memories as Record<string, unknown>) || {};
+  const flowers = (content.flowers as Record<string, unknown>) || {};
   const songMedia = (content.songMedia as Record<string, unknown>) || {};
   const finale = (content.finale as Record<string, unknown>) || {};
   const bgMusic = (content.bgMusic as Record<string, unknown>) || {};
@@ -96,21 +97,73 @@ export default function StarlightMemoriesTemplate({
       "/templates/starlight-memories.svg",
     ];
 
-    const actNames = [
+    const actDefaults = [
       "ACT 1: THE ENCOUNTER",
       "ACT 2: JOURNEY IN TIME",
       "ACT 3: THE HEARTBEAT",
     ];
+    const sceneDefaults = ["SCENE 01", "SCENE 02", "SCENE 03"];
+    const legacyActNames = new Set(["60-Second Immersion", "Memory Gallery", "Background Melody"]);
+    const legacySceneNames = new Set(["ช่วงเวลาสะกดอารมณ์ 60 วินาที", "แกลเลอรีความทรงจำที่ปลดล็อก", "ท่วงทำนองใต้แสงดาว"]);
+    const rawActNames = [menu.card1Title, menu.card2Title, menu.card3Title];
+    const rawSceneNames = [menu.card1Desc, menu.card2Desc, menu.card3Desc];
 
-    return [0, 1, 2].map((i) => ({
-      id: `cutscene-act-${i + 1}`,
-      image: validPhotoUrls[i] || fallbackImages[i % fallbackImages.length],
-      caption: paragraphs[i] || paragraphs[0] || "ทุกความทรงจำยังคงส่องสว่างชัดเจนเสมอ",
-      sceneNumber: `SCENE 0${i + 1}`,
-      actName: actNames[i],
-      subCaption: `MOMENT 0${i + 1}`,
-    }));
-  }, [memories.filmstripImages, raw.photos, letter.paragraphs, raw.message]);
+    return [0, 1, 2].map((i) => {
+      const customAct = typeof rawActNames[i] === "string" && rawActNames[i].trim() && !legacyActNames.has(rawActNames[i].trim())
+        ? String(rawActNames[i])
+        : actDefaults[i];
+      const customScene = typeof rawSceneNames[i] === "string" && rawSceneNames[i].trim() && !legacySceneNames.has(rawSceneNames[i].trim())
+        ? String(rawSceneNames[i])
+        : sceneDefaults[i];
+      const letterParas = Array.isArray(letter.paragraphs) ? (letter.paragraphs as unknown[]) : [];
+      const hasExplicitPara = typeof letterParas[i] === "string";
+      const caption = hasExplicitPara
+        ? String(letterParas[i])
+        : paragraphs[i] || paragraphs[0] || "ทุกความทรงจำยังคงส่องสว่างชัดเจนเสมอ";
+
+      return {
+        id: `cutscene-act-${i + 1}`,
+        image: validPhotoUrls[i] || fallbackImages[i % fallbackImages.length],
+        caption,
+        sceneNumber: customScene,
+        actName: customAct,
+        subCaption: `MOMENT 0${i + 1}`,
+      };
+    });
+  }, [
+    memories.filmstripImages,
+    raw.photos,
+    letter.paragraphs,
+    raw.message,
+    menu.card1Title,
+    menu.card2Title,
+    menu.card3Title,
+    menu.card1Desc,
+    menu.card2Desc,
+    menu.card3Desc,
+  ]);
+
+  const galleryHint =
+    typeof memories.description === "string" &&
+    memories.description.trim() &&
+    memories.description.trim() !== "เรื่องราวใต้ผืนฟ้าดวงดาว"
+      ? memories.description
+      : "ปาดเลือกหยิบดูภาพโพลารอยด์ หรือแตะเพื่ออ่านข้อความความในใจ";
+
+  const replayLabel =
+    typeof flowers.subTitle === "string" &&
+    flowers.subTitle.trim() &&
+    flowers.subTitle.trim() !== "ช่อดอกไม้จากใจ"
+      ? flowers.subTitle
+      : "ชมคัดซีนภาพยนตร์อีกครั้ง";
+
+  const letterboxTagline =
+    typeof memories.sectionTitle === "string" &&
+    memories.sectionTitle.trim() &&
+    memories.sectionTitle.trim() !== "STARLIGHT MOMENTS" &&
+    memories.sectionTitle.trim() !== "Memories Made With You"
+      ? memories.sectionTitle
+      : "CINEMATIC 21:9 WIDESCREEN EXPERIENCE";
 
   // Mode: 'cutscene' | 'gallery'
   const [mode, setMode] = useState<"cutscene" | "gallery">("cutscene");
@@ -122,6 +175,7 @@ export default function StarlightMemoriesTemplate({
   const [touchSparks, setTouchSparks] = useState<TouchSpark[]>([]);
   const [selectedPolaroidIndex, setSelectedPolaroidIndex] = useState(0);
   const [zoomedScene, setZoomedScene] = useState<StarlightScene | null>(null);
+  const [focusedFieldId, setFocusedFieldId] = useState<string | null>(null);
 
   // Sync mode and cutscene timestamp with studio preview selector
   useEffect(() => {
@@ -147,7 +201,7 @@ export default function StarlightMemoriesTemplate({
   // Cutscene Timeline Controller (28 Seconds)
   // 0-4s: Intro, 4-12s: Act 1, 12-20s: Act 2, 20-28s: Act 3, 28s: Shutter Finale
   useEffect(() => {
-    if (mode !== "cutscene") return;
+    if (studio || mode !== "cutscene") return;
 
     setCutsceneTime(0);
     const interval = setInterval(() => {
@@ -177,7 +231,7 @@ export default function StarlightMemoriesTemplate({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [mode]);
+  }, [studio, mode]);
 
   // Current Act Index
   const currentAct = useMemo(() => {
@@ -220,6 +274,24 @@ export default function StarlightMemoriesTemplate({
       setMode("cutscene");
     }, 400);
   };
+
+  useEffect(() => {
+    const handlePreviewFocus = (event: Event) => {
+      const custom = event as CustomEvent<{ fieldId?: string | null }>;
+      const fieldId = custom.detail?.fieldId ?? null;
+      setFocusedFieldId(fieldId);
+      if (!fieldId) return;
+      const badgeMatch = /^field-starlight-scene-badge-(\d+)$/.exec(fieldId);
+      if (badgeMatch) {
+        const idx = Number(badgeMatch[1]) - 1;
+        if (idx >= 0 && idx < scenes.length) {
+          setSelectedPolaroidIndex(idx);
+        }
+      }
+    };
+    window.addEventListener("sq-preview-focus", handlePreviewFocus);
+    return () => window.removeEventListener("sq-preview-focus", handlePreviewFocus);
+  }, [scenes.length]);
 
   return (
     <div
@@ -323,13 +395,32 @@ export default function StarlightMemoriesTemplate({
           {audioSrc && (
             <button
               type="button"
+              data-editable-field={onSelectField ? "field-starlight-music" : undefined}
+              data-edit-label={onSelectField ? "เพลงประกอบ" : undefined}
+              data-sq-focused={focusedFieldId === "field-starlight-music" ? "true" : undefined}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsAudioMuted((prev) => !prev);
               }}
-              className="text-slate-400 hover:text-white p-1"
+              className="text-slate-400 hover:text-white p-1 rounded-md"
             >
               {isAudioMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+            </button>
+          )}
+          {!audioSrc && onSelectField && (
+            <button
+              type="button"
+              data-editable-field="field-starlight-music"
+              data-edit-label="เพลงประกอบ"
+              data-sq-focused={focusedFieldId === "field-starlight-music" ? "true" : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectField(1, "field-starlight-music");
+              }}
+              className="text-slate-500 hover:text-slate-200 p-1 rounded-md"
+              title="คลิกเพื่อเพิ่มเพลงประกอบ (แท็บ 1)"
+            >
+              <VolumeX className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -370,7 +461,10 @@ export default function StarlightMemoriesTemplate({
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.0, duration: 1.2 }}
-                  className="text-2xl md:text-3xl font-light tracking-[0.35em] text-amber-100 uppercase"
+                  data-editable-field={onSelectField ? "field-starlight-story-title" : undefined}
+                  data-edit-label={onSelectField ? "ชื่อการ์ด / ชื่อเรื่องราว" : undefined}
+                  data-sq-focused={focusedFieldId === "field-starlight-story-title" ? "true" : undefined}
+                  className="text-2xl md:text-3xl font-light tracking-[0.35em] text-amber-100 uppercase px-2 py-1 rounded-lg"
                 >
                   {title}
                 </motion.h1>
@@ -378,7 +472,16 @@ export default function StarlightMemoriesTemplate({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 0.6 }}
                   transition={{ delay: 1.8, duration: 1 }}
-                  className="text-xs md:text-sm font-light text-slate-300 tracking-widest"
+                  data-editable-field={onSelectField ? "field-starlight-recipient" : undefined}
+                  data-edit-label={onSelectField ? "ชื่อผู้รับ" : undefined}
+                  data-sq-focused={focusedFieldId === "field-starlight-recipient" ? "true" : undefined}
+                  onClick={(e) => {
+                    if (onSelectField) {
+                      e.stopPropagation();
+                      onSelectField(1, "field-starlight-recipient");
+                    }
+                  }}
+                  className="text-xs md:text-sm font-light text-slate-300 tracking-widest px-2 py-0.5 rounded-md"
                 >
                   {recipientName}
                 </motion.p>
@@ -398,6 +501,9 @@ export default function StarlightMemoriesTemplate({
                 >
                   {/* Widescreen Canvas with Pan & Zoom Cinematic Camera */}
                   <div
+                    data-editable-field={onSelectField ? `field-starlight-act-${currentAct + 1}` : undefined}
+                    data-edit-label={onSelectField ? `รูปภาพฉากที่ ${currentAct + 1}` : undefined}
+                    data-sq-focused={focusedFieldId === `field-starlight-act-${currentAct + 1}` ? "true" : undefined}
                     onClick={(e) => {
                       if (onSelectField) {
                         e.stopPropagation();
@@ -441,7 +547,7 @@ export default function StarlightMemoriesTemplate({
                     onClick={(e) => {
                       if (onSelectField) {
                         e.stopPropagation();
-                        onSelectField(currentAct + 2, `field-starlight-act-${currentAct + 1}`);
+                        onSelectField(currentAct + 2, `field-starlight-act-text-${currentAct + 1}`);
                       }
                     }}
                     className={`absolute bottom-6 md:bottom-10 left-0 right-0 z-20 flex flex-col items-center text-center px-6 max-w-3xl mx-auto space-y-2 rounded-xl p-2 transition-all ${
@@ -453,7 +559,16 @@ export default function StarlightMemoriesTemplate({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3, duration: 0.7 }}
-                      className="text-[10px] md:text-xs font-mono tracking-[0.35em] text-amber-300/80 uppercase"
+                      data-editable-field={onSelectField ? `field-starlight-act-label-${currentAct + 1}` : undefined}
+                      data-edit-label={onSelectField ? `ชื่อหัวข้อฉากที่ ${currentAct + 1}` : undefined}
+                      data-sq-focused={focusedFieldId === `field-starlight-act-label-${currentAct + 1}` ? "true" : undefined}
+                      onClick={(e) => {
+                        if (onSelectField) {
+                          e.stopPropagation();
+                          onSelectField(currentAct + 2, `field-starlight-act-label-${currentAct + 1}`);
+                        }
+                      }}
+                      className="text-[10px] md:text-xs font-mono tracking-[0.35em] text-amber-300/80 uppercase px-2 py-0.5 rounded-md"
                     >
                       {scenes[currentAct].actName}
                     </motion.div>
@@ -462,7 +577,10 @@ export default function StarlightMemoriesTemplate({
                       initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
                       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                       transition={{ delay: 0.5, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                      className="text-lg md:text-2xl font-light text-slate-100 leading-relaxed tracking-wide drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]"
+                      data-editable-field={onSelectField ? `field-starlight-act-text-${currentAct + 1}` : undefined}
+                      data-edit-label={onSelectField ? `ข้อความความในใจฉากที่ ${currentAct + 1}` : undefined}
+                      data-sq-focused={focusedFieldId === `field-starlight-act-text-${currentAct + 1}` ? "true" : undefined}
+                      className="text-lg md:text-2xl font-light text-slate-100 leading-relaxed tracking-wide drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)] px-3 py-1 rounded-lg"
                       style={{ fontFamily: "'Sarabun', 'Prompt', sans-serif" }}
                     >
                       {scenes[currentAct].caption}
@@ -495,14 +613,47 @@ export default function StarlightMemoriesTemplate({
               }`}
               title={onSelectField ? "คลิกเพื่อแก้ไขฉากส่งท้าย (แท็บ 5)" : undefined}
             >
-              <span className="text-[10px] md:text-xs font-mono uppercase tracking-[0.35em] text-amber-300/80">
+              <span
+                data-editable-field={onSelectField ? "field-starlight-finale-title" : undefined}
+                data-edit-label={onSelectField ? "ข้อความหัวเรื่องฉากส่งท้าย" : undefined}
+                data-sq-focused={focusedFieldId === "field-starlight-finale-title" ? "true" : undefined}
+                onClick={(e) => {
+                  if (onSelectField) {
+                    e.stopPropagation();
+                    onSelectField(5, "field-starlight-finale-title");
+                  }
+                }}
+                className="inline-block text-[10px] md:text-xs font-mono uppercase tracking-[0.35em] text-amber-300/80 px-2 py-0.5 rounded-md"
+              >
                 {finale.mainText ? String(finale.mainText) : "FROZEN IN TIME"}
               </span>
-              <h2 className="text-xl md:text-3xl font-light text-slate-100 tracking-wider">
+              <h2
+                data-editable-field={onSelectField ? "field-starlight-finale-msg" : undefined}
+                data-edit-label={onSelectField ? "คำอวยพรจบ / ข้อความปิดท้าย" : undefined}
+                data-sq-focused={focusedFieldId === "field-starlight-finale-msg" ? "true" : undefined}
+                onClick={(e) => {
+                  if (onSelectField) {
+                    e.stopPropagation();
+                    onSelectField(5, "field-starlight-finale-msg");
+                  }
+                }}
+                className="text-xl md:text-3xl font-light text-slate-100 tracking-wider px-2 py-0.5 rounded-lg"
+              >
                 {finale.subText ? String(finale.subText) : "ความทรงจำที่หยุดเวลาไว้ด้วยความรัก"}
               </h2>
-              <p className="text-xs text-slate-400 font-light">
-                ปาดเลือกหยิบดูภาพโพลารอยด์ หรือแตะเพื่ออ่านข้อความความในใจ
+              <p
+                data-editable-field={onSelectField ? "field-starlight-gallery-hint" : undefined}
+                data-edit-label={onSelectField ? "คำแนะนำการดูโพลารอยด์" : undefined}
+                data-sq-focused={focusedFieldId === "field-starlight-gallery-hint" ? "true" : undefined}
+                onClick={(e) => {
+                  if (onSelectField) {
+                    e.stopPropagation();
+                    onSelectField(5, "field-starlight-gallery-hint");
+                  }
+                }}
+                className="inline-block text-xs text-slate-400 font-light px-2 py-0.5 rounded-md"
+              >
+                {galleryHint}
               </p>
             </div>
 
@@ -515,10 +666,12 @@ export default function StarlightMemoriesTemplate({
                 return (
                   <motion.div
                     key={scene.id}
+                    title={onSelectField ? `คลิกเพื่อแก้ไขป้ายหมายเลขโพลารอยด์ ${idx + 1} (แท็บ 5)` : undefined}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (onSelectField) {
-                        onSelectField(5, "field-starlight-finale-msg");
+                        setSelectedPolaroidIndex(idx);
+                        onSelectField(5, `field-starlight-scene-badge-${idx + 1}`);
                         return;
                       }
                       if (isActive) {
@@ -549,7 +702,19 @@ export default function StarlightMemoriesTemplate({
                         alt={scene.caption}
                         className="w-full h-full object-cover filter contrast-[1.05]"
                       />
-                      <div className="absolute top-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[9px] font-mono text-amber-200">
+                      <div
+                        data-editable-field={onSelectField ? `field-starlight-scene-badge-${idx + 1}` : undefined}
+                        data-edit-label={onSelectField ? `ป้ายหมายเลขโพลารอยด์ ${idx + 1}` : undefined}
+                        data-sq-focused={focusedFieldId === `field-starlight-scene-badge-${idx + 1}` ? "true" : undefined}
+                        onClick={(e) => {
+                          if (onSelectField) {
+                            e.stopPropagation();
+                            setSelectedPolaroidIndex(idx);
+                            onSelectField(5, `field-starlight-scene-badge-${idx + 1}`);
+                          }
+                        }}
+                        className="absolute top-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[9px] font-mono text-amber-200"
+                      >
                         {scene.sceneNumber}
                       </div>
                       <div className="absolute bottom-2 right-2 p-1.5 rounded-full bg-black/60 text-white/90">
@@ -606,14 +771,21 @@ export default function StarlightMemoriesTemplate({
             <div className="flex justify-center pt-2 pb-2">
               <button
                 type="button"
+                data-editable-field={onSelectField ? "field-starlight-replay-label" : undefined}
+                data-edit-label={onSelectField ? "ข้อความปุ่มเล่นซ้ำ" : undefined}
+                data-sq-focused={focusedFieldId === "field-starlight-replay-label" ? "true" : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (onSelectField) {
+                    onSelectField(5, "field-starlight-replay-label");
+                    return;
+                  }
                   handleReplayCutscene();
                 }}
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-slate-200 hover:text-white tracking-[0.2em] uppercase font-light transition-all duration-300 shadow-lg hover:border-amber-400/50 hover:shadow-[0_0_24px_rgba(251,191,36,0.3)]"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                ชมคัดซีนภาพยนตร์อีกครั้ง
+                {replayLabel}
               </button>
             </div>
           </motion.div>
@@ -676,8 +848,21 @@ export default function StarlightMemoriesTemplate({
           mode === "cutscene" ? "h-9 md:h-12 opacity-100" : "h-0 opacity-0"
         }`}
       >
-        <span className="text-[9px] md:text-[10px] font-mono tracking-[0.4em] text-slate-500 uppercase">
-          CINEMATIC 21:9 WIDESCREEN EXPERIENCE
+        <span
+          data-editable-field={onSelectField ? "field-starlight-letterbox" : undefined}
+          data-edit-label={onSelectField ? "ข้อความแถบภาพยนตร์ด้านล่าง" : undefined}
+          data-sq-focused={focusedFieldId === "field-starlight-letterbox" ? "true" : undefined}
+          onClick={(e) => {
+            if (onSelectField) {
+              e.stopPropagation();
+              onSelectField(1, "field-starlight-letterbox");
+            }
+          }}
+          className={`text-[9px] md:text-[10px] font-mono tracking-[0.4em] text-slate-500 uppercase px-2 py-0.5 rounded ${
+            onSelectField ? "cursor-pointer hover:text-slate-300" : ""
+          }`}
+        >
+          {letterboxTagline}
         </span>
       </div>
     </div>

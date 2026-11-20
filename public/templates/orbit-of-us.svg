@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <radialGradient id="spaceBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1e0b36"/>
+      <stop offset="48%" stop-color="#0b0720"/>
+      <stop offset="100%" stop-color="#03020a"/>
+    </radialGradient>
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#fff1f2" stop-opacity="0.95"/>
+      <stop offset="25%" stop-color="#f472b6" stop-opacity="0.65"/>
+      <stop offset="60%" stop-color="#a855f7" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="140" y1="220" x2="660" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f472b6" stop-opacity="0.7"/>
+      <stop offset="50%" stop-color="#fde68a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.7"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#spaceBg)"/>
+  <!-- Background Stars -->
+  <circle cx="110" cy="95" r="1.8" fill="#fff" opacity="0.75"/>
+  <circle cx="685" cy="110" r="2.2" fill="#fde68a" opacity="0.8"/>
+  <circle cx="155" cy="480" r="2" fill="#f472b6" opacity="0.7"/>
+  <circle cx="670" cy="465" r="1.8" fill="#c084fc" opacity="0.75"/>
+  <circle cx="250" cy="140" r="1.4" fill="#fff" opacity="0.6"/>
+  <circle cx="560" cy="125" r="1.6" fill="#fde68a" opacity="0.65"/>
+  <!-- 3D Tilted Galaxy Orbital Rings -->
+  <ellipse cx="400" cy="295" rx="285" ry="105" transform="rotate(-14 400 295)" stroke="url(#ringGrad)" stroke-width="2" stroke-dasharray="8 6" opacity="0.65"/>
+  <ellipse cx="400" cy="295" rx="205" ry="74" transform="rotate(-14 400 295)" stroke="#f9a8d4" stroke-width="1.6" opacity="0.5"/>
+  <ellipse cx="400" cy="295" rx="130" ry="48" transform="rotate(-14 400 295)" stroke="#fde68a" stroke-width="1.5" opacity="0.7"/>
+  <!-- Glowing Nebula Core -->
+  <circle cx="400" cy="295" r="170" fill="url(#coreGlow)"/>
+  <circle cx="400" cy="295" r="26" fill="#fff1f2" opacity="0.95"/>
+  <!-- Orbiting Photo Cards -->
+  <g transform="translate(170, 290) rotate(-12)">
+    <rect x="-32" y="-32" width="64" height="64" rx="12" fill="#1f1235" stroke="#f472b6" stroke-width="2.2"/>
+    <circle cx="0" cy="-4" r="12" fill="#fbcfe8" opacity="0.85"/>
+    <rect x="-18" y="14" width="36" height="5" rx="2.5" fill="#fde68a" opacity="0.8"/>
+  </g>
+  <g transform="translate(595, 225) rotate(10)">
+    <rect x="-34" y="-34" width="68" height="68" rx="12" fill="#1f1235" stroke="#fde68a" stroke-width="2.2"/>
+    <circle cx="0" cy="-4" r="13" fill="#fde68a" opacity="0.85"/>
+    <rect x="-18" y="15" width="36" height="5" rx="2.5" fill="#f472b6" opacity="0.8"/>
+  </g>
+  <g transform="translate(475, 385) rotate(-6)">
+    <rect x="-28" y="-28" width="56" height="56" rx="10" fill="#1f1235" stroke="#c084fc" stroke-width="2"/>
+    <circle cx="0" cy="-3" r="10" fill="#e9d5ff" opacity="0.85"/>
+  </g>
+  <!-- Title Overlay -->
+  <text x="400" y="498" text-anchor="middle" fill="#fff1f2" font-family="sans-serif" font-size="30" font-weight="800" letter-spacing="3">ORBIT OF US 3D</text>
+  <text x="400" y="534" text-anchor="middle" fill="#f9a8d4" font-family="sans-serif" font-size="16" font-weight="500" letter-spacing="1.5">กาแล็กซีความทรงจำ 360° &amp; ดาวรวมร่างหัวใจ 3 มิติ</text>
+</svg>
+

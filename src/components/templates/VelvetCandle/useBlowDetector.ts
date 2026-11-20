@@ -101,25 +101,25 @@ export function useBlowDetector({ onBlow }: UseBlowDetectorOptions) {
 
         const now = performance.now();
 
-        // Calibrate the ambient noise floor during the first ~600ms.
-        if (now - startedAt < 600) {
+        // Calibrate the ambient noise floor during the first ~350ms (capped so early blowing won't desensitize).
+        if (now - startedAt < 350) {
           calibrationSamples += 1;
-          noiseFloor += (rms - noiseFloor) / calibrationSamples;
+          noiseFloor = Math.min(0.04, noiseFloor + (rms - noiseFloor) / calibrationSamples);
         } else {
-          const threshold = Math.max(0.09, noiseFloor * 3.2);
-          const isBlowing = rms > threshold && lowAvg > 105;
-          sustained = isBlowing ? sustained + 1 : Math.max(0, sustained - 2);
+          const threshold = Math.max(0.035, noiseFloor * 2.1);
+          const isBlowing = (rms > threshold && lowAvg > 55) || rms > threshold * 1.45;
+          sustained = isBlowing ? sustained + 1 : Math.max(0, sustained - 1);
 
-          if (sustained >= 5 && now - lastFire > 90) {
+          if (sustained >= 2 && now - lastFire > 80) {
             lastFire = now;
-            const intensity = Math.min(1, (rms - threshold) / 0.25 + 0.3);
+            const intensity = Math.min(1, (rms - threshold) / 0.14 + 0.45);
             onBlowRef.current(intensity);
           }
         }
 
-        if (now - lastLevelUpdate.current > 80) {
+        if (now - lastLevelUpdate.current > 70) {
           lastLevelUpdate.current = now;
-          setLevel(Math.min(1, rms * 4));
+          setLevel(Math.min(1, rms * 8));
         }
 
         rafRef.current = requestAnimationFrame(tick);

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Cake, Crown, Heart, LayoutGrid, PartyPopper, Tag, type LucideIcon } from "lucide-react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Cake, Crown, Heart, LayoutGrid, PartyPopper, Search, Tag, X, type LucideIcon } from "lucide-react";
 import type { Template } from "@/types/database";
 import { CATEGORY_META, type CategoryMeta } from "@/constants/template-categories";
 import { getTemplateById } from "@/data/templates";
@@ -13,21 +13,31 @@ interface TemplateShowcaseProps {
 
 export default function TemplateShowcase({ templates }: TemplateShowcaseProps) {
   const [activeCategory, setActiveCategory] = useState<CategoryMeta["id"]>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const templateGridRef = useRef<HTMLDivElement>(null);
   // null = ยังไม่ได้วัด -> ปล่อยความสูงอิสระ (แสดงเต็มที่) ป้องกันกริดพับซ่อนเป็น 0
   const [templateGridHeight, setTemplateGridHeight] = useState<number | null>(null);
 
   const filteredTemplates = useMemo(() => {
-    if (activeCategory === "all") return templates;
+    const q = searchQuery.trim().toLowerCase();
     return templates.filter((template) => {
-      const isPremium = template.is_premium || (template.price ?? 0) > 0;
-      if (activeCategory === "free") return !isPremium;
-      if (activeCategory === "premium") return isPremium;
-      return template.category === activeCategory;
+      if (activeCategory !== "all") {
+        const isPremium = template.is_premium || (template.price ?? 0) > 0;
+        if (activeCategory === "free" && isPremium) return false;
+        if (activeCategory === "premium" && !isPremium) return false;
+        if (activeCategory !== "free" && activeCategory !== "premium" && template.category !== activeCategory) {
+          return false;
+        }
+      }
+      if (!q) return true;
+      return (
+        (template.title ?? "").toLowerCase().includes(q) ||
+        (template.category ?? "").toLowerCase().includes(q)
+      );
     });
-  }, [activeCategory, templates]);
-  const visibleTemplates = isExpanded ? filteredTemplates : filteredTemplates.slice(0, 5);
+  }, [activeCategory, searchQuery, templates]);
+  const visibleTemplates = isExpanded || searchQuery.trim() ? filteredTemplates : filteredTemplates.slice(0, 5);
 
   useLayoutEffect(() => {
     const element = templateGridRef.current;
@@ -46,6 +56,27 @@ export default function TemplateShowcase({ templates }: TemplateShowcaseProps) {
           <div>
             <p className="mb-2 text-base font-bold text-slate-300">เทมเพลตยอดนิยม</p>
             <h2 className="text-2xl font-extrabold text-white">เลือกเทมเพลตสร้างการ์ดเซอร์ไพรส์</h2>
+          </div>
+          <div className="relative w-full md:w-72">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ค้นหาเทมเพลต..."
+              aria-label="ค้นหาเทมเพลต"
+              className="w-full rounded-xl border border-space-border bg-white/5 py-2.5 pl-10 pr-9 text-sm text-white placeholder:text-slate-400 focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-400/25 transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                aria-label="ล้างคำค้นหา"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -100,7 +131,7 @@ export default function TemplateShowcase({ templates }: TemplateShowcaseProps) {
         </div>
 
         {filteredTemplates.length > 5 && (
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex justify-end">
             <button
               type="button"
               aria-expanded={isExpanded}

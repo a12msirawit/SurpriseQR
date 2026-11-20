@@ -768,7 +768,7 @@ export default function CardList({ cards, tier, baseUrl, isGuest = false, isDraf
       </div>
 
       {visibleCards.length > 5 && (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex justify-end">
           <button
             type="button"
             aria-expanded={isExpanded}

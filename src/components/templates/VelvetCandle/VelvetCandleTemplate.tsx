@@ -340,16 +340,35 @@ export default function VelvetCandleTemplate({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studio, activeScreen]);
 
-  const edit = (tab: number, field: string) =>
-    onSelectField
-      ? {
-        onClick: (e: React.MouseEvent) => {
-          e.stopPropagation();
-          onSelectField(tab, field);
-        },
-        title: "คลิกเพื่อแก้ไข",
-      }
-      : {};
+  const VELVET_FIELD_LABELS: Record<string, string> = {
+    "field-velvet-title": "หัวข้อการ์ด",
+    "field-velvet-name": "ชื่อผู้รับ & อายุ",
+    "field-velvet-secret": "ข้อความลับหลังตัดเค้ก",
+    "field-velvet-wish": "คำอธิษฐาน",
+    "field-velvet-finale-title": "หัวข้อฉากจบ",
+    "field-velvet-finale-msg": "ข้อความปิดท้าย",
+  };
+
+  const edit = (tab: number, field: string, customLabel?: string) => {
+    if (!onSelectField) return {};
+    const label =
+      customLabel ||
+      VELVET_FIELD_LABELS[field] ||
+      (field.startsWith("field-velvet-photo-")
+        ? `รูปภาพความทรงจำ ${field.slice("field-velvet-photo-".length)}`
+        : field.startsWith("field-velvet-balloon-")
+        ? `ข้อความลูกโป่ง ${field.slice("field-velvet-balloon-".length)}`
+        : "ข้อมูล");
+    return {
+      onClick: (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onSelectField(tab, field);
+      },
+      title: `คลิกเพื่อแก้ไข${label}`,
+      "data-editable-field": field,
+      "data-edit-label": `แก้ไข${label}`,
+    };
+  };
   const editCls = onSelectField ? EDIT_RING : "";
 
   const gold = "bg-gradient-to-b from-[#fbeec4] via-[#e2bd6b] to-[#a57a2c] bg-clip-text text-transparent";
@@ -425,15 +444,16 @@ export default function VelvetCandleTemplate({
               e.stopPropagation();
               onSelectField(1, "field-velvet-music");
             }}
+            title="คลิกเพื่อแก้ไขเพลงประกอบ"
             className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/25 bg-black/40 px-3 py-1.5 font-sans text-[11px] font-semibold tracking-wide text-amber-100/80 backdrop-blur hover:ring-2 hover:ring-amber-300/60"
           >
             <Music className="h-3.5 w-3.5" />
-            {data.musicUrl ? "เพลงประกอบ" : "เพลงวันเกิดกล่องดนตรี"}
+            {data.musicUrl ? "เพลงประกอบ" : " "}
           </button>
         ) : (
           <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/20 bg-black/40 px-3 py-1.5 font-sans text-[11px] font-medium tracking-wide text-amber-100/70 backdrop-blur">
             <Music className="h-3.5 w-3.5" />
-            {data.musicUrl ? "เพลงประกอบ" : "เพลงวันเกิดกล่องดนตรี"}
+            {data.musicUrl ? "เพลงประกอบ" : " "}
           </span>
         )}
         {musicOn ? (
@@ -756,6 +776,9 @@ export default function VelvetCandleTemplate({
                         type="button"
                         aria-label={`ลูกโป่งที่ ${i + 1}`}
                         onClick={() => popBalloon(i)}
+                        title={onSelectField ? `คลิกเพื่อแก้ไขลูกโป่งที่ ${i + 1}` : undefined}
+                        data-editable-field={onSelectField ? `field-velvet-balloon-${i + 1}` : undefined}
+                        data-edit-label={onSelectField ? `แก้ไขคำอวยพรลูกโป่ง ${i + 1}` : undefined}
                         initial={{ y: 420, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ scale: 1.5, opacity: 0, transition: { duration: 0.14 } }}
@@ -797,6 +820,9 @@ export default function VelvetCandleTemplate({
                     <button
                       type="button"
                       onClick={() => popBalloon(i)}
+                      title={onSelectField ? `คลิกเพื่อแก้ไขลูกโป่งที่ ${i + 1}` : undefined}
+                      data-editable-field={onSelectField ? `field-velvet-balloon-${i + 1}` : undefined}
+                      data-edit-label={onSelectField ? `แก้ไขคำอวยพรลูกโป่ง ${i + 1}` : undefined}
                       className="mt-auto inline-flex items-center gap-1.5 rounded-full border border-amber-200/30 bg-black/30 px-3 py-1.5 font-sans text-[11px] text-amber-100/80 backdrop-blur hover:bg-black/50"
                     >
                       <Sparkles className="h-3 w-3" />
@@ -875,7 +901,14 @@ export default function VelvetCandleTemplate({
                   {data.finaleTitle}
                 </h2>
               )}
-              <p className="font-sans text-sm tracking-[0.3em] text-amber-100/60">{data.name}</p>
+              {visible(data.name) && (
+                <p
+                  {...edit(1, "field-velvet-name")}
+                  className={`inline-block font-sans text-sm tracking-[0.3em] text-amber-100/60 ${editCls}`}
+                >
+                  {data.name}
+                </p>
+              )}
             </motion.div>
 
             <div className="grid w-full grid-cols-2 gap-5 px-2">
@@ -930,7 +963,7 @@ export default function VelvetCandleTemplate({
               className="inline-flex items-center gap-2 rounded-full border border-amber-200/35 px-6 py-2.5 font-sans text-sm tracking-wide text-amber-100/85 transition hover:border-amber-200/60 hover:bg-white/[0.05]"
             >
               <RotateCcw className="h-4 w-4" />
-              เป่าเทียนอีกครั้ง
+              ดูอีกครั้งไหม?
             </button>
           </div>
         </div>

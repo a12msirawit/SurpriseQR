@@ -93,6 +93,114 @@
 	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
 		background: #6d3d86;
 	}
+
+	/* Studio Live Preview: show crisp dashed editable frame & instant badge on hover across all templates */
+	.studio-live-preview [data-editable-field],
+	.studio-live-preview [title*="คลิกเพื่อแก้ไข"] {
+		transition: outline-color 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+	}
+
+	.studio-live-preview [data-editable-field]:hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover)),
+	.studio-live-preview [title*="คลิกเพื่อแก้ไข"]:hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover)) {
+		outline: 2px dashed rgba(251, 191, 36, 0.96) !important;
+		outline-offset: 3px;
+		box-shadow:
+			inset 0 0 0 2px rgba(251, 191, 36, 0.55),
+			0 0 0 2px rgba(10, 6, 18, 0.72),
+			0 0 0 5px rgba(251, 191, 36, 0.22),
+			0 0 22px rgba(251, 191, 36, 0.32) !important;
+		cursor: pointer !important;
+	}
+
+	.studio-live-preview [data-editable-field]:not(.absolute):not(.fixed):not(.sticky):hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover)),
+	.studio-live-preview [title*="คลิกเพื่อแก้ไข"]:not(.absolute):not(.fixed):not(.sticky):hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover)) {
+		position: relative;
+		z-index: 25;
+	}
+
+	.studio-live-preview [data-editable-field]:not(img):not(input):not(textarea):not(svg):not(video):not(canvas):hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover))::after,
+	.studio-live-preview [title*="คลิกเพื่อแก้ไข"]:not(img):not(input):not(textarea):not(svg):not(video):not(canvas):hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover))::after {
+		content: "คลิกเพื่อแก้ไข";
+		position: absolute;
+		top: -12px;
+		right: 6px;
+		z-index: 60;
+		pointer-events: none;
+		padding: 2px 8px;
+		border-radius: 9999px;
+		background: linear-gradient(135deg, #f59e0b, #d97706);
+		color: #0f0a06;
+		border: 1px solid rgba(254, 243, 199, 0.85);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+		font-family: var(--font-noto-sans-thai), system-ui, sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		line-height: 1.3;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+	}
+
+	.studio-live-preview [data-edit-label]:not(img):not(input):not(textarea):not(svg):not(video):not(canvas):hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover))::after {
+		content: attr(data-edit-label);
+	}
+
+	.studio-live-preview .overflow-hidden[data-editable-field]:hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover))::after,
+	.studio-live-preview .overflow-hidden[title*="คลิกเพื่อแก้ไข"]:hover:not(:has([data-editable-field]:hover, [title*="คลิกเพื่อแก้ไข"]:hover))::after {
+		top: 6px;
+		right: 6px;
+	}
+}
+
+/* Active/Focused field highlight from editor (desktop & mobile) — mirrors hover frame */
+.studio-live-preview .sq-preview-focus-ring,
+.studio-live-preview [data-sq-focused="true"] {
+	outline: 2.5px dashed rgba(251, 191, 36, 0.98) !important;
+	outline-offset: 4px !important;
+	box-shadow:
+		inset 0 0 0 2px rgba(251, 191, 36, 0.55),
+		0 0 0 2px rgba(10, 6, 18, 0.78),
+		0 0 0 6px rgba(251, 191, 36, 0.25),
+		0 0 26px rgba(251, 191, 36, 0.4) !important;
+	border-radius: 10px;
+}
+
+.studio-live-preview .sq-preview-focus-ring:not(.absolute):not(.fixed):not(.sticky),
+.studio-live-preview [data-sq-focused="true"]:not(.absolute):not(.fixed):not(.sticky) {
+	position: relative;
+	z-index: 28;
+}
+
+.studio-live-preview .sq-preview-focus-ring[data-focus-label]:not(img):not(input):not(textarea):not(svg):not(video):not(canvas)::after,
+.studio-live-preview [data-sq-focused="true"][data-edit-label]:not(img):not(input):not(textarea):not(svg):not(video):not(canvas)::after {
+	content: attr(data-focus-label);
+	position: absolute;
+	top: -14px;
+	right: 6px;
+	z-index: 65;
+	pointer-events: none;
+	padding: 2px 10px;
+	border-radius: 9999px;
+	background: linear-gradient(135deg, #f59e0b, #d97706);
+	color: #0f0a06;
+	border: 1px solid rgba(254, 243, 199, 0.9);
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+	font-family: var(--font-noto-sans-thai), system-ui, sans-serif;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1.35;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+}
+
+.studio-live-preview [data-sq-focused="true"][data-edit-label]:not([data-focus-label]):not(img):not(input):not(textarea):not(svg):not(video):not(canvas)::after {
+	content: attr(data-edit-label);
+}
+
+.studio-live-preview .overflow-hidden.sq-preview-focus-ring[data-focus-label]::after,
+.studio-live-preview .sq-preview-focus-ring[data-focus-inside="true"][data-focus-label]::after,
+.studio-live-preview .overflow-hidden[data-sq-focused="true"][data-edit-label]::after {
+	top: 8px;
+	right: 8px;
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }

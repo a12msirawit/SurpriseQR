@@ -34,6 +34,39 @@ const VelvetCandleTemplate = dynamic(
   () => import("@/components/cards/templates/VelvetCandleTemplate"),
   { ssr: false },
 );
+const GrandNewYearTemplate = dynamic(
+  () => import("@/components/cards/templates/grand-new-year-template"),
+  { ssr: false },
+);
+const SongkranSplendorTemplate = dynamic(
+  () => import("@/components/cards/templates/songkran-splendor-template"),
+  { ssr: false },
+);
+
+const HalloweenHauntedTemplate = dynamic(
+  () => import("@/components/cards/templates/halloween-haunted-template"),
+  { ssr: false },
+);
+
+const LoveOSTemplate = dynamic(
+  () => import("@/components/cards/templates/LoveOSTemplate"),
+  { ssr: false },
+);
+
+const PixelGachaTemplate = dynamic(
+  () => import("@/components/cards/templates/PixelGachaTemplate"),
+  { ssr: false },
+);
+
+const Lunar3DTemplate = dynamic(
+  () => import("@/components/cards/templates/Lunar3DTemplate"),
+  { ssr: false },
+);
+
+const OrbitOfUsTemplate = dynamic(
+  () => import("@/components/cards/templates/OrbitOfUsTemplate"),
+  { ssr: false },
+);
 
 export type TemplatePreviewComponent = React.ComponentType<{
   config: unknown;
@@ -63,6 +96,13 @@ const COMPONENT_BY_SLUG: Partial<Record<TemplateSlug, TemplatePreviewComponent>>
   "midnight-cinema": MidnightCinemaTemplate as TemplatePreviewComponent,
   "starlight-memories": StarlightMemoriesTemplate as TemplatePreviewComponent,
   "velvet-candle": VelvetCandleTemplate as TemplatePreviewComponent,
+  "new-year-grand-celebration": GrandNewYearTemplate as TemplatePreviewComponent,
+  "songkran-splendor": SongkranSplendorTemplate as TemplatePreviewComponent,
+  "halloween-haunted-scroll": HalloweenHauntedTemplate as TemplatePreviewComponent,
+  "love-os": LoveOSTemplate as TemplatePreviewComponent,
+  "pixel-gacha": PixelGachaTemplate as TemplatePreviewComponent,
+  "lunar-3d": Lunar3DTemplate as TemplatePreviewComponent,
+  "orbit-of-us": OrbitOfUsTemplate as TemplatePreviewComponent,
 };
 
 /**

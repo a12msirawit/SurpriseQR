@@ -10,6 +10,7 @@ interface AnniversaryTemplateProps {
   activeScreen?: number;
   refreshToken?: number;
   expectedPin?: string;
+  onSelectField?: (tabIndex: number, fieldId?: string) => void;
 }
 
 /**
@@ -24,6 +25,7 @@ export default function AnniversaryTemplate({
   activeScreen,
   refreshToken,
   expectedPin,
+  onSelectField,
 }: AnniversaryTemplateProps) {
   const mergedConfig = config as Partial<SurpriseQRData> | undefined;
 
@@ -35,6 +37,7 @@ export default function AnniversaryTemplate({
       activeScreen={activeScreen}
       refreshToken={refreshToken}
       expectedPin={expectedPin}
+      onSelectField={onSelectField}
     />
   );
 }

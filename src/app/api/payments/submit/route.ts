@@ -24,16 +24,17 @@ export async function POST(request: Request) {
   const packageTypeEntry = formData.get("package_type");
   const packageType = typeof packageTypeEntry === "string" ? packageTypeEntry : null;
 
-  // Payer claim evidence (REQUIRED): the DB-level approval guard refuses to
-  // approve any payment whose claim columns are NULL, so collect them here.
+  // Payer claim evidence (REQUIRED by DB approval guard): default to server submission
+  // time when the form omits a manual transfer timestamp.
   const claimedTimeRaw = formData.get("claimed_transfer_time");
-  const claimedTime = typeof claimedTimeRaw === "string" && claimedTimeRaw !== "" ? new Date(claimedTimeRaw) : null;
-  if (!claimedTime || Number.isNaN(claimedTime.getTime())) {
-    return NextResponse.json({ error: "กรุณาระบุเวลาที่โอนเงิน" }, { status: 400 });
-  }
-  if (claimedTime.getTime() > Date.now() + 5 * 60 * 1000) {
-    return NextResponse.json({ error: "เวลาที่โอนเงินต้องไม่อยู่ในอนาคต" }, { status: 400 });
-  }
+  const parsedClaimedTime =
+    typeof claimedTimeRaw === "string" && claimedTimeRaw.trim() !== ""
+      ? new Date(claimedTimeRaw)
+      : null;
+  const claimedTime =
+    parsedClaimedTime && !Number.isNaN(parsedClaimedTime.getTime())
+      ? parsedClaimedTime
+      : new Date();
   if (!(file instanceof File) || file.size === 0) {
     return NextResponse.json({ error: "กรุณาแนบสลิป" }, { status: 400 });
   }

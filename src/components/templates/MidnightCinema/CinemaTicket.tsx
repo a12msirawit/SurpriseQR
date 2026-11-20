@@ -61,8 +61,14 @@ export default function CinemaTicket({
                   }
                 : { x: 0, y: 0, rotate: 0 }
             }
-            onClick={() => onSelectField?.(1, "field-cinema-ticket-info")}
-            className="relative flex flex-col justify-between rounded-t-2xl sm:rounded-tr-none sm:rounded-l-2xl bg-[#f5f2eb] p-5 text-neutral-900 border border-neutral-300/80 shadow-inner sm:w-44 shrink-0 overflow-hidden cursor-pointer group"
+            data-editable-field={onSelectField ? "field-cinema-ticket-info" : undefined}
+            data-edit-label={onSelectField ? "ข้อมูลตั๋ว" : undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectField?.(1, "field-cinema-ticket-info");
+            }}
+            title={onSelectField ? "คลิกเพื่อแก้ไขข้อมูลตั๋ว (วันที่ / เวลา / โรง / ที่นั่ง)" : undefined}
+            className={`relative flex flex-col justify-between rounded-t-2xl sm:rounded-tr-none sm:rounded-l-2xl bg-[#f5f2eb] p-5 text-neutral-900 border border-neutral-300/80 shadow-inner sm:w-44 shrink-0 overflow-hidden group transition-all ${onSelectField ? "cursor-pointer hover:ring-2 hover:ring-amber-400/80" : ""}`}
           >
             {/* Subtle vintage paper texture gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-amber-50/40 via-transparent to-stone-200/50 pointer-events-none" />
@@ -118,8 +124,14 @@ export default function CinemaTicket({
                   }
                 : { x: 0, y: 0, rotate: 0 }
             }
-            onClick={() => onSelectField?.(1, "field-cinema-movie-title")}
-            className="relative flex flex-1 flex-col justify-between rounded-b-2xl sm:rounded-bl-none sm:rounded-r-2xl bg-[#f5f2eb] p-6 text-neutral-900 border border-neutral-300/80 shadow-inner overflow-hidden cursor-pointer group"
+            data-editable-field={onSelectField ? "field-cinema-movie-title" : undefined}
+            data-edit-label={onSelectField ? "ชื่อภาพยนตร์บนตั๋ว" : undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectField?.(1, "field-cinema-movie-title");
+            }}
+            title={onSelectField ? "คลิกเพื่อแก้ไขชื่อภาพยนตร์บนตั๋ว" : undefined}
+            className={`relative flex flex-1 flex-col justify-between rounded-b-2xl sm:rounded-bl-none sm:rounded-r-2xl bg-[#f5f2eb] p-6 text-neutral-900 border border-neutral-300/80 shadow-inner overflow-hidden group transition-all ${onSelectField ? "cursor-pointer hover:ring-2 hover:ring-amber-400/80" : ""}`}
           >
             {/* Vintage paper texture */}
             <div className="absolute inset-0 bg-gradient-to-br from-amber-50/40 via-transparent to-stone-200/50 pointer-events-none" />

@@ -1,5 +1,5 @@
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
@@ -23,14 +23,6 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     try {
-      const supabase = await createClient();
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-      if (error) {
-        console.error("OAuth callback - exchange code error:", error.message);
-        return NextResponse.redirect(failureUrl);
-      }
-
       let destination = new URL("/dashboard", effectiveOrigin);
       if (requestedNext?.startsWith("/") && !requestedNext.startsWith("//") && !requestedNext.includes("\\")) {
         try {
@@ -41,7 +33,40 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      return NextResponse.redirect(destination);
+      const response = NextResponse.redirect(destination);
+      response.headers.set("Cache-Control", "no-store");
+
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key",
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(
+              cookiesToSet: {
+                name: string;
+                value: string;
+                options: CookieOptions;
+              }[]
+            ) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options);
+              });
+            },
+          },
+        }
+      );
+
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error("OAuth callback - exchange code error:", error.message);
+        return NextResponse.redirect(failureUrl);
+      }
+
+      return response;
     } catch (error) {
       console.error("OAuth callback failed:", error);
       return NextResponse.redirect(failureUrl);
